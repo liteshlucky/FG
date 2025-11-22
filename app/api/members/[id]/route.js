@@ -1,0 +1,49 @@
+import dbConnect from '@/lib/db';
+import Member from '@/models/Member';
+import { NextResponse } from 'next/server';
+
+export async function GET(request, { params }) {
+    await dbConnect();
+    const { id } = await params;
+    try {
+        const member = await Member.findById(id).populate('planId').populate('discountId').populate('ptPlanId');
+        if (!member) {
+            return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
+        }
+        return NextResponse.json({ success: true, data: member });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+    }
+}
+
+export async function PUT(request, { params }) {
+    await dbConnect();
+    const { id } = await params;
+    try {
+        const body = await request.json();
+        const member = await Member.findByIdAndUpdate(id, body, {
+            new: true,
+            runValidators: true,
+        });
+        if (!member) {
+            return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
+        }
+        return NextResponse.json({ success: true, data: member });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+    }
+}
+
+export async function DELETE(request, { params }) {
+    await dbConnect();
+    const { id } = await params;
+    try {
+        const deletedMember = await Member.deleteOne({ _id: id });
+        if (!deletedMember) {
+            return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
+        }
+        return NextResponse.json({ success: true, data: {} });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+    }
+}
