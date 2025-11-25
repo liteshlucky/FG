@@ -5,7 +5,7 @@ import { TrendingUp, TrendingDown, DollarSign, AlertCircle, Lightbulb, Target, C
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
 export default function AnalyticsPage() {
-    const [analytics, setAnalytics] = useState(null);
+    const [analytics, setAnalytics] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [timeRange, setTimeRange] = useState('12');
     const [weatherFilter, setWeatherFilter] = useState('all');
@@ -44,7 +44,7 @@ export default function AnalyticsPage() {
         return <div className="p-8 text-center text-red-600">Failed to load analytics</div>;
     }
 
-    const { monthlyData, metrics, insights, weatherImpact } = analytics;
+    const { monthlyData, metrics, insights, weatherImpact } = analytics as any;
 
     // Filter data based on weather selection
     const filteredData = weatherFilter === 'all' ? monthlyData : monthlyData.filter((m: any) => {

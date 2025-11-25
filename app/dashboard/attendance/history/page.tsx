@@ -4,16 +4,16 @@ import { useState, useEffect } from 'react';
 import { Calendar, Download, LogOut, X, ZoomIn } from 'lucide-react';
 
 export default function AttendanceHistoryPage() {
-    const [attendanceData, setAttendanceData] = useState([]);
+    const [attendanceData, setAttendanceData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [filterType, setFilterType] = useState('all'); // 'all', 'day', 'month', 'year'
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
     const [userTypeFilter, setUserTypeFilter] = useState('all'); // 'all', 'Member', 'Trainer'
-    const [stats, setStats] = useState({});
-    const [checkingOut, setCheckingOut] = useState(null);
-    const [zoomedPhoto, setZoomedPhoto] = useState(null); // For photo zoom modal
+    const [stats, setStats] = useState<any>({});
+    const [checkingOut, setCheckingOut] = useState<string | null>(null);
+    const [zoomedPhoto, setZoomedPhoto] = useState<any>(null); // For photo zoom modal
 
     useEffect(() => {
         fetchAttendanceHistory();
@@ -56,7 +56,7 @@ export default function AttendanceHistoryPage() {
         }
     };
 
-    const handleCheckOut = async (attendanceId, userName) => {
+    const handleCheckOut = async (attendanceId: string, userName: string) => {
         if (!confirm(`Check out ${userName}?`)) return;
 
         setCheckingOut(attendanceId);
@@ -81,14 +81,14 @@ export default function AttendanceHistoryPage() {
         }
     };
 
-    const formatDuration = (minutes) => {
+    const formatDuration = (minutes: number) => {
         if (!minutes) return '-';
         const hours = Math.floor(minutes / 60);
         const mins = minutes % 60;
         return `${hours}h ${mins}m`;
     };
 
-    const formatTime = (dateString) => {
+    const formatTime = (dateString: string) => {
         if (!dateString) return '-';
         return new Date(dateString).toLocaleTimeString('en-US', {
             hour: '2-digit',
@@ -96,7 +96,7 @@ export default function AttendanceHistoryPage() {
         });
     };
 
-    const formatDate = (dateString) => {
+    const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
@@ -106,7 +106,7 @@ export default function AttendanceHistoryPage() {
 
     const exportToCSV = () => {
         const headers = ['Date', 'Name', 'Type', 'Check-In', 'Check-Out', 'Duration', 'Status'];
-        const rows = attendanceData.map(a => [
+        const rows = attendanceData.map((a: any) => [
             formatDate(a.checkInTime),
             a.userId?.name || 'Unknown',
             a.userType,
@@ -116,7 +116,7 @@ export default function AttendanceHistoryPage() {
             a.status
         ]);
 
-        const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+        const csv = [headers, ...rows].map((row: any) => row.join(',')).join('\n');
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -294,7 +294,7 @@ export default function AttendanceHistoryPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 bg-white">
-                                {attendanceData.map((attendance) => (
+                                {attendanceData.map((attendance: any) => (
                                     <tr key={attendance._id} className="hover:bg-gray-50">
                                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                                             {formatDate(attendance.checkInTime)}

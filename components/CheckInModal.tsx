@@ -3,8 +3,14 @@
 import { useState, useEffect } from 'react';
 import { X, Search } from 'lucide-react';
 
-export default function CheckInModal({ userType, onClose, onSuccess }) {
-    const [users, setUsers] = useState([]);
+interface CheckInModalProps {
+    userType: string;
+    onClose: () => void;
+    onSuccess: () => void;
+}
+
+export default function CheckInModal({ userType, onClose, onSuccess }: CheckInModalProps) {
+    const [users, setUsers] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [checkingIn, setCheckingIn] = useState(false);
@@ -30,7 +36,7 @@ export default function CheckInModal({ userType, onClose, onSuccess }) {
         }
     };
 
-    const handleCheckIn = async (userId) => {
+    const handleCheckIn = async (userId: string) => {
         setCheckingIn(true);
         try {
             const res = await fetch('/api/attendance', {
@@ -55,7 +61,7 @@ export default function CheckInModal({ userType, onClose, onSuccess }) {
         }
     };
 
-    const filteredUsers = users.filter(user =>
+    const filteredUsers = users.filter((user: any) =>
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (user.phone && user.phone.includes(searchTerm))
@@ -106,7 +112,7 @@ export default function CheckInModal({ userType, onClose, onSuccess }) {
                             </div>
                         ) : (
                             <div className="space-y-2">
-                                {filteredUsers.map((user) => (
+                                {filteredUsers.map((user: any) => (
                                     <div
                                         key={user._id}
                                         className="flex items-center justify-between rounded-lg border border-gray-200 p-4 hover:bg-gray-50"

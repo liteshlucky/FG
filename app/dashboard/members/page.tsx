@@ -8,7 +8,7 @@ import PaymentForm from '@/components/PaymentForm';
 import Avatar from '@/components/Avatar';
 
 export default function MembersPage() {
-    const [members, setMembers] = useState([]);
+    const [members, setMembers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedMember, setSelectedMember] = useState<any>(null);
     const [showPaymentForm, setShowPaymentForm] = useState(false);
@@ -118,7 +118,7 @@ export default function MembersPage() {
 
         const csvContent = [
             headers.join(','),
-            ...rows.map(row => row.join(','))
+            ...rows.map((row: any) => row.join(','))
         ].join('\n');
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -142,16 +142,16 @@ export default function MembersPage() {
             try {
                 const csvText = event.target?.result as string;
                 const lines = csvText.split('\n');
-                const headers = lines[0].split(',').map(h => h.trim());
+                const headers = lines[0].split(',').map((h: string) => h.trim());
 
-                const membersData = [];
+                const membersData: any[] = [];
 
                 for (let i = 1; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (!line) continue;
 
                     // Simple CSV parser (handles quoted strings)
-                    const values = [];
+                    const values: string[] = [];
                     let current = '';
                     let inQuotes = false;
                     for (let char of line) {
@@ -206,10 +206,10 @@ export default function MembersPage() {
                     member.goals = getVal(17);
 
                     // Clean up empty strings
-                    Object.keys(member).forEach(key => {
+                    Object.keys(member).forEach((key: string) => {
                         if (member[key] === '') delete member[key];
                     });
-                    Object.keys(member.bodyMeasurements).forEach(key => {
+                    Object.keys(member.bodyMeasurements).forEach((key: string) => {
                         if (member.bodyMeasurements[key] === '') delete member.bodyMeasurements[key];
                     });
 

@@ -7,7 +7,7 @@ import CheckOutModal from '@/components/CheckOutModal';
 
 export default function AttendancePage() {
     const [activeTab, setActiveTab] = useState('members');
-    const [attendanceData, setAttendanceData] = useState([]);
+    const [attendanceData, setAttendanceData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCheckInModal, setShowCheckInModal] = useState(false);
     const [showCheckOutModal, setShowCheckOutModal] = useState(false);
@@ -35,7 +35,7 @@ export default function AttendancePage() {
         }
     };
 
-    const calculateStats = (data) => {
+    const calculateStats = (data: any[]) => {
         const checkedIn = data.filter(a => a.status === 'checked-in').length;
         const checkedOut = data.filter(a => a.status === 'checked-out').length;
         setStats({
@@ -55,21 +55,21 @@ export default function AttendancePage() {
         fetchTodayAttendance();
     };
 
-    const formatDuration = (minutes) => {
+    const formatDuration = (minutes: number) => {
         if (!minutes) return '-';
         const hours = Math.floor(minutes / 60);
         const mins = minutes % 60;
         return `${hours}h ${mins}m`;
     };
 
-    const formatTime = (dateString) => {
+    const formatTime = (dateString: string) => {
         return new Date(dateString).toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit'
         });
     };
 
-    const checkedInUsers = attendanceData.filter(a => a.status === 'checked-in');
+    const checkedInUsers = attendanceData.filter((a: any) => a.status === 'checked-in');
 
     return (
         <div className="space-y-6">
@@ -211,7 +211,7 @@ export default function AttendancePage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 bg-white">
-                                {checkedInUsers.map((attendance) => (
+                                {checkedInUsers.map((attendance: any) => (
                                     <tr key={attendance._id} className="hover:bg-gray-50">
                                         <td className="whitespace-nowrap px-6 py-4">
                                             <div className="text-sm font-medium text-gray-900">

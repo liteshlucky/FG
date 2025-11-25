@@ -3,10 +3,17 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 
-export default function CheckOutModal({ userType, checkedInUsers, onClose, onSuccess }) {
+interface CheckOutModalProps {
+    userType: string;
+    checkedInUsers: any[];
+    onClose: () => void;
+    onSuccess: () => void;
+}
+
+export default function CheckOutModal({ userType, checkedInUsers, onClose, onSuccess }: CheckOutModalProps) {
     const [checkingOut, setCheckingOut] = useState(false);
 
-    const handleCheckOut = async (attendanceId, userName) => {
+    const handleCheckOut = async (attendanceId: string, userName: string) => {
         setCheckingOut(true);
         try {
             const res = await fetch(`/api/attendance/${attendanceId}/checkout`, {
@@ -29,14 +36,14 @@ export default function CheckOutModal({ userType, checkedInUsers, onClose, onSuc
         }
     };
 
-    const formatDuration = (minutes) => {
+    const formatDuration = (minutes: number) => {
         if (!minutes) return '-';
         const hours = Math.floor(minutes / 60);
         const mins = minutes % 60;
         return `${hours}h ${mins}m`;
     };
 
-    const formatTime = (dateString) => {
+    const formatTime = (dateString: string) => {
         return new Date(dateString).toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit'
@@ -89,7 +96,7 @@ export default function CheckOutModal({ userType, checkedInUsers, onClose, onSuc
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200 bg-white">
-                                    {checkedInUsers.map((attendance) => (
+                                    {checkedInUsers.map((attendance: any) => (
                                         <tr key={attendance._id} className="hover:bg-gray-50">
                                             <td className="whitespace-nowrap px-6 py-4">
                                                 <div className="text-sm font-medium text-gray-900">
