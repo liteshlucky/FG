@@ -411,7 +411,7 @@ async function generateAIPredictions(data) {
             trainerPayments.reduce((sum, tp) => sum + tp.amount, 0);
 
         const prompt = `You are a business analytics AI for a gym in Sodepur, West Bengal, India.
-
+        
 FINANCIAL DATA:
 - Total Revenue: ₹${totalRevenue.toLocaleString()}
 - Total Expense: ₹${totalExpense.toLocaleString()}
@@ -464,7 +464,17 @@ IMPORTANT:
 - Focus on actionable, specific recommendations
 - Return ONLY valid JSON, no markdown formatting`;
 
-        const result = await model.generateContent(prompt);
+        // Create a timeout promise (5 seconds)
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('AI generation timed out')), 5000)
+        );
+
+        // Race between AI generation and timeout
+        const result = await Promise.race([
+            model.generateContent(prompt),
+            timeoutPromise
+        ]);
+
         const response = result.response.text();
 
         // Clean and parse JSON
