@@ -5,15 +5,11 @@ import Transaction from '@/models/Transaction';
 import Member from '@/models/Member';
 import Trainer from '@/models/Trainer';
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-// Initialize Gemini AI only if API key is available
-const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
 export async function GET(request) {
-    await dbConnect();
-
     try {
+        await dbConnect();
+
         const { searchParams } = new URL(request.url);
         const months = parseInt(searchParams.get('months') || '12');
         const compareMode = searchParams.get('compare'); // 'month' or 'year'
@@ -209,15 +205,9 @@ export async function GET(request) {
             endDate
         });
 
-        // 9. AI PREDICTIONS (Churn & Pricing)
-        const aiPredictions = await generateAIPredictions({
-            payments,
-            transactions,
-            members,
-            trainerPayments,
-            revenueBreakdown,
-            profitMargins
-        });
+        // 9. AI PREDICTIONS (Moved to separate endpoint)
+        const aiPredictions = null;
+
         return NextResponse.json({
             success: true,
             data: {
@@ -236,7 +226,7 @@ export async function GET(request) {
                 memberAcquisition,
                 cashFlowProjections,
                 localInsights,
-                aiPredictions,
+                aiPredictions, // Now null, fetched separately
                 comparison: comparisonData
             }
         });
@@ -392,147 +382,4 @@ async function generateLocalInsights(data) {
     };
 }
 
-// Helper function: Generate AI predictions
-async function generateAIPredictions(data) {
-    const { payments, transactions, members, trainerPayments, revenueBreakdown, profitMargins } = data;
 
-    // If Gemini API is not configured, return fallback predictions immediately
-    if (!genAI) {
-        console.warn('Gemini API key not configured, using fallback predictions');
-        return getFallbackPredictions(members);
-    }
-
-    try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-        // Prepare data for AI analysis
-        const totalRevenue = revenueBreakdown.membership + revenueBreakdown.pt + revenueBreakdown.other;
-        const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0) +
-            trainerPayments.reduce((sum, tp) => sum + tp.amount, 0);
-
-        const prompt = `You are a business analytics AI for a gym in Sodepur, West Bengal, India.
-
-FINANCIAL DATA:
-- Total Revenue: ₹${totalRevenue.toLocaleString()}
-- Total Expense: ₹${totalExpense.toLocaleString()}
-- Membership Revenue: ₹${revenueBreakdown.membership.toLocaleString()}
-- PT Revenue: ₹${revenueBreakdown.pt.toLocaleString()}
-- Other Revenue: ₹${revenueBreakdown.other.toLocaleString()}
-- Membership Profit Margin: ${profitMargins.membership.margin}%
-- PT Profit Margin: ${profitMargins.pt.margin}%
-
-MEMBER DATA:
-- Total Members: ${members.length}
-- Recent Payments: ${payments.length}
-
-TASK: Provide AI-powered predictions in the following JSON format:
-
-{
-  "churnRisk": {
-    "highRiskCount": <number>,
-    "mediumRiskCount": <number>,
-    "lowRiskCount": <number>,
-    "topReasons": ["reason1", "reason2", "reason3"],
-    "recommendations": ["action1", "action2", "action3"]
-  },
-  "pricingOptimization": {
-    "currentStrategy": "brief analysis of current pricing",
-    "recommendations": [
-      {
-        "type": "membership" or "pt" or "general",
-        "suggestion": "specific pricing suggestion",
-        "expectedImpact": "expected outcome",
-        "priority": "high" or "medium" or "low"
-      }
-    ],
-    "competitiveAnalysis": "market positioning insight"
-  },
-  "revenueOpportunities": [
-    {
-      "opportunity": "specific opportunity",
-      "potentialRevenue": <estimated amount in rupees>,
-      "effort": "low" or "medium" or "high",
-      "timeline": "timeframe to implement"
-    }
-  ]
-}
-
-IMPORTANT:
-- Base churn risk on payment frequency and member count
-- Consider local context (Sodepur, West Bengal)
-- Pricing should be competitive for Indian gym market
-- Focus on actionable, specific recommendations
-- Return ONLY valid JSON, no markdown formatting`;
-
-        const result = await model.generateContent(prompt);
-        const response = result.response.text();
-
-        // Clean and parse JSON
-        let cleanedResponse = response.trim();
-        if (cleanedResponse.startsWith('```json')) {
-            cleanedResponse = cleanedResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-        } else if (cleanedResponse.startsWith('```')) {
-            cleanedResponse = cleanedResponse.replace(/```\n?/g, '');
-        }
-
-        const predictions = JSON.parse(cleanedResponse);
-        return predictions;
-
-    } catch (error) {
-        console.error('AI Predictions Error:', error);
-        return getFallbackPredictions(members);
-    }
-}
-
-// Fallback predictions when AI is unavailable
-function getFallbackPredictions(members) {
-    return {
-        churnRisk: {
-            highRiskCount: Math.round(members.length * 0.15),
-            mediumRiskCount: Math.round(members.length * 0.25),
-            lowRiskCount: Math.round(members.length * 0.60),
-            topReasons: [
-                'Irregular payment patterns',
-                'Low attendance frequency',
-                'No recent engagement'
-            ],
-            recommendations: [
-                'Send personalized re-engagement emails',
-                'Offer limited-time renewal discounts',
-                'Schedule one-on-one check-ins with at-risk members'
-            ]
-        },
-        pricingOptimization: {
-            currentStrategy: 'Current pricing appears competitive for the local market',
-            recommendations: [
-                {
-                    type: 'membership',
-                    suggestion: 'Introduce quarterly plans at 10% discount',
-                    expectedImpact: 'Increase upfront revenue and commitment',
-                    priority: 'high'
-                },
-                {
-                    type: 'pt',
-                    suggestion: 'Create PT package bundles (5, 10, 20 sessions)',
-                    expectedImpact: 'Higher average transaction value',
-                    priority: 'medium'
-                }
-            ],
-            competitiveAnalysis: 'Position as premium gym with personalized training focus'
-        },
-        revenueOpportunities: [
-            {
-                opportunity: 'Group fitness classes',
-                potentialRevenue: 50000,
-                effort: 'medium',
-                timeline: '2-3 months'
-            },
-            {
-                opportunity: 'Nutrition consultation add-on',
-                potentialRevenue: 30000,
-                effort: 'low',
-                timeline: '1 month'
-            }
-        ]
-    };
-}
