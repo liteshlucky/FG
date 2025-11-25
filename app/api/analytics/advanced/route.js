@@ -11,9 +11,9 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
 export async function GET(request) {
-    await dbConnect();
-
     try {
+        await dbConnect();
+
         const { searchParams } = new URL(request.url);
         const months = parseInt(searchParams.get('months') || '12');
         const compareMode = searchParams.get('compare'); // 'month' or 'year'
