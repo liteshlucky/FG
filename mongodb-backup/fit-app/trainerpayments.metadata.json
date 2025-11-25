@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"58f4f66ca9d34421992da32c31ba71e2","collectionName":"trainerpayments","type":"collection"}

@@ -7,7 +7,8 @@ import Trainer from '@/models/Trainer';
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Initialize Gemini AI only if API key is available
+const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
 export async function GET(request) {
     await dbConnect();
@@ -387,6 +388,12 @@ async function generateLocalInsights(data) {
 async function generateAIPredictions(data) {
     const { payments, transactions, members, trainerPayments, revenueBreakdown, profitMargins } = data;
 
+    // If Gemini API is not configured, return fallback predictions immediately
+    if (!genAI) {
+        console.warn('Gemini API key not configured, using fallback predictions');
+        return getFallbackPredictions(members);
+    }
+
     try {
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
@@ -465,56 +472,59 @@ IMPORTANT:
 
     } catch (error) {
         console.error('AI Predictions Error:', error);
+        return getFallbackPredictions(members);
+    }
+}
 
-        // Fallback predictions
-        return {
-            churnRisk: {
-                highRiskCount: Math.round(members.length * 0.15),
-                mediumRiskCount: Math.round(members.length * 0.25),
-                lowRiskCount: Math.round(members.length * 0.60),
-                topReasons: [
-                    'Irregular payment patterns',
-                    'Low attendance frequency',
-                    'No recent engagement'
-                ],
-                recommendations: [
-                    'Send personalized re-engagement emails',
-                    'Offer limited-time renewal discounts',
-                    'Schedule one-on-one check-ins with at-risk members'
-                ]
-            },
-            pricingOptimization: {
-                currentStrategy: 'Current pricing appears competitive for the local market',
-                recommendations: [
-                    {
-                        type: 'membership',
-                        suggestion: 'Introduce quarterly plans at 10% discount',
-                        expectedImpact: 'Increase upfront revenue and commitment',
-                        priority: 'high'
-                    },
-                    {
-                        type: 'pt',
-                        suggestion: 'Create PT package bundles (5, 10, 20 sessions)',
-                        expectedImpact: 'Higher average transaction value',
-                        priority: 'medium'
-                    }
-                ],
-                competitiveAnalysis: 'Position as premium gym with personalized training focus'
-            },
-            revenueOpportunities: [
+// Fallback predictions when AI is unavailable
+function getFallbackPredictions(members) {
+    return {
+        churnRisk: {
+            highRiskCount: Math.round(members.length * 0.15),
+            mediumRiskCount: Math.round(members.length * 0.25),
+            lowRiskCount: Math.round(members.length * 0.60),
+            topReasons: [
+                'Irregular payment patterns',
+                'Low attendance frequency',
+                'No recent engagement'
+            ],
+            recommendations: [
+                'Send personalized re-engagement emails',
+                'Offer limited-time renewal discounts',
+                'Schedule one-on-one check-ins with at-risk members'
+            ]
+        },
+        pricingOptimization: {
+            currentStrategy: 'Current pricing appears competitive for the local market',
+            recommendations: [
                 {
-                    opportunity: 'Group fitness classes',
-                    potentialRevenue: 50000,
-                    effort: 'medium',
-                    timeline: '2-3 months'
+                    type: 'membership',
+                    suggestion: 'Introduce quarterly plans at 10% discount',
+                    expectedImpact: 'Increase upfront revenue and commitment',
+                    priority: 'high'
                 },
                 {
-                    opportunity: 'Nutrition consultation add-on',
-                    potentialRevenue: 30000,
-                    effort: 'low',
-                    timeline: '1 month'
+                    type: 'pt',
+                    suggestion: 'Create PT package bundles (5, 10, 20 sessions)',
+                    expectedImpact: 'Higher average transaction value',
+                    priority: 'medium'
                 }
-            ]
-        };
-    }
+            ],
+            competitiveAnalysis: 'Position as premium gym with personalized training focus'
+        },
+        revenueOpportunities: [
+            {
+                opportunity: 'Group fitness classes',
+                potentialRevenue: 50000,
+                effort: 'medium',
+                timeline: '2-3 months'
+            },
+            {
+                opportunity: 'Nutrition consultation add-on',
+                potentialRevenue: 30000,
+                effort: 'low',
+                timeline: '1 month'
+            }
+        ]
+    };
 }
