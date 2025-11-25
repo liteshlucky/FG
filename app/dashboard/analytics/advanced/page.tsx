@@ -461,118 +461,119 @@ export default function AdvancedAnalyticsPage() {
                 )}
 
                 {!loadingAI && aiPredictions && (
-
-                    {/* Churn Risk Analysis */ }
-                    < div className="rounded-lg bg-white p-6 shadow">
-                <h3 className="mb-4 text-md font-semibold text-gray-900">Member Churn Risk Analysis</h3>
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    <div>
-                        <div className="grid grid-cols-3 gap-4 mb-4">
-                            <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-center">
-                                <p className="text-sm font-medium text-red-900">High Risk</p>
-                                <p className="mt-2 text-3xl font-bold text-red-600">{aiPredictions.churnRisk.highRiskCount}</p>
-                            </div>
-                            <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4 text-center">
-                                <p className="text-sm font-medium text-yellow-900">Medium Risk</p>
-                                <p className="mt-2 text-3xl font-bold text-yellow-600">{aiPredictions.churnRisk.mediumRiskCount}</p>
-                            </div>
-                            <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-center">
-                                <p className="text-sm font-medium text-green-900">Low Risk</p>
-                                <p className="mt-2 text-3xl font-bold text-green-600">{aiPredictions.churnRisk.lowRiskCount}</p>
+                    <>
+                        {/* Churn Risk Analysis */}
+                        <div className="rounded-lg bg-white p-6 shadow">
+                            <h3 className="mb-4 text-md font-semibold text-gray-900">Member Churn Risk Analysis</h3>
+                            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                                <div>
+                                    <div className="grid grid-cols-3 gap-4 mb-4">
+                                        <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-center">
+                                            <p className="text-sm font-medium text-red-900">High Risk</p>
+                                            <p className="mt-2 text-3xl font-bold text-red-600">{aiPredictions.churnRisk.highRiskCount}</p>
+                                        </div>
+                                        <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4 text-center">
+                                            <p className="text-sm font-medium text-yellow-900">Medium Risk</p>
+                                            <p className="mt-2 text-3xl font-bold text-yellow-600">{aiPredictions.churnRisk.mediumRiskCount}</p>
+                                        </div>
+                                        <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-center">
+                                            <p className="text-sm font-medium text-green-900">Low Risk</p>
+                                            <p className="mt-2 text-3xl font-bold text-green-600">{aiPredictions.churnRisk.lowRiskCount}</p>
+                                        </div>
+                                    </div>
+                                    <div className="rounded-lg bg-gray-50 p-4">
+                                        <p className="text-sm font-semibold text-gray-900 mb-2">Top Churn Reasons:</p>
+                                        <ul className="space-y-1">
+                                            {aiPredictions.churnRisk.topReasons.map((reason: string, idx: number) => (
+                                                <li key={idx} className="text-sm text-gray-700 flex items-start">
+                                                    <span className="mr-2">•</span>
+                                                    <span>{reason}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
+                                    <p className="text-sm font-semibold text-blue-900 mb-3">Recommended Actions:</p>
+                                    <div className="space-y-2">
+                                        {aiPredictions.churnRisk.recommendations.map((rec: string, idx: number) => (
+                                            <div key={idx} className="flex items-start bg-white rounded p-3">
+                                                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold mr-3">
+                                                    {idx + 1}
+                                                </span>
+                                                <span className="text-sm text-gray-800">{rec}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div className="rounded-lg bg-gray-50 p-4">
-                            <p className="text-sm font-semibold text-gray-900 mb-2">Top Churn Reasons:</p>
-                            <ul className="space-y-1">
-                                {aiPredictions.churnRisk.topReasons.map((reason: string, idx: number) => (
-                                    <li key={idx} className="text-sm text-gray-700 flex items-start">
-                                        <span className="mr-2">•</span>
-                                        <span>{reason}</span>
-                                    </li>
+
+                        {/* Pricing Optimization */}
+                        <div className="rounded-lg bg-white p-6 shadow">
+                            <h3 className="mb-4 text-md font-semibold text-gray-900">Pricing Optimization</h3>
+                            <div className="space-y-4">
+                                <div className="rounded-lg bg-purple-50 border border-purple-200 p-4">
+                                    <p className="text-sm font-semibold text-purple-900">Current Strategy:</p>
+                                    <p className="mt-2 text-sm text-purple-800">{aiPredictions.pricingOptimization.currentStrategy}</p>
+                                </div>
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    {aiPredictions.pricingOptimization.recommendations.map((rec: any, idx: number) => (
+                                        <div key={idx} className="rounded-lg border border-gray-200 p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs font-semibold text-gray-500 uppercase">{rec.type}</span>
+                                                <span className={`px-2 py-1 rounded text-xs font-medium ${rec.priority === 'high' ? 'bg-red-100 text-red-800' :
+                                                    rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                                        'bg-green-100 text-green-800'
+                                                    }`}>
+                                                    {rec.priority.toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm font-semibold text-gray-900 mb-2">{rec.suggestion}</p>
+                                            <p className="text-xs text-gray-600">{rec.expectedImpact}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="rounded-lg bg-indigo-50 border border-indigo-200 p-4">
+                                    <p className="text-sm font-semibold text-indigo-900">Market Positioning:</p>
+                                    <p className="mt-2 text-sm text-indigo-800">{aiPredictions.pricingOptimization.competitiveAnalysis}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Revenue Opportunities */}
+                        <div className="rounded-lg bg-white p-6 shadow">
+                            <h3 className="mb-4 text-md font-semibold text-gray-900">Revenue Opportunities</h3>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                {aiPredictions.revenueOpportunities.map((opp: any, idx: number) => (
+                                    <div key={idx} className="rounded-lg border-2 border-green-200 bg-green-50 p-4">
+                                        <h4 className="font-semibold text-gray-900 mb-2">{opp.opportunity}</h4>
+                                        <div className="space-y-2 text-sm">
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Potential Revenue:</span>
+                                                <span className="font-bold text-green-600">₹{opp.potentialRevenue.toLocaleString()}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Effort:</span>
+                                                <span className={`font-medium ${opp.effort === 'low' ? 'text-green-600' :
+                                                    opp.effort === 'medium' ? 'text-yellow-600' :
+                                                        'text-red-600'
+                                                    }`}>
+                                                    {opp.effort.toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Timeline:</span>
+                                                <span className="font-medium text-gray-900">{opp.timeline}</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 ))}
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
-                        <p className="text-sm font-semibold text-blue-900 mb-3">Recommended Actions:</p>
-                        <div className="space-y-2">
-                            {aiPredictions.churnRisk.recommendations.map((rec: string, idx: number) => (
-                                <div key={idx} className="flex items-start bg-white rounded p-3">
-                                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold mr-3">
-                                        {idx + 1}
-                                    </span>
-                                    <span className="text-sm text-gray-800">{rec}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Pricing Optimization */}
-            <div className="rounded-lg bg-white p-6 shadow">
-                <h3 className="mb-4 text-md font-semibold text-gray-900">Pricing Optimization</h3>
-                <div className="space-y-4">
-                    <div className="rounded-lg bg-purple-50 border border-purple-200 p-4">
-                        <p className="text-sm font-semibold text-purple-900">Current Strategy:</p>
-                        <p className="mt-2 text-sm text-purple-800">{aiPredictions.pricingOptimization.currentStrategy}</p>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        {aiPredictions.pricingOptimization.recommendations.map((rec: any, idx: number) => (
-                            <div key={idx} className="rounded-lg border border-gray-200 p-4">
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs font-semibold text-gray-500 uppercase">{rec.type}</span>
-                                    <span className={`px-2 py-1 rounded text-xs font-medium ${rec.priority === 'high' ? 'bg-red-100 text-red-800' :
-                                        rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                                            'bg-green-100 text-green-800'
-                                        }`}>
-                                        {rec.priority.toUpperCase()}
-                                    </span>
-                                </div>
-                                <p className="text-sm font-semibold text-gray-900 mb-2">{rec.suggestion}</p>
-                                <p className="text-xs text-gray-600">{rec.expectedImpact}</p>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="rounded-lg bg-indigo-50 border border-indigo-200 p-4">
-                        <p className="text-sm font-semibold text-indigo-900">Market Positioning:</p>
-                        <p className="mt-2 text-sm text-indigo-800">{aiPredictions.pricingOptimization.competitiveAnalysis}</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Revenue Opportunities */}
-            <div className="rounded-lg bg-white p-6 shadow">
-                <h3 className="mb-4 text-md font-semibold text-gray-900">Revenue Opportunities</h3>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {aiPredictions.revenueOpportunities.map((opp: any, idx: number) => (
-                        <div key={idx} className="rounded-lg border-2 border-green-200 bg-green-50 p-4">
-                            <h4 className="font-semibold text-gray-900 mb-2">{opp.opportunity}</h4>
-                            <div className="space-y-2 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Potential Revenue:</span>
-                                    <span className="font-bold text-green-600">₹{opp.potentialRevenue.toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Effort:</span>
-                                    <span className={`font-medium ${opp.effort === 'low' ? 'text-green-600' :
-                                        opp.effort === 'medium' ? 'text-yellow-600' :
-                                            'text-red-600'
-                                        }`}>
-                                        {opp.effort.toUpperCase()}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Timeline:</span>
-                                    <span className="font-medium text-gray-900">{opp.timeline}</span>
-                                </div>
                             </div>
                         </div>
-                    ))}
-                </div>
+                    </>
+                )}
             </div>
-            )}
-        </div>
-    </div >
+        </div >
     );
 }
