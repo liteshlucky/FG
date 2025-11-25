@@ -7,7 +7,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function AdvancedAnalyticsPage() {
-    const [analytics, setAnalytics] = useState(null);
+    const [analytics, setAnalytics] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [timeRange, setTimeRange] = useState('12');
     const [compareMode, setCompareMode] = useState('');
@@ -50,7 +50,7 @@ export default function AdvancedAnalyticsPage() {
         return <div className="p-8 text-center text-red-600">Failed to load analytics</div>;
     }
 
-    const { revenueBreakdown, discountAnalysis, trainerPerformance, profitMargins, memberAcquisition, cashFlowProjections, localInsights, aiPredictions, comparison } = analytics;
+    const { revenueBreakdown, discountAnalysis, trainerPerformance, profitMargins, memberAcquisition, cashFlowProjections, localInsights, aiPredictions, comparison } = analytics as any;
 
     // Prepare pie chart data
     const pieData = [
@@ -127,7 +127,7 @@ export default function AdvancedAnalyticsPage() {
                                 cx="50%"
                                 cy="50%"
                                 labelLine={false}
-                                label={({ name, percentage }) => `${name}: ${percentage}%`}
+                                label={(props: any) => `${props.name}: ${props.percentage}%`}
                                 outerRadius={100}
                                 fill="#8884d8"
                                 dataKey="value"
@@ -293,7 +293,7 @@ export default function AdvancedAnalyticsPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 bg-white">
-                            {trainerPerformance.map((trainer, idx) => (
+                            {trainerPerformance.map((trainer: any, idx: number) => (
                                 <tr key={idx} className="hover:bg-gray-50">
                                     <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">{trainer.name}</td>
                                     <td className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-green-600">₹{trainer.totalRevenue.toLocaleString()}</td>
@@ -338,7 +338,7 @@ export default function AdvancedAnalyticsPage() {
                         </BarChart>
                     </ResponsiveContainer>
                     <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-                        {cashFlowProjections.map((projection, idx) => (
+                        {cashFlowProjections.map((projection: any, idx: number) => (
                             <div key={idx} className="rounded-lg border border-gray-200 p-3">
                                 <p className="text-xs font-medium text-gray-600">{projection.month}</p>
                                 <p className={`mt-1 text-lg font-bold ${projection.netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -361,7 +361,7 @@ export default function AdvancedAnalyticsPage() {
                         <div className="rounded-lg bg-white p-6 shadow">
                             <h3 className="mb-4 text-md font-semibold text-gray-900">Festival Impact Analysis</h3>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {localInsights.festivalImpact.map((festival, idx) => (
+                                {localInsights.festivalImpact.map((festival: any, idx: number) => (
                                     <div key={idx} className="rounded-lg border border-gray-200 p-4">
                                         <div className="flex items-center justify-between mb-2">
                                             <h4 className="font-semibold text-gray-900">{festival.festival}</h4>
@@ -493,8 +493,8 @@ export default function AdvancedAnalyticsPage() {
                                         <div className="flex items-center justify-between mb-2">
                                             <span className="text-xs font-semibold text-gray-500 uppercase">{rec.type}</span>
                                             <span className={`px-2 py-1 rounded text-xs font-medium ${rec.priority === 'high' ? 'bg-red-100 text-red-800' :
-                                                    rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                                                        'bg-green-100 text-green-800'
+                                                rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-green-100 text-green-800'
                                                 }`}>
                                                 {rec.priority.toUpperCase()}
                                             </span>
@@ -526,8 +526,8 @@ export default function AdvancedAnalyticsPage() {
                                         <div className="flex justify-between">
                                             <span className="text-gray-600">Effort:</span>
                                             <span className={`font-medium ${opp.effort === 'low' ? 'text-green-600' :
-                                                    opp.effort === 'medium' ? 'text-yellow-600' :
-                                                        'text-red-600'
+                                                opp.effort === 'medium' ? 'text-yellow-600' :
+                                                    'text-red-600'
                                                 }`}>
                                                 {opp.effort.toUpperCase()}
                                             </span>
