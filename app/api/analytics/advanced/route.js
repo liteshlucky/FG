@@ -243,7 +243,15 @@ export async function GET(request) {
 
     } catch (error) {
         console.error('Advanced Analytics API Error:', error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        console.error('Error stack:', error.stack);
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+
+        return NextResponse.json({
+            success: false,
+            error: error.message,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        }, { status: 500 });
     }
 }
 
