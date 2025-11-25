@@ -38,6 +38,10 @@ export async function GET() {
     }
 }
 
+import Counter from '@/models/Counter';
+
+// ... imports
+
 export async function POST(request) {
     await dbConnect();
     try {
@@ -46,6 +50,16 @@ export async function POST(request) {
         // Convert empty strings to null for optional reference fields
         if (body.discountId === '') body.discountId = null;
         if (body.ptPlanId === '') body.ptPlanId = null;
+        if (body.planId === '') body.planId = null;
+        if (body.trainerId === '') body.trainerId = null;
+
+        // Auto-generate memberId
+        const counter = await Counter.findByIdAndUpdate(
+            { _id: 'memberId' },
+            { $inc: { seq: 1 } },
+            { new: true, upsert: true }
+        );
+        body.memberId = `MEM${String(counter.seq).padStart(3, '0')}`;
 
         const member = await Member.create(body);
         return NextResponse.json({ success: true, data: member }, { status: 201 });

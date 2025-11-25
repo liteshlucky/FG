@@ -1,0 +1,20 @@
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/apple/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * /Users/apple/Desktop/fit-app/package-lock.json
+
+Failed to compile.
+
+./components/CheckOutModal.tsx:6:41
+Type error: Binding element 'userType' implicitly has an 'any' type.
+
+[0m [90m 4 |[39m [36mimport[39m { [33mX[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+ [90m 5 |[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mCheckOutModal[39m({ userType[33m,[39m checkedInUsers[33m,[39m onClose[33m,[39m onSuccess }) {
+ [90m   |[39m                                         [31m[1m^[22m[39m
+ [90m 7 |[39m     [36mconst[39m [checkingOut[33m,[39m setCheckingOut] [33m=[39m useState([36mfalse[39m)[33m;[39m
+ [90m 8 |[39m
+ [90m 9 |[39m     [36mconst[39m handleCheckOut [33m=[39m [36masync[39m (attendanceId[33m,[39m userName) [33m=>[39m {[0m
+Next.js build worker exited with code: 1 and signal: null

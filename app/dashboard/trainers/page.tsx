@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Dumbbell } from 'lucide-react';
+import { Plus, Edit } from 'lucide-react';
+import Avatar from '@/components/Avatar';
 
 export default function TrainersPage() {
     const [trainers, setTrainers] = useState([]);
@@ -45,19 +46,31 @@ export default function TrainersPage() {
                 {trainers.map((trainer: any) => (
                     <div key={trainer._id} className="overflow-hidden rounded-lg bg-white shadow">
                         <div className="p-6">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0">
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                                        <Dumbbell className="h-6 w-6" />
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <Avatar src={trainer.profilePicture} name={trainer.name} size="lg" />
+                                    </div>
+                                    <div className="ml-4">
+                                        <h3 className="text-lg font-medium text-gray-900">{trainer.name}</h3>
+                                        <p className="text-xs text-gray-500">ID: {trainer.trainerId || 'N/A'}</p>
+                                        <p className="text-sm text-gray-500">{trainer.specialization}</p>
                                     </div>
                                 </div>
-                                <div className="ml-4">
-                                    <h3 className="text-lg font-medium text-gray-900">{trainer.name}</h3>
-                                    <p className="text-sm text-gray-500">{trainer.specialization}</p>
-                                </div>
+                                <Link href={`/dashboard/trainers/${trainer._id}/edit`} className="text-gray-400 hover:text-gray-500">
+                                    <Edit className="h-5 w-5" />
+                                </Link>
                             </div>
                             <div className="mt-4">
                                 <p className="text-sm text-gray-600">{trainer.bio || 'No bio available.'}</p>
+                            </div>
+                            <div className="mt-4 flex justify-end">
+                                <Link
+                                    href={`/dashboard/trainers/${trainer._id}`}
+                                    className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                                >
+                                    View Details
+                                </Link>
                             </div>
                         </div>
                     </div>

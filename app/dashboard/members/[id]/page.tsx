@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, DollarSign, Edit } from 'lucide-react';
 import PaymentForm from '@/components/PaymentForm';
+import Avatar from '@/components/Avatar';
+import AIAnalysis from '@/components/AIAnalysis';
+
+import QuickEditModal from '@/components/QuickEditModal';
 
 export default function MemberDetailPage() {
     const params = useParams();
@@ -13,6 +17,7 @@ export default function MemberDetailPage() {
     const [loading, setLoading] = useState(true);
     const [showPaymentForm, setShowPaymentForm] = useState(false);
     const [activeTab, setActiveTab] = useState<'all' | 'membership' | 'pt'>('all');
+    const [editingSection, setEditingSection] = useState<'personal' | 'physical' | 'health' | null>(null);
 
     useEffect(() => {
         if (params.id) {
@@ -52,6 +57,26 @@ export default function MemberDetailPage() {
         fetchPayments();
     };
 
+    const handleQuickEditSave = async (updatedData: any) => {
+        try {
+            const res = await fetch(`/api/members/${params.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setMember(data.data);
+                setEditingSection(null);
+            } else {
+                alert('Failed to update member');
+            }
+        } catch (error) {
+            console.error('Failed to update member', error);
+            alert('Failed to update member');
+        }
+    };
+
     if (loading) return <div className="p-4">Loading...</div>;
     if (!member) return <div className="p-4">Member not found</div>;
 
@@ -82,6 +107,7 @@ export default function MemberDetailPage() {
                     >
                         <ArrowLeft className="h-6 w-6" />
                     </button>
+                    <Avatar src={member.profilePicture} name={member.name} size="lg" />
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">{member.name}</h1>
                         <p className="text-sm text-gray-500">Member since {new Date(member.joinDate).toLocaleDateString()}</p>
@@ -100,7 +126,7 @@ export default function MemberDetailPage() {
                         className="flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                     >
                         <Edit className="mr-2 h-4 w-4" />
-                        Edit Member
+                        Full Edit
                     </button>
                 </div>
             </div>
@@ -108,9 +134,21 @@ export default function MemberDetailPage() {
             {/* Member Info Cards */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 {/* Contact Information */}
-                <div className="rounded-lg bg-white p-6 shadow">
-                    <h2 className="text-lg font-medium text-gray-900">Contact Information</h2>
+                <div className="rounded-lg bg-white p-6 shadow relative group">
+                    <div className="flex justify-between items-start">
+                        <h2 className="text-lg font-medium text-gray-900">Personal Information</h2>
+                        <button
+                            onClick={() => setEditingSection('personal')}
+                            className="text-gray-400 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <Edit className="h-4 w-4" />
+                        </button>
+                    </div>
                     <div className="mt-4 space-y-3">
+                        <div>
+                            <p className="text-sm text-gray-500">Member ID</p>
+                            <p className="text-sm font-medium text-gray-900">{member.memberId || 'N/A'}</p>
+                        </div>
                         <div>
                             <p className="text-sm text-gray-500">Email</p>
                             <p className="text-sm font-medium text-gray-900">{member.email}</p>
@@ -118,6 +156,16 @@ export default function MemberDetailPage() {
                         <div>
                             <p className="text-sm text-gray-500">Phone</p>
                             <p className="text-sm font-medium text-gray-900">{member.phone}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-sm text-gray-500">Age</p>
+                                <p className="text-sm font-medium text-gray-900">{member.age || '-'}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Gender</p>
+                                <p className="text-sm font-medium text-gray-900">{member.gender || '-'}</p>
+                            </div>
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Status</p>
@@ -130,6 +178,113 @@ export default function MemberDetailPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Physical Details */}
+                <div className="rounded-lg bg-white p-6 shadow relative group">
+                    <div className="flex justify-between items-start">
+                        <h2 className="text-lg font-medium text-gray-900">Physical Details</h2>
+                        <button
+                            onClick={() => setEditingSection('physical')}
+                            className="text-gray-400 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <Edit className="h-4 w-4" />
+                        </button>
+                    </div>
+                    <div className="mt-4 space-y-4">
+                        {member.bodyMeasurements ? (
+                            <>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p className="text-sm text-gray-500">Height</p>
+                                        <p className="text-sm font-medium text-gray-900">{member.bodyMeasurements.height ? `${member.bodyMeasurements.height} cm` : '-'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-500">Weight</p>
+                                        <p className="text-sm font-medium text-gray-900">{member.bodyMeasurements.weight ? `${member.bodyMeasurements.weight} kg` : '-'}</p>
+                                    </div>
+                                    {member.bodyMeasurements.height && member.bodyMeasurements.weight && (
+                                        <div className="col-span-2">
+                                            <p className="text-sm text-gray-500">BMI</p>
+                                            <p className="text-sm font-medium text-gray-900">
+                                                {(() => {
+                                                    const heightInMeters = member.bodyMeasurements.height / 100;
+                                                    const bmi = (member.bodyMeasurements.weight / (heightInMeters * heightInMeters)).toFixed(1);
+                                                    const category = parseFloat(bmi) < 18.5 ? 'Underweight' :
+                                                        parseFloat(bmi) < 25 ? 'Normal' :
+                                                            parseFloat(bmi) < 30 ? 'Overweight' : 'Obese';
+                                                    const categoryColor = parseFloat(bmi) < 18.5 ? 'text-blue-600' :
+                                                        parseFloat(bmi) < 25 ? 'text-green-600' :
+                                                            parseFloat(bmi) < 30 ? 'text-yellow-600' : 'text-red-600';
+                                                    return (
+                                                        <>
+                                                            {bmi} <span className={`ml-2 ${categoryColor}`}>({category})</span>
+                                                        </>
+                                                    );
+                                                })()}
+                                            </p>
+                                        </div>
+                                    )}
+                                    {['chest', 'waist', 'hips', 'arms', 'thighs'].map((field) => (
+                                        <div key={field}>
+                                            <p className="text-sm text-gray-500 capitalize">{field}</p>
+                                            <p className="text-sm font-medium text-gray-900">
+                                                {member.bodyMeasurements[field] ? `${member.bodyMeasurements[field]} in` : '-'}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        ) : (
+                            <p className="text-sm text-gray-500">No measurements recorded.</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Health & Goals */}
+                <div className="rounded-lg bg-white p-6 shadow relative group">
+                    <div className="flex justify-between items-start">
+                        <h2 className="text-lg font-medium text-gray-900">Health & Goals</h2>
+                        <button
+                            onClick={() => setEditingSection('health')}
+                            className="text-gray-400 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <Edit className="h-4 w-4" />
+                        </button>
+                    </div>
+                    <div className="mt-4 space-y-4">
+                        <div>
+                            <p className="text-sm text-gray-500">Dietary Preferences</p>
+                            <p className="text-sm font-medium text-gray-900">
+                                {Array.isArray(member.dietaryPreferences) && member.dietaryPreferences.length > 0
+                                    ? member.dietaryPreferences.join(', ')
+                                    : member.dietaryPreferences || 'Not specified'}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500">Allergies</p>
+                            <p className="text-sm font-medium text-gray-900">{member.allergies || 'None'}</p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500">Medical History</p>
+                            <p className="text-sm font-medium text-gray-900 whitespace-pre-wrap">{member.medicalHistory || 'None recorded.'}</p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500">Goals</p>
+                            <p className="text-sm font-medium text-gray-900 whitespace-pre-wrap">{member.goals || 'None recorded.'}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Quick Edit Modal */}
+                {editingSection && (
+                    <QuickEditModal
+                        isOpen={!!editingSection}
+                        onClose={() => setEditingSection(null)}
+                        onSave={handleQuickEditSave}
+                        section={editingSection}
+                        initialData={member}
+                    />
+                )}
 
                 {/* Membership Details */}
                 <div className="rounded-lg bg-white p-6 shadow">
@@ -193,6 +348,15 @@ export default function MemberDetailPage() {
                 </div>
             </div>
 
+            {/* AI Analysis Section */}
+            <div className="mt-8">
+                <AIAnalysis
+                    memberId={params.id as string}
+                    initialData={member.aiAnalysis}
+                    onGenerate={fetchMemberDetails}
+                />
+            </div>
+
             {/* Payment History with Tabs */}
             <div className="rounded-lg bg-white shadow">
                 <div className="border-b border-gray-200 px-6 py-4">
@@ -205,8 +369,8 @@ export default function MemberDetailPage() {
                         <button
                             onClick={() => setActiveTab('all')}
                             className={`whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium ${activeTab === 'all'
-                                    ? 'border-blue-500 text-blue-600'
-                                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                                 }`}
                         >
                             All Payments
@@ -214,8 +378,8 @@ export default function MemberDetailPage() {
                         <button
                             onClick={() => setActiveTab('membership')}
                             className={`whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium ${activeTab === 'membership'
-                                    ? 'border-blue-500 text-blue-600'
-                                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                                 }`}
                         >
                             Membership
@@ -223,8 +387,8 @@ export default function MemberDetailPage() {
                         <button
                             onClick={() => setActiveTab('pt')}
                             className={`whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium ${activeTab === 'pt'
-                                    ? 'border-blue-500 text-blue-600'
-                                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                                 }`}
                         >
                             PT Plan
@@ -271,8 +435,8 @@ export default function MemberDetailPage() {
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4">
                                             <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${payment.planType === 'membership'
-                                                    ? 'bg-purple-100 text-purple-800'
-                                                    : 'bg-orange-100 text-orange-800'
+                                                ? 'bg-purple-100 text-purple-800'
+                                                : 'bg-orange-100 text-orange-800'
                                                 }`}>
                                                 {payment.planType === 'membership' ? 'Membership' : 'PT Plan'}
                                             </span>
@@ -287,8 +451,8 @@ export default function MemberDetailPage() {
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4">
                                             <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${payment.paymentStatus === 'completed' ? 'bg-green-100 text-green-800' :
-                                                    payment.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                        'bg-red-100 text-red-800'
+                                                payment.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-red-100 text-red-800'
                                                 }`}>
                                                 {payment.paymentStatus.toUpperCase()}
                                             </span>
