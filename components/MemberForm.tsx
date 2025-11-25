@@ -8,32 +8,72 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
     const [plans, setPlans] = useState([]);
     const [discounts, setDiscounts] = useState([]);
     const [ptPlans, setPTPlans] = useState([]);
+    const [trainers, setTrainers] = useState([]);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         phone: '',
+        age: '',
+        gender: '',
+        bodyMeasurements: {
+            height: '',
+            weight: '',
+            chest: '',
+            waist: '',
+            hips: '',
+            arms: '',
+            thighs: '',
+        },
+        medicalHistory: '',
+        goals: '',
+        dietaryPreferences: [] as string[],
+        allergies: '',
         planId: '',
         discountId: '',
         ptPlanId: '',
+        trainerId: '',
         status: 'Active',
+        profilePicture: '',
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [imagePreview, setImagePreview] = useState('');
 
     useEffect(() => {
         fetchPlans();
         fetchDiscounts();
         fetchPTPlans();
+        fetchTrainers();
         if (initialData) {
             setFormData({
                 name: initialData.name || '',
                 email: initialData.email || '',
                 phone: initialData.phone || '',
+                age: initialData.age || '',
+                gender: initialData.gender || '',
+                bodyMeasurements: {
+                    height: initialData.bodyMeasurements?.height || '',
+                    weight: initialData.bodyMeasurements?.weight || '',
+                    chest: initialData.bodyMeasurements?.chest || '',
+                    waist: initialData.bodyMeasurements?.waist || '',
+                    hips: initialData.bodyMeasurements?.hips || '',
+                    arms: initialData.bodyMeasurements?.arms || '',
+                    thighs: initialData.bodyMeasurements?.thighs || '',
+                },
+                medicalHistory: initialData.medicalHistory || '',
+                goals: initialData.goals || '',
+                dietaryPreferences: Array.isArray(initialData.dietaryPreferences) ? initialData.dietaryPreferences : [],
+                allergies: initialData.allergies || '',
                 planId: initialData.planId?._id || initialData.planId || '',
                 discountId: initialData.discountId?._id || initialData.discountId || '',
                 ptPlanId: initialData.ptPlanId?._id || initialData.ptPlanId || '',
+                trainerId: initialData.trainerId?._id || initialData.trainerId || '',
                 status: initialData.status || 'Active',
+                profilePicture: initialData.profilePicture || '',
             });
+            if (initialData.profilePicture) {
+                setImagePreview(initialData.profilePicture);
+            }
         }
     }, [initialData]);
 
@@ -61,9 +101,56 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
         }
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+    const fetchTrainers = async () => {
+        const res = await fetch('/api/trainers');
+        const data = await res.json();
+        if (data.success) {
+            setTrainers(data.data);
+        }
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value, type } = e.target;
+
+        if (name === 'dietaryPreferences') {
+            const checked = (e.target as HTMLInputElement).checked;
+            setFormData(prev => {
+                const current = Array.isArray(prev.dietaryPreferences) ? prev.dietaryPreferences : [];
+                if (checked) {
+                    return { ...prev, dietaryPreferences: [...current, value] };
+                } else {
+                    return { ...prev, dietaryPreferences: current.filter(item => item !== value) };
+                }
+            });
+        } else {
+            setFormData((prev) => ({ ...prev, [name]: value }));
+        }
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Check file size (2MB limit)
+        if (file.size > 2 * 1024 * 1024) {
+            setError('Image size must be less than 2MB');
+            return;
+        }
+
+        // Check file type
+        if (!file.type.startsWith('image/')) {
+            setError('Please upload an image file');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64String = reader.result as string;
+            setFormData((prev) => ({ ...prev, profilePicture: base64String }));
+            setImagePreview(base64String);
+            setError('');
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -104,7 +191,51 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                 </div>
             )}
 
+            {/* Profile Picture Upload */}
+            <div className="flex items-center space-x-6">
+                <div className="flex-shrink-0">
+                    {imagePreview ? (
+                        <img
+                            src={imagePreview}
+                            alt="Profile preview"
+                            className="h-24 w-24 rounded-full object-cover border-2 border-gray-300"
+                        />
+                    ) : (
+                        <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-2xl font-semibold border-2 border-gray-300">
+                            {formData.name ? formData.name.charAt(0).toUpperCase() : '?'}
+                        </div>
+                    )}
+                </div>
+                <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Profile Picture
+                    </label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                        JPG, PNG or WebP. Max size 2MB.
+                    </p>
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                {/* Member ID (Read-only) */}
+                {isEdit && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Member ID</label>
+                        <input
+                            type="text"
+                            value={initialData?.memberId || 'Pending'}
+                            readOnly
+                            className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-gray-500 shadow-sm sm:text-sm"
+                        />
+                    </div>
+                )}
+
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Full Name</label>
                     <input
@@ -137,6 +268,115 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                         required
                         value={formData.phone}
                         onChange={handleChange}
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Age</label>
+                    <input
+                        type="number"
+                        name="age"
+                        value={formData.age}
+                        onChange={handleChange}
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Gender</label>
+                    <select
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleChange}
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                    >
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div className="col-span-1 sm:col-span-2">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Body Measurements</h3>
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                        {['height', 'weight', 'chest', 'waist', 'hips', 'arms', 'thighs'].map((field) => (
+                            <div key={field}>
+                                <label className="block text-sm font-medium text-gray-700 capitalize">
+                                    {field} ({field === 'weight' ? 'kg' : field === 'height' ? 'cm' : 'in'})
+                                </label>
+                                <input
+                                    type="number"
+                                    name={`bodyMeasurements.${field}`}
+                                    value={formData.bodyMeasurements?.[field as keyof typeof formData.bodyMeasurements] || ''}
+                                    onChange={(e) => {
+                                        const { value } = e.target;
+                                        setFormData((prev: any) => ({
+                                            ...prev,
+                                            bodyMeasurements: {
+                                                ...prev.bodyMeasurements,
+                                                [field]: value,
+                                            },
+                                        }));
+                                    }}
+                                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="col-span-1 sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">Medical History</label>
+                    <textarea
+                        name="medicalHistory"
+                        rows={3}
+                        value={formData.medicalHistory}
+                        onChange={handleChange}
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                    />
+                </div>
+
+                <div className="col-span-1 sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">Goals</label>
+                    <textarea
+                        name="goals"
+                        rows={3}
+                        value={formData.goals}
+                        onChange={handleChange}
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Dietary Preferences</label>
+                    <div className="space-y-2">
+                        {['Vegetarian', 'Non-Vegetarian', 'Vegan', 'Eggetarian', 'Other'].map((pref) => (
+                            <div key={pref} className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    name="dietaryPreferences"
+                                    value={pref}
+                                    checked={(formData.dietaryPreferences as string[]).includes(pref)}
+                                    onChange={handleChange}
+                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <label className="ml-2 text-sm text-gray-700">{pref}</label>
+                            </div>
+                        ))}
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">Select all that apply. Leave empty for No Preference.</p>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Allergies</label>
+                    <input
+                        type="text"
+                        name="allergies"
+                        value={formData.allergies}
+                        onChange={handleChange}
+                        placeholder="e.g. Peanuts, Dairy, Gluten"
                         className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
                     />
                 </div>
@@ -187,6 +427,23 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                         {ptPlans.map((ptPlan: any) => (
                             <option key={ptPlan._id} value={ptPlan._id}>
                                 {ptPlan.name} - ₹{ptPlan.price} ({ptPlan.sessions} sessions)
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Assigned Trainer (Optional)</label>
+                    <select
+                        name="trainerId"
+                        value={formData.trainerId}
+                        onChange={handleChange}
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                    >
+                        <option value="">No Trainer Assigned</option>
+                        {trainers.map((trainer: any) => (
+                            <option key={trainer._id} value={trainer._id}>
+                                {trainer.name}
                             </option>
                         ))}
                     </select>

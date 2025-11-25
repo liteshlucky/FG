@@ -21,6 +21,12 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     try {
         const body = await request.json();
+
+        // Handle empty strings for ObjectId fields
+        if (body.discountId === '') body.discountId = null;
+        if (body.planId === '') body.planId = null;
+        if (body.ptPlanId === '') body.ptPlanId = null;
+        if (body.trainerId === '') body.trainerId = null;
         const member = await Member.findByIdAndUpdate(id, body, {
             new: true,
             runValidators: true,

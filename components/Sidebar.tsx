@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Dumbbell, CreditCard, LogOut, DollarSign } from 'lucide-react';
+import { LayoutDashboard, Users, Dumbbell, CreditCard, LogOut, DollarSign, Settings, BarChart3, TrendingUp, ClipboardCheck } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import clsx from 'clsx';
 
@@ -12,8 +12,12 @@ const navigation = [
     { name: 'Trainers', href: '/dashboard/trainers', icon: Dumbbell },
     { name: 'Plans', href: '/dashboard/plans', icon: CreditCard },
     { name: 'PT Plans', href: '/dashboard/pt-plans', icon: Dumbbell },
-    { name: 'Payments', href: '/dashboard/payments', icon: DollarSign },
+    { name: 'Finance', href: '/dashboard/finance', icon: DollarSign },
+    { name: 'Attendance', href: '/dashboard/attendance', icon: ClipboardCheck },
+    { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+    { name: 'Advanced Analytics', href: '/dashboard/analytics/advanced', icon: TrendingUp },
     { name: 'Discounts', href: '/dashboard/discounts', icon: CreditCard },
+    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
 export default function Sidebar() {
