@@ -9,6 +9,8 @@ const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
 export default function AdvancedAnalyticsPage() {
     const [analytics, setAnalytics] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [aiPredictions, setAiPredictions] = useState<any>(null);
+    const [loadingAI, setLoadingAI] = useState(false);
     const [timeRange, setTimeRange] = useState('12');
     const [compareMode, setCompareMode] = useState('');
 
@@ -18,6 +20,7 @@ export default function AdvancedAnalyticsPage() {
 
     const fetchAdvancedAnalytics = async () => {
         setLoading(true);
+        setAiPredictions(null); // Reset AI predictions when filter changes
         try {
             const params = new URLSearchParams();
             params.append('months', timeRange);
@@ -27,11 +30,28 @@ export default function AdvancedAnalyticsPage() {
             const data = await res.json();
             if (data.success) {
                 setAnalytics(data.data);
+                // Trigger AI fetch after main data loads
+                fetchAIPredictions(timeRange);
             }
         } catch (error) {
             console.error('Failed to fetch advanced analytics', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchAIPredictions = async (months: string) => {
+        setLoadingAI(true);
+        try {
+            const res = await fetch(`/api/analytics/ai?months=${months}`);
+            const data = await res.json();
+            if (data.success) {
+                setAiPredictions(data.data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch AI predictions', error);
+        } finally {
+            setLoadingAI(false);
         }
     };
 
@@ -50,7 +70,7 @@ export default function AdvancedAnalyticsPage() {
         return <div className="p-8 text-center text-red-600">Failed to load analytics</div>;
     }
 
-    const { revenueBreakdown, discountAnalysis, trainerPerformance, profitMargins, memberAcquisition, cashFlowProjections, localInsights, aiPredictions, comparison } = analytics as any;
+    const { revenueBreakdown, discountAnalysis, trainerPerformance, profitMargins, memberAcquisition, cashFlowProjections, localInsights, comparison } = analytics as any;
 
     // Prepare pie chart data
     const pieData = [
@@ -428,121 +448,131 @@ export default function AdvancedAnalyticsPage() {
             )}
 
             {/* AI Predictions */}
-            {aiPredictions && (
-                <div className="space-y-6">
-                    <h2 className="text-lg font-semibold text-gray-900">AI-Powered Predictions</h2>
+            <div className="space-y-6">
+                <h2 className="text-lg font-semibold text-gray-900">AI-Powered Predictions</h2>
 
-                    {/* Churn Risk Analysis */}
-                    <div className="rounded-lg bg-white p-6 shadow">
-                        <h3 className="mb-4 text-md font-semibold text-gray-900">Member Churn Risk Analysis</h3>
-                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                            <div>
-                                <div className="grid grid-cols-3 gap-4 mb-4">
-                                    <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-center">
-                                        <p className="text-sm font-medium text-red-900">High Risk</p>
-                                        <p className="mt-2 text-3xl font-bold text-red-600">{aiPredictions.churnRisk.highRiskCount}</p>
-                                    </div>
-                                    <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4 text-center">
-                                        <p className="text-sm font-medium text-yellow-900">Medium Risk</p>
-                                        <p className="mt-2 text-3xl font-bold text-yellow-600">{aiPredictions.churnRisk.mediumRiskCount}</p>
-                                    </div>
-                                    <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-center">
-                                        <p className="text-sm font-medium text-green-900">Low Risk</p>
-                                        <p className="mt-2 text-3xl font-bold text-green-600">{aiPredictions.churnRisk.lowRiskCount}</p>
-                                    </div>
-                                </div>
-                                <div className="rounded-lg bg-gray-50 p-4">
-                                    <p className="text-sm font-semibold text-gray-900 mb-2">Top Churn Reasons:</p>
-                                    <ul className="space-y-1">
-                                        {aiPredictions.churnRisk.topReasons.map((reason: string, idx: number) => (
-                                            <li key={idx} className="text-sm text-gray-700 flex items-start">
-                                                <span className="mr-2">•</span>
-                                                <span>{reason}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div>
-                            <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
-                                <p className="text-sm font-semibold text-blue-900 mb-3">Recommended Actions:</p>
-                                <div className="space-y-2">
-                                    {aiPredictions.churnRisk.recommendations.map((rec: string, idx: number) => (
-                                        <div key={idx} className="flex items-start bg-white rounded p-3">
-                                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold mr-3">
-                                                {idx + 1}
-                                            </span>
-                                            <span className="text-sm text-gray-800">{rec}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                {loadingAI && (
+                    <div className="flex h-40 items-center justify-center rounded-lg bg-white p-6 shadow">
+                        <div className="text-center">
+                            <div className="mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-purple-600 mx-auto"></div>
+                            <p className="text-gray-600">Generating AI insights...</p>
                         </div>
                     </div>
+                )}
 
-                    {/* Pricing Optimization */}
-                    <div className="rounded-lg bg-white p-6 shadow">
-                        <h3 className="mb-4 text-md font-semibold text-gray-900">Pricing Optimization</h3>
-                        <div className="space-y-4">
-                            <div className="rounded-lg bg-purple-50 border border-purple-200 p-4">
-                                <p className="text-sm font-semibold text-purple-900">Current Strategy:</p>
-                                <p className="mt-2 text-sm text-purple-800">{aiPredictions.pricingOptimization.currentStrategy}</p>
+                {!loadingAI && aiPredictions && (
+
+                    {/* Churn Risk Analysis */ }
+                    < div className="rounded-lg bg-white p-6 shadow">
+                <h3 className="mb-4 text-md font-semibold text-gray-900">Member Churn Risk Analysis</h3>
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    <div>
+                        <div className="grid grid-cols-3 gap-4 mb-4">
+                            <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-center">
+                                <p className="text-sm font-medium text-red-900">High Risk</p>
+                                <p className="mt-2 text-3xl font-bold text-red-600">{aiPredictions.churnRisk.highRiskCount}</p>
                             </div>
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                {aiPredictions.pricingOptimization.recommendations.map((rec: any, idx: number) => (
-                                    <div key={idx} className="rounded-lg border border-gray-200 p-4">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs font-semibold text-gray-500 uppercase">{rec.type}</span>
-                                            <span className={`px-2 py-1 rounded text-xs font-medium ${rec.priority === 'high' ? 'bg-red-100 text-red-800' :
-                                                rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-green-100 text-green-800'
-                                                }`}>
-                                                {rec.priority.toUpperCase()}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm font-semibold text-gray-900 mb-2">{rec.suggestion}</p>
-                                        <p className="text-xs text-gray-600">{rec.expectedImpact}</p>
-                                    </div>
+                            <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4 text-center">
+                                <p className="text-sm font-medium text-yellow-900">Medium Risk</p>
+                                <p className="mt-2 text-3xl font-bold text-yellow-600">{aiPredictions.churnRisk.mediumRiskCount}</p>
+                            </div>
+                            <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-center">
+                                <p className="text-sm font-medium text-green-900">Low Risk</p>
+                                <p className="mt-2 text-3xl font-bold text-green-600">{aiPredictions.churnRisk.lowRiskCount}</p>
+                            </div>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 p-4">
+                            <p className="text-sm font-semibold text-gray-900 mb-2">Top Churn Reasons:</p>
+                            <ul className="space-y-1">
+                                {aiPredictions.churnRisk.topReasons.map((reason: string, idx: number) => (
+                                    <li key={idx} className="text-sm text-gray-700 flex items-start">
+                                        <span className="mr-2">•</span>
+                                        <span>{reason}</span>
+                                    </li>
                                 ))}
-                            </div>
-                            <div className="rounded-lg bg-indigo-50 border border-indigo-200 p-4">
-                                <p className="text-sm font-semibold text-indigo-900">Market Positioning:</p>
-                                <p className="mt-2 text-sm text-indigo-800">{aiPredictions.pricingOptimization.competitiveAnalysis}</p>
-                            </div>
+                            </ul>
                         </div>
                     </div>
-
-                    {/* Revenue Opportunities */}
-                    <div className="rounded-lg bg-white p-6 shadow">
-                        <h3 className="mb-4 text-md font-semibold text-gray-900">Revenue Opportunities</h3>
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {aiPredictions.revenueOpportunities.map((opp: any, idx: number) => (
-                                <div key={idx} className="rounded-lg border-2 border-green-200 bg-green-50 p-4">
-                                    <h4 className="font-semibold text-gray-900 mb-2">{opp.opportunity}</h4>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Potential Revenue:</span>
-                                            <span className="font-bold text-green-600">₹{opp.potentialRevenue.toLocaleString()}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Effort:</span>
-                                            <span className={`font-medium ${opp.effort === 'low' ? 'text-green-600' :
-                                                opp.effort === 'medium' ? 'text-yellow-600' :
-                                                    'text-red-600'
-                                                }`}>
-                                                {opp.effort.toUpperCase()}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Timeline:</span>
-                                            <span className="font-medium text-gray-900">{opp.timeline}</span>
-                                        </div>
-                                    </div>
+                    <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
+                        <p className="text-sm font-semibold text-blue-900 mb-3">Recommended Actions:</p>
+                        <div className="space-y-2">
+                            {aiPredictions.churnRisk.recommendations.map((rec: string, idx: number) => (
+                                <div key={idx} className="flex items-start bg-white rounded p-3">
+                                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold mr-3">
+                                        {idx + 1}
+                                    </span>
+                                    <span className="text-sm text-gray-800">{rec}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Pricing Optimization */}
+            <div className="rounded-lg bg-white p-6 shadow">
+                <h3 className="mb-4 text-md font-semibold text-gray-900">Pricing Optimization</h3>
+                <div className="space-y-4">
+                    <div className="rounded-lg bg-purple-50 border border-purple-200 p-4">
+                        <p className="text-sm font-semibold text-purple-900">Current Strategy:</p>
+                        <p className="mt-2 text-sm text-purple-800">{aiPredictions.pricingOptimization.currentStrategy}</p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        {aiPredictions.pricingOptimization.recommendations.map((rec: any, idx: number) => (
+                            <div key={idx} className="rounded-lg border border-gray-200 p-4">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-semibold text-gray-500 uppercase">{rec.type}</span>
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${rec.priority === 'high' ? 'bg-red-100 text-red-800' :
+                                        rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                            'bg-green-100 text-green-800'
+                                        }`}>
+                                        {rec.priority.toUpperCase()}
+                                    </span>
+                                </div>
+                                <p className="text-sm font-semibold text-gray-900 mb-2">{rec.suggestion}</p>
+                                <p className="text-xs text-gray-600">{rec.expectedImpact}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="rounded-lg bg-indigo-50 border border-indigo-200 p-4">
+                        <p className="text-sm font-semibold text-indigo-900">Market Positioning:</p>
+                        <p className="mt-2 text-sm text-indigo-800">{aiPredictions.pricingOptimization.competitiveAnalysis}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Revenue Opportunities */}
+            <div className="rounded-lg bg-white p-6 shadow">
+                <h3 className="mb-4 text-md font-semibold text-gray-900">Revenue Opportunities</h3>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {aiPredictions.revenueOpportunities.map((opp: any, idx: number) => (
+                        <div key={idx} className="rounded-lg border-2 border-green-200 bg-green-50 p-4">
+                            <h4 className="font-semibold text-gray-900 mb-2">{opp.opportunity}</h4>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Potential Revenue:</span>
+                                    <span className="font-bold text-green-600">₹{opp.potentialRevenue.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Effort:</span>
+                                    <span className={`font-medium ${opp.effort === 'low' ? 'text-green-600' :
+                                        opp.effort === 'medium' ? 'text-yellow-600' :
+                                            'text-red-600'
+                                        }`}>
+                                        {opp.effort.toUpperCase()}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Timeline:</span>
+                                    <span className="font-medium text-gray-900">{opp.timeline}</span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
             )}
         </div>
+    </div >
     );
 }
