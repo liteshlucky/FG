@@ -41,7 +41,6 @@ export async function GET(request) {
             Payment.find({ paymentDate: { $gte: startDate, $lte: endDate } })
                 .select('memberId planType planId amount paymentDate discountAmount')
                 .populate('memberId', 'name joinDate')
-                .populate('planId', 'trainerId')
                 .lean()
                 .maxTimeMS(7000),
             TrainerPayment.find({ paymentDate: { $gte: startDate, $lte: endDate } })
@@ -68,6 +67,19 @@ export async function GET(request) {
             timeoutPromise
         ]);
 
+        // Manually populate planId for payments based on planType
+        // This handles both old ('membership', 'pt_plan') and new ('Plan', 'PTplan') enum values
+        const Plan = (await import('@/models/Plan')).default;
+        const PTplan = (await import('@/models/PTplan')).default;
+
+        for (const payment of payments) {
+            if (payment.planId) {
+                const modelToUse = (payment.planType === 'Plan' || payment.planType === 'membership') ? Plan : PTplan;
+                const populatedPlan = await modelToUse.findById(payment.planId).select('trainerId').lean();
+                payment.planId = populatedPlan;
+            }
+        }
+
         // 1. REVENUE BREAKDOWN (Membership vs PT vs Other)
         const revenueBreakdown = {
             membership: 0,
@@ -76,9 +88,9 @@ export async function GET(request) {
         };
 
         payments.forEach(p => {
-            if (p.planType === 'Plan') {
+            if (p.planType === 'Plan' || p.planType === 'membership') {
                 revenueBreakdown.membership += p.amount;
-            } else if (p.planType === 'PTplan') {
+            } else if (p.planType === 'PTplan' || p.planType === 'pt_plan') {
                 revenueBreakdown.pt += p.amount;
             }
         });
@@ -129,7 +141,7 @@ export async function GET(request) {
 
         // Calculate PT revenue per trainer
         payments.forEach(p => {
-            if (p.planType === 'PTplan' && p.planId && p.planId.trainerId) {
+            if ((p.planType === 'PTplan' || p.planType === 'pt_plan') && p.planId && p.planId.trainerId) {
                 const trainerId = p.planId.trainerId.toString();
                 if (trainerMetrics[trainerId]) {
                     trainerMetrics[trainerId].totalRevenue += p.amount;
@@ -205,8 +217,8 @@ export async function GET(request) {
             ]);
 
             const compareRevenue = {
-                membership: comparePayments.filter(p => p.planType === 'Plan').reduce((sum, p) => sum + p.amount, 0),
-                pt: comparePayments.filter(p => p.planType === 'PTplan').reduce((sum, p) => sum + p.amount, 0),
+                membership: comparePayments.filter(p => p.planType === 'Plan' || p.planType === 'membership').reduce((sum, p) => sum + p.amount, 0),
+                pt: comparePayments.filter(p => p.planType === 'PTplan' || p.planType === 'pt_plan').reduce((sum, p) => sum + p.amount, 0),
                 other: compareTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)
             };
 
