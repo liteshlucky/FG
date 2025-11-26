@@ -74,9 +74,20 @@ export async function GET(request) {
 
         for (const payment of payments) {
             if (payment.planId) {
-                const modelToUse = (payment.planType === 'Plan' || payment.planType === 'membership') ? Plan : PTplan;
-                const populatedPlan = await modelToUse.findById(payment.planId).select('trainerId').lean();
-                payment.planId = populatedPlan;
+                try {
+                    const modelToUse = (payment.planType === 'Plan' || payment.planType === 'membership') ? Plan : PTplan;
+                    const populatedPlan = await modelToUse.findById(payment.planId).select('trainerId').lean();
+                    // Only assign if plan exists, otherwise leave as ObjectId
+                    if (populatedPlan) {
+                        payment.planId = populatedPlan;
+                    } else {
+                        // Plan was deleted, set to null to avoid errors
+                        payment.planId = null;
+                    }
+                } catch (error) {
+                    console.error(`Error populating planId for payment ${payment._id}:`, error);
+                    payment.planId = null;
+                }
             }
         }
 
@@ -141,7 +152,7 @@ export async function GET(request) {
 
         // Calculate PT revenue per trainer
         payments.forEach(p => {
-            if ((p.planType === 'PTplan' || p.planType === 'pt_plan') && p.planId && p.planId.trainerId) {
+            if ((p.planType === 'PTplan' || p.planType === 'pt_plan') && p.planId && p.planId !== null && p.planId.trainerId) {
                 const trainerId = p.planId.trainerId.toString();
                 if (trainerMetrics[trainerId]) {
                     trainerMetrics[trainerId].totalRevenue += p.amount;
