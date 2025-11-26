@@ -163,6 +163,7 @@ export async function GET(request) {
 
         // Add trainer payments
         trainerPayments.forEach(tp => {
+            if (!tp.trainerId) return; // Skip if trainerId is null
             const trainerId = tp.trainerId._id ? tp.trainerId._id.toString() : tp.trainerId.toString();
             if (trainerMetrics[trainerId]) {
                 trainerMetrics[trainerId].baseSalary += tp.baseSalary || 0;
