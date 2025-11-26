@@ -31,18 +31,41 @@ export async function GET(request) {
             compareStartDate.setFullYear(compareStartDate.getFullYear() - 1);
         }
 
-        // Fetch all data
-        const [payments, trainerPayments, transactions, members, trainers] = await Promise.all([
+        // Fetch all data with timeout protection and selective fields
+        const queryTimeout = 8000; // 8 seconds for Vercel
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Database query timeout')), queryTimeout)
+        );
+
+        const dataPromise = Promise.all([
             Payment.find({ paymentDate: { $gte: startDate, $lte: endDate } })
+                .select('memberId planType planId amount paymentDate discountAmount')
                 .populate('memberId', 'name joinDate')
-                .populate('planId')
-                .lean(),
+                .populate('planId', 'trainerId')
+                .lean()
+                .maxTimeMS(7000),
             TrainerPayment.find({ paymentDate: { $gte: startDate, $lte: endDate } })
+                .select('trainerId baseSalary commissionAmount amount paymentDate')
                 .populate('trainerId', 'name')
-                .lean(),
-            Transaction.find({ date: { $gte: startDate, $lte: endDate } }).lean(),
-            Member.find().lean(),
-            Trainer.find().lean()
+                .lean()
+                .maxTimeMS(7000),
+            Transaction.find({ date: { $gte: startDate, $lte: endDate } })
+                .select('type amount category date')
+                .lean()
+                .maxTimeMS(7000),
+            Member.find()
+                .select('joinDate')
+                .lean()
+                .maxTimeMS(7000),
+            Trainer.find()
+                .select('name')
+                .lean()
+                .maxTimeMS(7000)
+        ]);
+
+        const [payments, trainerPayments, transactions, members, trainers] = await Promise.race([
+            dataPromise,
+            timeoutPromise
         ]);
 
         // 1. REVENUE BREAKDOWN (Membership vs PT vs Other)
@@ -53,9 +76,9 @@ export async function GET(request) {
         };
 
         payments.forEach(p => {
-            if (p.planType === 'membership') {
+            if (p.planType === 'Plan') {
                 revenueBreakdown.membership += p.amount;
-            } else if (p.planType === 'pt_plan') {
+            } else if (p.planType === 'PTplan') {
                 revenueBreakdown.pt += p.amount;
             }
         });
@@ -106,7 +129,7 @@ export async function GET(request) {
 
         // Calculate PT revenue per trainer
         payments.forEach(p => {
-            if (p.planType === 'pt_plan' && p.planId && p.planId.trainerId) {
+            if (p.planType === 'PTplan' && p.planId && p.planId.trainerId) {
                 const trainerId = p.planId.trainerId.toString();
                 if (trainerMetrics[trainerId]) {
                     trainerMetrics[trainerId].totalRevenue += p.amount;
@@ -171,13 +194,19 @@ export async function GET(request) {
         let comparisonData = null;
         if (compareMode && compareStartDate && compareEndDate) {
             const [comparePayments, compareTransactions] = await Promise.all([
-                Payment.find({ paymentDate: { $gte: compareStartDate, $lte: compareEndDate } }).lean(),
-                Transaction.find({ date: { $gte: compareStartDate, $lte: compareEndDate } }).lean()
+                Payment.find({ paymentDate: { $gte: compareStartDate, $lte: compareEndDate } })
+                    .select('planType amount')
+                    .lean()
+                    .maxTimeMS(5000),
+                Transaction.find({ date: { $gte: compareStartDate, $lte: compareEndDate } })
+                    .select('type amount')
+                    .lean()
+                    .maxTimeMS(5000)
             ]);
 
             const compareRevenue = {
-                membership: comparePayments.filter(p => p.planType === 'membership').reduce((sum, p) => sum + p.amount, 0),
-                pt: comparePayments.filter(p => p.planType === 'pt_plan').reduce((sum, p) => sum + p.amount, 0),
+                membership: comparePayments.filter(p => p.planType === 'Plan').reduce((sum, p) => sum + p.amount, 0),
+                pt: comparePayments.filter(p => p.planType === 'PTplan').reduce((sum, p) => sum + p.amount, 0),
                 other: compareTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)
             };
 
@@ -237,10 +266,17 @@ export async function GET(request) {
         console.error('Error stack:', error.stack);
         console.error('Error name:', error.name);
         console.error('Error message:', error.message);
+        console.error('Error type:', error.constructor.name);
+
+        // Log if it's a timeout error
+        if (error.message?.includes('timeout')) {
+            console.error('DATABASE TIMEOUT - Consider optimizing queries or increasing timeout');
+        }
 
         return NextResponse.json({
             success: false,
-            error: error.message,
+            error: error.message || 'Internal server error',
+            errorType: error.constructor.name,
             details: process.env.NODE_ENV === 'development' ? error.stack : undefined
         }, { status: 500 });
     }

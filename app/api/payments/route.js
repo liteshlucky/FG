@@ -23,7 +23,7 @@ export async function GET(request) {
         // Manually populate planId based on planType
         for (let payment of payments) {
             if (payment.planId) {
-                const modelName = payment.planType === 'membership' ? 'Plan' : 'PTplan';
+                const modelName = payment.planType === 'Plan' ? 'Plan' : 'PTplan';
                 await payment.populate({ path: 'planId', model: modelName });
             }
         }
