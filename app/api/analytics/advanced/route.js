@@ -35,6 +35,7 @@ export async function GET(request) {
         const [payments, trainerPayments, transactions, members, trainers] = await Promise.all([
             Payment.find({ paymentDate: { $gte: startDate, $lte: endDate } })
                 .populate('memberId', 'name joinDate')
+                .populate('planId')
                 .lean(),
             TrainerPayment.find({ paymentDate: { $gte: startDate, $lte: endDate } })
                 .populate('trainerId', 'name')
