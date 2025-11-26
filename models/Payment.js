@@ -8,12 +8,13 @@ const PaymentSchema = new mongoose.Schema({
     },
     planType: {
         type: String,
-        enum: ['Plan', 'PTplan'],
+        // Support both old and new values for backward compatibility
+        enum: ['Plan', 'PTplan', 'membership', 'pt_plan'],
         required: [true, 'Please specify plan type'],
     },
     planId: {
         type: mongoose.Schema.Types.ObjectId,
-        refPath: 'planType',
+        // Removed refPath - we'll populate manually in routes
         required: [true, 'Please provide a plan'],
     },
     amount: {
