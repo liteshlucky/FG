@@ -8,7 +8,7 @@ const PaymentSchema = new mongoose.Schema({
     },
     planType: {
         type: String,
-        enum: ['membership', 'pt_plan'],
+        enum: ['Plan', 'PTplan'],
         required: [true, 'Please specify plan type'],
     },
     planId: {

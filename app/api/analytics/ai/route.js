@@ -32,8 +32,8 @@ export async function GET(request) {
         // Calculate basic metrics for context
         const revenueBreakdown = { membership: 0, pt: 0, other: 0 };
         payments.forEach(p => {
-            if (p.planType === 'membership') revenueBreakdown.membership += p.amount;
-            else if (p.planType === 'pt_plan') revenueBreakdown.pt += p.amount;
+            if (p.planType === 'Plan') revenueBreakdown.membership += p.amount;
+            else if (p.planType === 'PTplan') revenueBreakdown.pt += p.amount;
         });
         transactions.forEach(t => {
             if (t.type === 'income') revenueBreakdown.other += t.amount;
