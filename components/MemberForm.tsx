@@ -184,9 +184,9 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
+        <form onSubmit={handleSubmit} className="space-y-6 bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm">
             {error && (
-                <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+                <div className="rounded-md bg-rose-500/10 border border-rose-500/20 p-4 text-sm text-rose-400">
                     {error}
                 </div>
             )}
@@ -198,25 +198,25 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                         <img
                             src={imagePreview}
                             alt="Profile preview"
-                            className="h-24 w-24 rounded-full object-cover border-2 border-gray-300"
+                            className="h-24 w-24 rounded-full object-cover border-4 border-slate-800 shadow-md"
                         />
                     ) : (
-                        <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-2xl font-semibold border-2 border-gray-300">
+                        <div className="h-24 w-24 rounded-full bg-slate-800 flex items-center justify-center text-slate-500 text-2xl font-semibold border-4 border-slate-700">
                             {formData.name ? formData.name.charAt(0).toUpperCase() : '?'}
                         </div>
                     )}
                 </div>
                 <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-400 mb-2">
                         Profile Picture
                     </label>
                     <input
                         type="file"
                         accept="image/*"
                         onChange={handleImageUpload}
-                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 file:cursor-pointer cursor-pointer"
                     />
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="mt-1 text-xs text-slate-500">
                         JPG, PNG or WebP. Max size 2MB.
                     </p>
                 </div>
@@ -224,72 +224,73 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 {/* Member ID (Read-only) */}
+                {/* Member ID (Read-only) */}
                 {isEdit && (
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Member ID</label>
+                        <label className="block text-sm font-medium text-slate-400">Member ID</label>
                         <input
                             type="text"
                             value={initialData?.memberId || 'Pending'}
                             readOnly
-                            className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-gray-500 shadow-sm sm:text-sm"
+                            className="mt-1 block w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-slate-500 shadow-sm sm:text-sm cursor-not-allowed"
                         />
                     </div>
                 )}
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                    <label className="block text-sm font-medium text-slate-400">Full Name</label>
                     <input
                         type="text"
                         name="name"
                         required
                         value={formData.name}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                    <label className="block text-sm font-medium text-slate-400">Email</label>
                     <input
                         type="email"
                         name="email"
                         required
                         value={formData.email}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Phone</label>
+                    <label className="block text-sm font-medium text-slate-400">Phone</label>
                     <input
                         type="text"
                         name="phone"
                         required
                         value={formData.phone}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Age</label>
+                    <label className="block text-sm font-medium text-slate-400">Age</label>
                     <input
                         type="number"
                         name="age"
                         value={formData.age}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Gender</label>
+                    <label className="block text-sm font-medium text-slate-400">Gender</label>
                     <select
                         name="gender"
                         value={formData.gender}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                     >
                         <option value="">Select Gender</option>
                         <option value="Male">Male</option>
@@ -299,11 +300,11 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                 </div>
 
                 <div className="col-span-1 sm:col-span-2">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Body Measurements</h3>
+                    <h3 className="text-lg font-medium text-slate-100 mb-4">Body Measurements</h3>
                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                         {['height', 'weight', 'chest', 'waist', 'hips', 'arms', 'thighs'].map((field) => (
                             <div key={field}>
-                                <label className="block text-sm font-medium text-gray-700 capitalize">
+                                <label className="block text-sm font-medium text-slate-400 capitalize">
                                     {field} ({field === 'weight' ? 'kg' : field === 'height' ? 'cm' : 'in'})
                                 </label>
                                 <input
@@ -320,7 +321,7 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                                             },
                                         }));
                                     }}
-                                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                                    className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                                 />
                             </div>
                         ))}
@@ -328,29 +329,29 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                 </div>
 
                 <div className="col-span-1 sm:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700">Medical History</label>
+                    <label className="block text-sm font-medium text-slate-400">Medical History</label>
                     <textarea
                         name="medicalHistory"
                         rows={3}
                         value={formData.medicalHistory}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                     />
                 </div>
 
                 <div className="col-span-1 sm:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700">Goals</label>
+                    <label className="block text-sm font-medium text-slate-400">Goals</label>
                     <textarea
                         name="goals"
                         rows={3}
                         value={formData.goals}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Dietary Preferences</label>
+                    <label className="block text-sm font-medium text-slate-400 mb-2">Dietary Preferences</label>
                     <div className="space-y-2">
                         {['Vegetarian', 'Non-Vegetarian', 'Vegan', 'Eggetarian', 'Other'].map((pref) => (
                             <div key={pref} className="flex items-center">
@@ -360,34 +361,34 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                                     value={pref}
                                     checked={(formData.dietaryPreferences as string[]).includes(pref)}
                                     onChange={handleChange}
-                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-900"
                                 />
-                                <label className="ml-2 text-sm text-gray-700">{pref}</label>
+                                <label className="ml-2 text-sm text-slate-400">{pref}</label>
                             </div>
                         ))}
                     </div>
-                    <p className="mt-1 text-xs text-gray-500">Select all that apply. Leave empty for No Preference.</p>
+                    <p className="mt-1 text-xs text-slate-500">Select all that apply. Leave empty for No Preference.</p>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Allergies</label>
+                    <label className="block text-sm font-medium text-slate-400">Allergies</label>
                     <input
                         type="text"
                         name="allergies"
                         value={formData.allergies}
                         onChange={handleChange}
                         placeholder="e.g. Peanuts, Dairy, Gluten"
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Membership Plan</label>
+                    <label className="block text-sm font-medium text-slate-400">Membership Plan</label>
                     <select
                         name="planId"
                         value={formData.planId}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                     >
                         <option value="">Select a Plan</option>
                         {plans.map((plan: any) => (
@@ -399,12 +400,12 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Discount / Coupon</label>
+                    <label className="block text-sm font-medium text-slate-400">Discount / Coupon</label>
                     <select
                         name="discountId"
                         value={formData.discountId}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                     >
                         <option value="">No Discount</option>
                         {discounts.map((discount: any) => (
@@ -416,12 +417,12 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">PT Plan (Optional)</label>
+                    <label className="block text-sm font-medium text-slate-400">PT Plan (Optional)</label>
                     <select
                         name="ptPlanId"
                         value={formData.ptPlanId}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                     >
                         <option value="">No PT Plan</option>
                         {ptPlans.map((ptPlan: any) => (
@@ -433,12 +434,12 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Assigned Trainer (Optional)</label>
+                    <label className="block text-sm font-medium text-slate-400">Assigned Trainer (Optional)</label>
                     <select
                         name="trainerId"
                         value={formData.trainerId}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                     >
                         <option value="">No Trainer Assigned</option>
                         {trainers.map((trainer: any) => (
@@ -450,12 +451,12 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                    <label className="block text-sm font-medium text-slate-400">Status</label>
                     <select
                         name="status"
                         value={formData.status}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                     >
                         <option value="Active">Active</option>
                         <option value="Pending">Pending</option>
@@ -468,14 +469,14 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                 <button
                     type="button"
                     onClick={() => router.back()}
-                    className="mr-3 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                    className="mr-3 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 shadow-sm hover:bg-slate-700 hover:text-white transition-colors"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
                     disabled={loading}
-                    className="rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+                    className="rounded-lg border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 hover:shadow-blue-500/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition-all hover:scale-105 active:scale-95"
                 >
                     {loading ? 'Saving...' : isEdit ? 'Update Member' : 'Add Member'}
                 </button>

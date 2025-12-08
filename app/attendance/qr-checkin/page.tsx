@@ -242,9 +242,46 @@ export default function QRCheckInPage() {
                                 )}
                             </div>
 
+                            {/* Membership Expiry Warning */}
+                            {user.userType === 'Member' && user.membershipExpired && (
+                                <div className="rounded-lg bg-red-50 border-2 border-red-300 p-4">
+                                    <div className="flex items-start">
+                                        <XCircle className="h-5 w-5 text-red-600 mr-2 mt-0.5 flex-shrink-0" />
+                                        <div>
+                                            <p className="text-sm font-bold text-red-800">Membership Expired</p>
+                                            <p className="text-xs text-red-700 mt-1">
+                                                Your membership has expired. Please renew to continue using the gym.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {user.userType === 'Member' && !user.membershipExpired && user.daysUntilExpiry !== null && user.daysUntilExpiry <= 10 && (
+                                <div className="rounded-lg bg-yellow-50 border-2 border-yellow-300 p-4">
+                                    <div className="flex items-start">
+                                        <span className="text-xl mr-2">⚠️</span>
+                                        <div>
+                                            <p className="text-sm font-bold text-yellow-800">Membership Expiring Soon</p>
+                                            <p className="text-xs text-yellow-700 mt-1">
+                                                Your membership expires in <span className="font-bold">{user.daysUntilExpiry} day{user.daysUntilExpiry !== 1 ? 's' : ''}</span>. Please renew soon to avoid interruption.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Action Buttons */}
                             <div className="space-y-3">
-                                {!user.isCheckedIn && !user.hasCheckedInToday ? (
+                                {user.membershipExpired ? (
+                                    <button
+                                        disabled
+                                        className="w-full flex items-center justify-center rounded-lg bg-red-400 px-6 py-4 text-lg font-bold text-white cursor-not-allowed"
+                                    >
+                                        <XCircle className="mr-2 h-6 w-6" />
+                                        Membership Expired - Cannot Check In
+                                    </button>
+                                ) : !user.isCheckedIn && !user.hasCheckedInToday ? (
                                     <button
                                         onClick={() => initiateAttendance('checkin')}
                                         disabled={processing || uploading}

@@ -29,7 +29,7 @@ export async function POST(request) {
             // Try with MEM prefix first
             user = await Member.findOne({
                 memberId: `MEM${identifier}`
-            }).select('_id name phone memberId membershipStatus').lean();
+            }).select('_id name phone memberId membershipStatus status membershipEndDate').lean();
 
             // If not found, try with TR prefix for trainers
             if (!user) {
@@ -48,7 +48,7 @@ export async function POST(request) {
                     { memberId: identifier },
                     { phone: identifier }
                 ]
-            }).select('_id name phone memberId membershipStatus').lean();
+            }).select('_id name phone memberId membershipStatus status membershipEndDate').lean();
 
             // If not found in members, try trainers
             if (!user) {
@@ -101,6 +101,22 @@ export async function POST(request) {
 
         const hasCheckedInToday = todayAttendance !== null;
 
+        // Calculate membership expiry info for members
+        let membershipExpired = false;
+        let daysUntilExpiry = null;
+        let membershipEndDate = null;
+
+        if (userType === 'Member' && user.membershipEndDate) {
+            membershipEndDate = user.membershipEndDate;
+            const now = new Date();
+            const endDate = new Date(user.membershipEndDate);
+            const diffTime = endDate.getTime() - now.getTime();
+            daysUntilExpiry = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            membershipExpired = daysUntilExpiry < 0;
+        } else if (userType === 'Member' && user.status === 'Expired') {
+            membershipExpired = true;
+        }
+
         return NextResponse.json({
             success: true,
             data: {
@@ -110,6 +126,10 @@ export async function POST(request) {
                 identifier: user.memberId || user.trainerId,
                 userType,
                 membershipStatus: user.membershipStatus || 'active',
+                status: user.status,
+                membershipEndDate,
+                daysUntilExpiry,
+                membershipExpired,
                 isCheckedIn,
                 currentDuration,
                 attendanceId: activeAttendance?._id,

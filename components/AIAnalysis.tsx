@@ -118,10 +118,10 @@ export default function AIAnalysis({ memberId, initialData, onGenerate }: AIAnal
 
     if (!aiData && !loading) {
         return (
-            <div className="rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 p-8 text-center">
-                <Sparkles className="mx-auto h-12 w-12 text-indigo-600" />
-                <h3 className="mt-4 text-lg font-medium text-gray-900">AI-Powered Personalized Plan</h3>
-                <p className="mt-2 text-sm text-gray-600">
+            <div className="rounded-lg bg-slate-800 p-8 text-center border border-slate-700">
+                <Sparkles className="mx-auto h-12 w-12 text-indigo-400" />
+                <h3 className="mt-4 text-lg font-medium text-slate-100">AI-Powered Personalized Plan</h3>
+                <p className="mt-2 text-sm text-slate-400">
                     Generate a customized diet and workout plan based on this member's profile, goals, and body measurements.
                 </p>
                 <div className="mt-6 flex justify-center gap-4">
@@ -143,7 +143,7 @@ export default function AIAnalysis({ memberId, initialData, onGenerate }: AIAnal
                     </button>
                 </div>
                 {error && (
-                    <p className="mt-4 text-sm text-red-600">{error}</p>
+                    <p className="mt-4 text-sm text-red-400">{error}</p>
                 )}
             </div>
         );
@@ -151,10 +151,10 @@ export default function AIAnalysis({ memberId, initialData, onGenerate }: AIAnal
 
     if (loading) {
         return (
-            <div className="rounded-lg bg-white p-8 text-center shadow">
-                <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent"></div>
-                <p className="mt-4 text-sm text-gray-600">Generating your personalized plan...</p>
-                <p className="mt-2 text-xs text-gray-500">This may take 10-20 seconds</p>
+            <div className="rounded-lg bg-slate-800 p-8 text-center shadow border border-slate-700">
+                <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+                <p className="mt-4 text-sm text-slate-300">Generating your personalized plan...</p>
+                <p className="mt-2 text-xs text-slate-400">This may take 10-20 seconds</p>
             </div>
         );
     }
@@ -164,16 +164,16 @@ export default function AIAnalysis({ memberId, initialData, onGenerate }: AIAnal
     return (
         <div className="ai-analysis-container space-y-6">
             {/* Header with Actions */}
-            <div className="flex items-center justify-between rounded-lg bg-white p-4 shadow print:hidden">
+            <div className="flex items-center justify-between rounded-lg bg-slate-800 p-4 shadow print:hidden border border-slate-700">
                 <div>
-                    <h3 className="text-lg font-medium text-gray-900">AI-Generated Plan</h3>
+                    <h3 className="text-lg font-medium text-slate-100">AI-Generated Plan</h3>
                     {activeTab === 'diet' && aiData?.dietPlan?.generatedAt && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-slate-400">
                             Diet generated on {new Date(aiData.dietPlan.generatedAt).toLocaleDateString()}
                         </p>
                     )}
                     {activeTab === 'workout' && aiData?.workoutPlan?.generatedAt && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-slate-400">
                             Workout generated on {new Date(aiData.workoutPlan.generatedAt).toLocaleDateString()}
                         </p>
                     )}
@@ -183,7 +183,7 @@ export default function AIAnalysis({ memberId, initialData, onGenerate }: AIAnal
                         <>
                             <button
                                 onClick={handlePrintDiet}
-                                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                className="inline-flex items-center rounded-md border border-slate-600 bg-slate-700 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-600"
                             >
                                 <Printer className="mr-2 h-4 w-4" />
                                 Print Diet
@@ -191,7 +191,7 @@ export default function AIAnalysis({ memberId, initialData, onGenerate }: AIAnal
                             <button
                                 onClick={() => generatePlan('diet')}
                                 disabled={loading}
-                                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                className="inline-flex items-center rounded-md border border-slate-600 bg-slate-700 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-600 disabled:opacity-50"
                             >
                                 <RefreshCw className="mr-2 h-4 w-4" />
                                 Regenerate Diet
@@ -201,7 +201,7 @@ export default function AIAnalysis({ memberId, initialData, onGenerate }: AIAnal
                         <>
                             <button
                                 onClick={handlePrintWorkout}
-                                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                className="inline-flex items-center rounded-md border border-slate-600 bg-slate-700 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-600"
                             >
                                 <Printer className="mr-2 h-4 w-4" />
                                 Print Workout
@@ -209,7 +209,7 @@ export default function AIAnalysis({ memberId, initialData, onGenerate }: AIAnal
                             <button
                                 onClick={() => generatePlan('workout')}
                                 disabled={loading}
-                                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                className="inline-flex items-center rounded-md border border-slate-600 bg-slate-700 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-600 disabled:opacity-50"
                             >
                                 <RefreshCw className="mr-2 h-4 w-4" />
                                 Regenerate Workout
@@ -220,13 +220,13 @@ export default function AIAnalysis({ memberId, initialData, onGenerate }: AIAnal
             </div>
 
             {/* Tabs */}
-            <div className="border-b border-gray-200 print:hidden">
+            <div className="border-b border-slate-700 print:hidden">
                 <nav className="-mb-px flex space-x-8">
                     <button
                         onClick={() => setActiveTab('diet')}
                         className={`flex items-center border-b-2 px-1 py-4 text-sm font-medium ${activeTab === 'diet'
-                            ? 'border-indigo-500 text-indigo-600'
-                            : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                            ? 'border-indigo-500 text-indigo-400'
+                            : 'border-transparent text-slate-400 hover:border-slate-600 hover:text-slate-300'
                             }`}
                     >
                         <UtensilsCrossed className="mr-2 h-5 w-5" />
@@ -235,8 +235,8 @@ export default function AIAnalysis({ memberId, initialData, onGenerate }: AIAnal
                     <button
                         onClick={() => setActiveTab('workout')}
                         className={`flex items-center border-b-2 px-1 py-4 text-sm font-medium ${activeTab === 'workout'
-                            ? 'border-indigo-500 text-indigo-600'
-                            : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                            ? 'border-indigo-500 text-indigo-400'
+                            : 'border-transparent text-slate-400 hover:border-slate-600 hover:text-slate-300'
                             }`}
                     >
                         <Dumbbell className="mr-2 h-5 w-5" />
@@ -247,10 +247,10 @@ export default function AIAnalysis({ memberId, initialData, onGenerate }: AIAnal
 
             {/* Diet Plan Tab - Empty State */}
             {activeTab === 'diet' && !aiData?.dietPlan && (
-                <div className="py-12 text-center rounded-lg bg-gray-50 border-2 border-dashed border-gray-300">
-                    <UtensilsCrossed className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">No Diet Plan Generated</h3>
-                    <p className="mt-1 text-sm text-gray-500">Generate a personalized diet plan for this member.</p>
+                <div className="py-12 text-center rounded-lg bg-slate-800 border-2 border-dashed border-slate-700">
+                    <UtensilsCrossed className="mx-auto h-12 w-12 text-slate-500" />
+                    <h3 className="mt-2 text-sm font-medium text-slate-100">No Diet Plan Generated</h3>
+                    <p className="mt-1 text-sm text-slate-400">Generate a personalized diet plan for this member.</p>
                     <button
                         onClick={() => generatePlan('diet')}
                         disabled={loading}
@@ -263,10 +263,10 @@ export default function AIAnalysis({ memberId, initialData, onGenerate }: AIAnal
 
             {/* Workout Plan Tab - Empty State */}
             {activeTab === 'workout' && !aiData?.workoutPlan && (
-                <div className="py-12 text-center rounded-lg bg-gray-50 border-2 border-dashed border-gray-300">
-                    <Dumbbell className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">No Workout Plan Generated</h3>
-                    <p className="mt-1 text-sm text-gray-500">Generate a personalized workout plan for this member.</p>
+                <div className="py-12 text-center rounded-lg bg-slate-800 border-2 border-dashed border-slate-700">
+                    <Dumbbell className="mx-auto h-12 w-12 text-slate-500" />
+                    <h3 className="mt-2 text-sm font-medium text-slate-100">No Workout Plan Generated</h3>
+                    <p className="mt-1 text-sm text-slate-400">Generate a personalized workout plan for this member.</p>
                     <button
                         onClick={() => generatePlan('workout')}
                         disabled={loading}
@@ -284,56 +284,56 @@ export default function AIAnalysis({ memberId, initialData, onGenerate }: AIAnal
 
                     {/* Macros Summary */}
                     <div className="grid grid-cols-4 gap-4 print:mb-6">
-                        <div className="rounded-lg bg-blue-50 p-4 print:border print:border-blue-200">
-                            <p className="text-sm text-blue-600">Daily Calories</p>
-                            <p className="text-2xl font-bold text-blue-900">{aiData.dietPlan.calories || 'N/A'}</p>
+                        <div className="rounded-lg bg-blue-900/20 p-4 border border-blue-900/30 print:border print:border-blue-200">
+                            <p className="text-sm text-blue-400 print:text-blue-600">Daily Calories</p>
+                            <p className="text-2xl font-bold text-blue-200 print:text-blue-900">{aiData.dietPlan.calories || 'N/A'}</p>
                         </div>
-                        <div className="rounded-lg bg-green-50 p-4 print:border print:border-green-200">
-                            <p className="text-sm text-green-600">Protein</p>
-                            <p className="text-2xl font-bold text-green-900">{aiData.dietPlan.macros?.protein || 'N/A'}g</p>
+                        <div className="rounded-lg bg-green-900/20 p-4 border border-green-900/30 print:border print:border-green-200">
+                            <p className="text-sm text-green-400 print:text-green-600">Protein</p>
+                            <p className="text-2xl font-bold text-green-200 print:text-green-900">{aiData.dietPlan.macros?.protein || 'N/A'}g</p>
                         </div>
-                        <div className="rounded-lg bg-yellow-50 p-4 print:border print:border-yellow-200">
-                            <p className="text-sm text-yellow-600">Carbs</p>
-                            <p className="text-2xl font-bold text-yellow-900">{aiData.dietPlan.macros?.carbs || 'N/A'}g</p>
+                        <div className="rounded-lg bg-yellow-900/20 p-4 border border-yellow-900/30 print:border print:border-yellow-200">
+                            <p className="text-sm text-yellow-400 print:text-yellow-600">Carbs</p>
+                            <p className="text-2xl font-bold text-yellow-200 print:text-yellow-900">{aiData.dietPlan.macros?.carbs || 'N/A'}g</p>
                         </div>
-                        <div className="rounded-lg bg-red-50 p-4 print:border print:border-red-200">
-                            <p className="text-sm text-red-600">Fats</p>
-                            <p className="text-2xl font-bold text-red-900">{aiData.dietPlan.macros?.fats || 'N/A'}g</p>
+                        <div className="rounded-lg bg-red-900/20 p-4 border border-red-900/30 print:border print:border-red-200">
+                            <p className="text-sm text-red-400 print:text-red-600">Fats</p>
+                            <p className="text-2xl font-bold text-red-200 print:text-red-900">{aiData.dietPlan.macros?.fats || 'N/A'}g</p>
                         </div>
                     </div>
 
                     {/* Day-wise Meal Table */}
-                    <div className="rounded-lg bg-white shadow print:shadow-none">
+                    <div className="rounded-lg bg-slate-800 shadow print:shadow-none border border-slate-700 print:border-none">
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
+                            <table className="min-w-full divide-y divide-slate-700 print:divide-gray-200">
+                                <thead className="bg-slate-900 print:bg-gray-50">
                                     <tr>
-                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Day</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Breakfast</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Mid-Morning</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Lunch</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Evening</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Dinner</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400 print:text-gray-500">Day</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400 print:text-gray-500">Breakfast</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400 print:text-gray-500">Mid-Morning</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400 print:text-gray-500">Lunch</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400 print:text-gray-500">Evening</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400 print:text-gray-500">Dinner</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-200 bg-white">
+                                <tbody className="divide-y divide-slate-700 bg-slate-800 print:bg-white print:divide-gray-200">
                                     {dayWiseDiet.map((dayData, idx) => (
-                                        <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                            <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{dayData.day}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-700">{dayData.breakfast.replace(/^Day \d+:\s*/, '')}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-700">{dayData.midMorningSnack.replace(/^Day \d+:\s*/, '')}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-700">{dayData.lunch.replace(/^Day \d+:\s*/, '')}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-700">{dayData.eveningSnack.replace(/^Day \d+:\s*/, '')}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-700">{dayData.dinner.replace(/^Day \d+:\s*/, '')}</td>
+                                        <tr key={idx} className={`${idx % 2 === 0 ? 'bg-slate-800 print:bg-white' : 'bg-slate-900/50 print:bg-gray-50'}`}>
+                                            <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-slate-200 print:text-gray-900">{dayData.day}</td>
+                                            <td className="px-4 py-3 text-sm text-slate-300 print:text-gray-700">{dayData.breakfast.replace(/^Day \d+:\s*/, '')}</td>
+                                            <td className="px-4 py-3 text-sm text-slate-300 print:text-gray-700">{dayData.midMorningSnack.replace(/^Day \d+:\s*/, '')}</td>
+                                            <td className="px-4 py-3 text-sm text-slate-300 print:text-gray-700">{dayData.lunch.replace(/^Day \d+:\s*/, '')}</td>
+                                            <td className="px-4 py-3 text-sm text-slate-300 print:text-gray-700">{dayData.eveningSnack.replace(/^Day \d+:\s*/, '')}</td>
+                                            <td className="px-4 py-3 text-sm text-slate-300 print:text-gray-700">{dayData.dinner.replace(/^Day \d+:\s*/, '')}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
                         {aiData.dietPlan.notes && (
-                            <div className="border-t border-gray-200 bg-amber-50 p-4">
-                                <p className="text-sm font-medium text-amber-900">Notes:</p>
-                                <p className="mt-1 text-sm text-amber-700">{aiData.dietPlan.notes}</p>
+                            <div className="border-t border-slate-700 bg-amber-900/20 p-4 print:border-gray-200 print:bg-amber-50">
+                                <p className="text-sm font-medium text-amber-200 print:text-amber-900">Notes:</p>
+                                <p className="mt-1 text-sm text-amber-300 print:text-amber-700">{aiData.dietPlan.notes}</p>
                             </div>
                         )}
                     </div>
@@ -346,53 +346,53 @@ export default function AIAnalysis({ memberId, initialData, onGenerate }: AIAnal
                     <h2 className="hidden text-2xl font-bold print:block">Workout Plan</h2>
 
                     {aiData.workoutPlan.weeklySchedule?.map((day: any, idx: number) => (
-                        <div key={idx} className="rounded-lg bg-white shadow print:mb-4 print:shadow-none print:border print:border-gray-200">
-                            <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
+                        <div key={idx} className="rounded-lg bg-slate-800 shadow print:mb-4 print:shadow-none print:border print:border-gray-200 print:bg-white">
+                            <div className="border-b border-slate-700 bg-slate-900 px-6 py-4 print:border-gray-200 print:bg-gray-50">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h4 className="text-lg font-medium text-gray-900">{day.day}</h4>
-                                        <p className="text-sm text-gray-600">{day.focus}</p>
+                                        <h4 className="text-lg font-medium text-slate-100 print:text-gray-900">{day.day}</h4>
+                                        <p className="text-sm text-slate-400 print:text-gray-600">{day.focus}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-sm text-gray-500">Duration</p>
-                                        <p className="text-lg font-medium text-gray-900">{day.duration} min</p>
+                                        <p className="text-sm text-slate-500">Duration</p>
+                                        <p className="text-lg font-medium text-slate-100 print:text-gray-900">{day.duration} min</p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="p-6">
                                 {day.warmup && (
-                                    <div className="mb-4 rounded-lg bg-blue-50 p-3 print:border print:border-blue-200">
-                                        <p className="text-xs font-medium text-blue-900">Warmup:</p>
-                                        <p className="text-sm text-blue-700">{day.warmup}</p>
+                                    <div className="mb-4 rounded-lg bg-blue-900/20 p-3 border border-blue-900/30 print:border-blue-200 print:bg-blue-50">
+                                        <p className="text-xs font-medium text-blue-200 print:text-blue-900">Warmup:</p>
+                                        <p className="text-sm text-blue-300 print:text-blue-700">{day.warmup}</p>
                                     </div>
                                 )}
 
                                 <table className="min-w-full">
                                     <thead>
-                                        <tr className="border-b border-gray-200">
-                                            <th className="pb-2 text-left text-xs font-medium uppercase text-gray-500">Exercise</th>
-                                            <th className="pb-2 text-center text-xs font-medium uppercase text-gray-500">Sets × Reps</th>
-                                            <th className="pb-2 text-center text-xs font-medium uppercase text-gray-500">Rest</th>
-                                            <th className="pb-2 text-left text-xs font-medium uppercase text-gray-500">Notes</th>
+                                        <tr className="border-b border-slate-700 print:border-gray-200">
+                                            <th className="pb-2 text-left text-xs font-medium uppercase text-slate-400 print:text-gray-500">Exercise</th>
+                                            <th className="pb-2 text-center text-xs font-medium uppercase text-slate-400 print:text-gray-500">Sets × Reps</th>
+                                            <th className="pb-2 text-center text-xs font-medium uppercase text-slate-400 print:text-gray-500">Rest</th>
+                                            <th className="pb-2 text-left text-xs font-medium uppercase text-slate-400 print:text-gray-500">Notes</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {day.exercises?.map((exercise: any, exIdx: number) => (
-                                            <tr key={exIdx} className="border-b border-gray-100">
-                                                <td className="py-3 pr-4 text-sm font-medium text-gray-900">{exercise.name}</td>
-                                                <td className="py-3 text-center text-sm text-gray-700">{exercise.sets} × {exercise.reps}</td>
-                                                <td className="py-3 text-center text-sm text-gray-600">{exercise.rest}</td>
-                                                <td className="py-3 text-sm text-gray-600">{exercise.notes || '-'}</td>
+                                            <tr key={exIdx} className="border-b border-slate-700/50 print:border-gray-100">
+                                                <td className="py-3 pr-4 text-sm font-medium text-slate-200 print:text-gray-900">{exercise.name}</td>
+                                                <td className="py-3 text-center text-sm text-slate-300 print:text-gray-700">{exercise.sets} × {exercise.reps}</td>
+                                                <td className="py-3 text-center text-sm text-slate-400 print:text-gray-600">{exercise.rest}</td>
+                                                <td className="py-3 text-sm text-slate-400 print:text-gray-600">{exercise.notes || '-'}</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
 
                                 {day.cooldown && (
-                                    <div className="mt-4 rounded-lg bg-green-50 p-3 print:border print:border-green-200">
-                                        <p className="text-xs font-medium text-green-900">Cooldown:</p>
-                                        <p className="text-sm text-green-700">{day.cooldown}</p>
+                                    <div className="mt-4 rounded-lg bg-green-900/20 p-3 border border-green-900/30 print:border-green-200 print:bg-green-50">
+                                        <p className="text-xs font-medium text-green-200 print:text-green-900">Cooldown:</p>
+                                        <p className="text-sm text-green-300 print:text-green-700">{day.cooldown}</p>
                                     </div>
                                 )}
                             </div>
@@ -400,9 +400,9 @@ export default function AIAnalysis({ memberId, initialData, onGenerate }: AIAnal
                     ))}
 
                     {aiData.workoutPlan.notes && (
-                        <div className="rounded-lg bg-amber-50 p-4 print:border print:border-amber-200">
-                            <p className="text-sm font-medium text-amber-900">Important Notes:</p>
-                            <p className="mt-1 text-sm text-amber-700">{aiData.workoutPlan.notes}</p>
+                        <div className="rounded-lg bg-amber-900/20 p-4 border border-amber-900/30 print:border-amber-200 print:bg-amber-50">
+                            <p className="text-sm font-medium text-amber-200 print:text-amber-900">Important Notes:</p>
+                            <p className="mt-1 text-sm text-amber-300 print:text-amber-700">{aiData.workoutPlan.notes}</p>
                         </div>
                     )}
                 </div>

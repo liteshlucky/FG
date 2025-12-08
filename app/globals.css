@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0f172a;
+  /* Slate 900 for a deep, rich dark mode base */
+  --foreground: #f8fafc;
+  /* Slate 50 */
 }
 
 @theme inline {
@@ -10,17 +12,35 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Brand Red Overrides */
+  --color-red-400: #ff4d4d;
+  --color-red-500: #ff1818;
+  --color-red-600: #e61616;
+  --color-red-700: #b91c1c;
+  /* Brand Blue Overrides (Map Blue to Red) */
+  --color-blue-400: #ff4d4d;
+  --color-blue-500: #ff1818;
+  --color-blue-600: #e61616;
+  --color-blue-700: #b91c1c;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  @apply antialiased transition-colors duration-300;
+}
+
+/* Custom Scrollbar for Dark Theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-950;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-700 rounded-full hover:bg-slate-600;
 }

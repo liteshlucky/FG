@@ -76,11 +76,11 @@ export default function SalaryModal({ isOpen, onClose, trainerId, onPaymentSucce
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-            <div className="w-full max-w-lg rounded-lg bg-white shadow-xl">
-                <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-                    <h3 className="text-lg font-medium text-gray-900">Generate & Pay Salary</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
+            <div className="w-full max-w-lg rounded-lg bg-slate-800 shadow-xl border border-slate-700">
+                <div className="flex items-center justify-between border-b border-slate-700 px-6 py-4">
+                    <h3 className="text-lg font-medium text-slate-100">Generate & Pay Salary</h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-300">
                         <X className="h-6 w-6" />
                     </button>
                 </div>
@@ -88,35 +88,35 @@ export default function SalaryModal({ isOpen, onClose, trainerId, onPaymentSucce
                 <div className="p-6">
                     {calculating ? (
                         <div className="text-center py-8">
-                            <Calculator className="mx-auto h-12 w-12 text-gray-400 animate-pulse" />
-                            <p className="mt-2 text-sm text-gray-500">Calculating salary...</p>
+                            <Calculator className="mx-auto h-12 w-12 text-slate-500 animate-pulse" />
+                            <p className="mt-2 text-sm text-slate-400">Calculating salary...</p>
                         </div>
                     ) : salaryData ? (
                         <div className="space-y-6">
                             {/* Salary Breakdown */}
-                            <div className="rounded-md bg-gray-50 p-4">
+                            <div className="rounded-md bg-slate-700 p-4 border border-slate-600">
                                 <div className="flex justify-between mb-2">
-                                    <span className="text-sm text-gray-500">Base Salary</span>
-                                    <span className="font-medium">₹ {salaryData.baseSalary}</span>
+                                    <span className="text-sm text-slate-300">Base Salary</span>
+                                    <span className="font-medium text-slate-100">₹ {salaryData.baseSalary}</span>
                                 </div>
                                 <div className="flex justify-between mb-2">
-                                    <span className="text-sm text-gray-500">Commission ({salaryData.activeMembersCount} active members)</span>
-                                    <span className="font-medium text-green-600">+ ₹ {salaryData.commissionAmount}</span>
+                                    <span className="text-sm text-slate-300">Commission ({salaryData.activeMembersCount} active members)</span>
+                                    <span className="font-medium text-green-400">+ ₹ {salaryData.commissionAmount}</span>
                                 </div>
-                                <div className="border-t border-gray-200 pt-2 flex justify-between">
-                                    <span className="font-bold text-gray-900">Total Payable</span>
-                                    <span className="font-bold text-indigo-600 text-lg">₹ {salaryData.totalSalary}</span>
+                                <div className="border-t border-slate-600 pt-2 flex justify-between">
+                                    <span className="font-bold text-slate-100">Total Payable</span>
+                                    <span className="font-bold text-indigo-400 text-lg">₹ {salaryData.totalSalary}</span>
                                 </div>
                             </div>
 
                             {/* Payment Details Form */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Month</label>
+                                    <label className="block text-sm font-medium text-slate-300">Month</label>
                                     <select
                                         value={month}
                                         onChange={(e) => setMonth(e.target.value)}
-                                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
                                     >
                                         {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(m => (
                                             <option key={m} value={m}>{m}</option>
@@ -124,22 +124,22 @@ export default function SalaryModal({ isOpen, onClose, trainerId, onPaymentSucce
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Year</label>
+                                    <label className="block text-sm font-medium text-slate-300">Year</label>
                                     <input
                                         type="number"
                                         value={year}
                                         onChange={(e) => setYear(parseInt(e.target.value))}
-                                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Payment Mode</label>
+                                <label className="block text-sm font-medium text-slate-300">Payment Mode</label>
                                 <select
                                     value={paymentMode}
                                     onChange={(e) => setPaymentMode(e.target.value)}
-                                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                    className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
                                 >
                                     <option value="bank_transfer">Bank Transfer</option>
                                     <option value="cash">Cash</option>
@@ -149,12 +149,12 @@ export default function SalaryModal({ isOpen, onClose, trainerId, onPaymentSucce
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Notes</label>
+                                <label className="block text-sm font-medium text-slate-300">Notes</label>
                                 <textarea
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
                                     rows={2}
-                                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                    className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm placeholder-slate-500"
                                     placeholder="Transaction ID, remarks, etc."
                                 />
                             </div>

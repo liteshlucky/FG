@@ -59,15 +59,15 @@ export default function AdvancedAnalyticsPage() {
         return (
             <div className="flex h-96 items-center justify-center">
                 <div className="text-center">
-                    <div className="mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="text-gray-600">Loading advanced analytics...</p>
+                    <div className="mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-red-600 mx-auto"></div>
+                    <p className="text-slate-400">Loading advanced analytics...</p>
                 </div>
             </div>
         );
     }
 
     if (!analytics) {
-        return <div className="p-8 text-center text-red-600">Failed to load analytics</div>;
+        return <div className="p-8 text-center text-red-400">Failed to load analytics</div>;
     }
 
     const { revenueBreakdown, discountAnalysis, trainerPerformance, profitMargins, memberAcquisition, cashFlowProjections, localInsights, comparison } = analytics as any;
@@ -84,14 +84,14 @@ export default function AdvancedAnalyticsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Advanced Analytics</h1>
-                    <p className="mt-1 text-sm text-gray-500">Deep dive into revenue, costs, and performance metrics</p>
+                    <h1 className="text-2xl font-bold text-slate-100">Advanced Analytics</h1>
+                    <p className="mt-1 text-sm text-slate-400">Deep dive into revenue, costs, and performance metrics</p>
                 </div>
                 <div className="flex space-x-3">
                     <select
                         value={compareMode}
                         onChange={(e) => setCompareMode(e.target.value)}
-                        className="rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-4 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
                     >
                         <option value="">No Comparison</option>
                         <option value="month">vs Last Period</option>
@@ -100,7 +100,7 @@ export default function AdvancedAnalyticsPage() {
                     <select
                         value={timeRange}
                         onChange={(e) => setTimeRange(e.target.value)}
-                        className="rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-4 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
                     >
                         <option value="3">Last 3 Months</option>
                         <option value="6">Last 6 Months</option>
@@ -111,26 +111,26 @@ export default function AdvancedAnalyticsPage() {
 
             {/* Comparison Banner */}
             {comparison && (
-                <div className={`rounded-lg p-4 ${parseFloat(comparison.growth) >= 0 ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                <div className={`rounded-lg p-4 ${parseFloat(comparison.growth) >= 0 ? 'bg-green-900/20 border border-green-800/50' : 'bg-red-900/20 border border-red-800/50'}`}>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center">
                             {parseFloat(comparison.growth) >= 0 ? (
-                                <ArrowUpRight className="h-6 w-6 text-green-600 mr-2" />
+                                <ArrowUpRight className="h-6 w-6 text-green-400 mr-2" />
                             ) : (
-                                <ArrowDownRight className="h-6 w-6 text-red-600 mr-2" />
+                                <ArrowDownRight className="h-6 w-6 text-red-400 mr-2" />
                             )}
                             <div>
-                                <p className="text-sm font-medium text-gray-700">
+                                <p className="text-sm font-medium text-slate-300">
                                     {compareMode === 'month' ? 'vs Previous Period' : 'vs Last Year'}
                                 </p>
-                                <p className={`text-2xl font-bold ${parseFloat(comparison.growth) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                <p className={`text-2xl font-bold ${parseFloat(comparison.growth) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                     {parseFloat(comparison.growth) >= 0 ? '+' : ''}{comparison.growth}% Growth
                                 </p>
                             </div>
                         </div>
                         <div className="text-right">
-                            <p className="text-sm text-gray-600">Previous Revenue</p>
-                            <p className="text-lg font-semibold text-gray-900">₹{comparison.revenue.toLocaleString()}</p>
+                            <p className="text-sm text-slate-400">Previous Revenue</p>
+                            <p className="text-lg font-semibold text-slate-100">₹{comparison.revenue.toLocaleString()}</p>
                         </div>
                     </div>
                 </div>
@@ -138,8 +138,8 @@ export default function AdvancedAnalyticsPage() {
 
             {/* Revenue Breakdown */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <div className="rounded-lg bg-white p-6 shadow">
-                    <h2 className="mb-4 text-lg font-semibold text-gray-900">Revenue Breakdown</h2>
+                <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
+                    <h2 className="mb-4 text-lg font-semibold text-slate-100">Revenue Breakdown</h2>
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
                             <Pie
@@ -153,48 +153,51 @@ export default function AdvancedAnalyticsPage() {
                                 dataKey="value"
                             >
                                 {pieData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="#1e293b" />
                                 ))}
                             </Pie>
-                            <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+                            <Tooltip
+                                contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }}
+                                formatter={(value) => `₹${value.toLocaleString()}`}
+                            />
                         </PieChart>
                     </ResponsiveContainer>
                     <div className="mt-4 space-y-2">
                         <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Membership Plans:</span>
-                            <span className="font-semibold text-green-600">₹{revenueBreakdown.membership.toLocaleString()}</span>
+                            <span className="text-slate-400">Membership Plans:</span>
+                            <span className="font-semibold text-green-400">₹{revenueBreakdown.membership.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">PT Plans:</span>
-                            <span className="font-semibold text-blue-600">₹{revenueBreakdown.pt.toLocaleString()}</span>
+                            <span className="text-slate-400">PT Plans:</span>
+                            <span className="font-semibold text-blue-400">₹{revenueBreakdown.pt.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Other Income:</span>
-                            <span className="font-semibold text-orange-600">₹{revenueBreakdown.other.toLocaleString()}</span>
+                            <span className="text-slate-400">Other Income:</span>
+                            <span className="font-semibold text-orange-400">₹{revenueBreakdown.other.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between border-t pt-2 text-sm font-bold">
-                            <span className="text-gray-900">Total Revenue:</span>
-                            <span className="text-gray-900">₹{revenueBreakdown.total.toLocaleString()}</span>
+                        <div className="flex justify-between border-t border-slate-700 pt-2 text-sm font-bold">
+                            <span className="text-slate-100">Total Revenue:</span>
+                            <span className="text-slate-100">₹{revenueBreakdown.total.toLocaleString()}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Profit Margins */}
-                <div className="rounded-lg bg-white p-6 shadow">
-                    <h2 className="mb-4 text-lg font-semibold text-gray-900">Profit Margins by Type</h2>
+                <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
+                    <h2 className="mb-4 text-lg font-semibold text-slate-100">Profit Margins by Type</h2>
                     <div className="space-y-6">
                         <div>
                             <div className="mb-2 flex items-center justify-between">
-                                <span className="text-sm font-medium text-gray-700">Membership Plans</span>
-                                <span className="text-lg font-bold text-green-600">{profitMargins.membership.margin}%</span>
+                                <span className="text-sm font-medium text-slate-300">Membership Plans</span>
+                                <span className="text-lg font-bold text-green-400">{profitMargins.membership.margin}%</span>
                             </div>
-                            <div className="h-4 w-full rounded-full bg-gray-200">
+                            <div className="h-4 w-full rounded-full bg-slate-700">
                                 <div
                                     className="h-4 rounded-full bg-green-500"
                                     style={{ width: `${Math.min(profitMargins.membership.margin, 100)}%` }}
                                 ></div>
                             </div>
-                            <div className="mt-1 flex justify-between text-xs text-gray-600">
+                            <div className="mt-1 flex justify-between text-xs text-slate-400">
                                 <span>Revenue: ₹{profitMargins.membership.revenue.toLocaleString()}</span>
                                 <span>Costs: ₹{profitMargins.membership.costs.toLocaleString()}</span>
                             </div>
@@ -202,24 +205,24 @@ export default function AdvancedAnalyticsPage() {
 
                         <div>
                             <div className="mb-2 flex items-center justify-between">
-                                <span className="text-sm font-medium text-gray-700">PT Plans</span>
-                                <span className="text-lg font-bold text-blue-600">{profitMargins.pt.margin}%</span>
+                                <span className="text-sm font-medium text-slate-300">PT Plans</span>
+                                <span className="text-lg font-bold text-blue-400">{profitMargins.pt.margin}%</span>
                             </div>
-                            <div className="h-4 w-full rounded-full bg-gray-200">
+                            <div className="h-4 w-full rounded-full bg-slate-700">
                                 <div
                                     className="h-4 rounded-full bg-blue-500"
                                     style={{ width: `${Math.min(profitMargins.pt.margin, 100)}%` }}
                                 ></div>
                             </div>
-                            <div className="mt-1 flex justify-between text-xs text-gray-600">
+                            <div className="mt-1 flex justify-between text-xs text-slate-400">
                                 <span>Revenue: ₹{profitMargins.pt.revenue.toLocaleString()}</span>
                                 <span>Costs: ₹{profitMargins.pt.costs.toLocaleString()}</span>
                             </div>
                         </div>
 
-                        <div className="rounded-lg bg-blue-50 p-4">
-                            <p className="text-sm font-medium text-blue-900">Profitability Insight</p>
-                            <p className="mt-1 text-xs text-blue-700">
+                        <div className="rounded-lg bg-blue-900/20 p-4 border border-blue-800/50">
+                            <p className="text-sm font-medium text-blue-300">Profitability Insight</p>
+                            <p className="mt-1 text-xs text-blue-200">
                                 {parseFloat(profitMargins.membership.margin) > parseFloat(profitMargins.pt.margin)
                                     ? 'Membership plans are more profitable. Consider promoting them.'
                                     : 'PT plans have higher margins. Focus on trainer-led services.'}
@@ -231,28 +234,28 @@ export default function AdvancedAnalyticsPage() {
 
             {/* Member Acquisition & Discount Analysis */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <div className="rounded-lg bg-white p-6 shadow">
+                <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
                     <div className="mb-4 flex items-center">
-                        <Users className="mr-2 h-5 w-5 text-purple-600" />
-                        <h2 className="text-lg font-semibold text-gray-900">Member Acquisition</h2>
+                        <Users className="mr-2 h-5 w-5 text-purple-400" />
+                        <h2 className="text-lg font-semibold text-slate-100">Member Acquisition</h2>
                     </div>
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <span className="text-gray-600">New Members</span>
-                            <span className="text-2xl font-bold text-purple-600">{memberAcquisition.newMembers}</span>
+                            <span className="text-slate-400">New Members</span>
+                            <span className="text-2xl font-bold text-purple-400">{memberAcquisition.newMembers}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Total Members</span>
-                            <span className="text-lg font-semibold text-gray-900">{memberAcquisition.totalMembers}</span>
+                            <span className="text-slate-400">Total Members</span>
+                            <span className="text-lg font-semibold text-slate-100">{memberAcquisition.totalMembers}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Marketing Costs</span>
-                            <span className="text-lg font-semibold text-red-600">₹{memberAcquisition.marketingCosts.toLocaleString()}</span>
+                            <span className="text-slate-400">Marketing Costs</span>
+                            <span className="text-lg font-semibold text-red-400">₹{memberAcquisition.marketingCosts.toLocaleString()}</span>
                         </div>
-                        <div className="rounded-lg bg-purple-50 p-4">
-                            <p className="text-sm font-medium text-purple-900">Cost Per Acquisition</p>
-                            <p className="mt-1 text-3xl font-bold text-purple-600">₹{memberAcquisition.costPerAcquisition.toLocaleString()}</p>
-                            <p className="mt-1 text-xs text-purple-700">
+                        <div className="rounded-lg bg-purple-900/20 p-4 border border-purple-800/50">
+                            <p className="text-sm font-medium text-purple-300">Cost Per Acquisition</p>
+                            <p className="mt-1 text-3xl font-bold text-purple-400">₹{memberAcquisition.costPerAcquisition.toLocaleString()}</p>
+                            <p className="mt-1 text-xs text-purple-400">
                                 {memberAcquisition.costPerAcquisition > 0
                                     ? 'Track this metric to optimize marketing spend'
                                     : 'Add marketing expenses to calculate CPA'}
@@ -261,28 +264,28 @@ export default function AdvancedAnalyticsPage() {
                     </div>
                 </div>
 
-                <div className="rounded-lg bg-white p-6 shadow">
+                <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
                     <div className="mb-4 flex items-center">
-                        <PieChartIcon className="mr-2 h-5 w-5 text-orange-600" />
-                        <h2 className="text-lg font-semibold text-gray-900">Discount Impact</h2>
+                        <PieChartIcon className="mr-2 h-5 w-5 text-orange-400" />
+                        <h2 className="text-lg font-semibold text-slate-100">Discount Impact</h2>
                     </div>
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Total Discounts Given</span>
-                            <span className="text-2xl font-bold text-orange-600">₹{discountAnalysis.totalDiscounts.toLocaleString()}</span>
+                            <span className="text-slate-400">Total Discounts Given</span>
+                            <span className="text-2xl font-bold text-orange-400">₹{discountAnalysis.totalDiscounts.toLocaleString()}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Discounted Transactions</span>
-                            <span className="text-lg font-semibold text-gray-900">{discountAnalysis.discountedTransactions}</span>
+                            <span className="text-slate-400">Discounted Transactions</span>
+                            <span className="text-lg font-semibold text-slate-100">{discountAnalysis.discountedTransactions}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Average Discount</span>
-                            <span className="text-lg font-semibold text-gray-900">₹{Math.round(discountAnalysis.averageDiscount).toLocaleString()}</span>
+                            <span className="text-slate-400">Average Discount</span>
+                            <span className="text-lg font-semibold text-slate-100">₹{Math.round(discountAnalysis.averageDiscount).toLocaleString()}</span>
                         </div>
-                        <div className="rounded-lg bg-orange-50 p-4">
-                            <p className="text-sm font-medium text-orange-900">Potential Revenue</p>
-                            <p className="mt-1 text-3xl font-bold text-orange-600">₹{discountAnalysis.potentialRevenue.toLocaleString()}</p>
-                            <p className="mt-1 text-xs text-orange-700">
+                        <div className="rounded-lg bg-orange-900/20 p-4 border border-orange-800/50">
+                            <p className="text-sm font-medium text-orange-300">Potential Revenue</p>
+                            <p className="mt-1 text-3xl font-bold text-orange-400">₹{discountAnalysis.potentialRevenue.toLocaleString()}</p>
+                            <p className="mt-1 text-xs text-orange-400">
                                 Revenue without discounts (for reference only)
                             </p>
                         </div>
@@ -291,45 +294,45 @@ export default function AdvancedAnalyticsPage() {
             </div>
 
             {/* Trainer Performance */}
-            <div className="rounded-lg bg-white p-6 shadow">
+            <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
                 <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center">
-                        <Award className="mr-2 h-5 w-5 text-blue-600" />
-                        <h2 className="text-lg font-semibold text-gray-900">Trainer Performance</h2>
+                        <Award className="mr-2 h-5 w-5 text-blue-400" />
+                        <h2 className="text-lg font-semibold text-slate-100">Trainer Performance</h2>
                     </div>
-                    <span className="text-sm text-gray-500">Revenue & Compensation Breakdown</span>
+                    <span className="text-sm text-slate-400">Revenue & Compensation Breakdown</span>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <table className="min-w-full divide-y divide-slate-700">
+                        <thead className="bg-slate-900">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Trainer</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Revenue</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Sessions</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Base Salary</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Commission</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Total Paid</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Ratio</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Trainer</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Revenue</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Sessions</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Base Salary</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Commission</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Total Paid</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Ratio</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200 bg-white">
+                        <tbody className="divide-y divide-slate-700 bg-slate-800">
                             {trainerPerformance.map((trainer: any, idx: number) => (
-                                <tr key={idx} className="hover:bg-gray-50">
-                                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">{trainer.name}</td>
-                                    <td className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-green-600">₹{trainer.totalRevenue.toLocaleString()}</td>
-                                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{trainer.sessions}</td>
-                                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">₹{trainer.baseSalary.toLocaleString()}</td>
-                                    <td className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-blue-600">₹{trainer.commission.toLocaleString()}</td>
-                                    <td className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-gray-900">₹{trainer.totalPaid.toLocaleString()}</td>
+                                <tr key={idx} className="hover:bg-slate-700/50">
+                                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-100">{trainer.name}</td>
+                                    <td className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-green-400">₹{trainer.totalRevenue.toLocaleString()}</td>
+                                    <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-400">{trainer.sessions}</td>
+                                    <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-100">₹{trainer.baseSalary.toLocaleString()}</td>
+                                    <td className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-blue-400">₹{trainer.commission.toLocaleString()}</td>
+                                    <td className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-slate-100">₹{trainer.totalPaid.toLocaleString()}</td>
                                     <td className="whitespace-nowrap px-6 py-4 text-sm">
                                         <div className="flex items-center">
-                                            <div className="h-2 w-20 rounded-full bg-gray-200">
+                                            <div className="h-2 w-20 rounded-full bg-slate-700">
                                                 <div
                                                     className="h-2 rounded-full bg-blue-500"
                                                     style={{ width: `${trainer.totalPaid > 0 ? Math.min((trainer.commission / trainer.totalPaid) * 100, 100) : 0}%` }}
                                                 ></div>
                                             </div>
-                                            <span className="ml-2 text-xs text-gray-600">
+                                            <span className="ml-2 text-xs text-slate-400">
                                                 {trainer.totalPaid > 0 ? Math.round((trainer.commission / trainer.totalPaid) * 100) : 0}%
                                             </span>
                                         </div>
@@ -343,14 +346,17 @@ export default function AdvancedAnalyticsPage() {
 
             {/* Cash Flow Projections */}
             {cashFlowProjections && cashFlowProjections.length > 0 && (
-                <div className="rounded-lg bg-white p-6 shadow">
-                    <h2 className="mb-4 text-lg font-semibold text-gray-900">6-Month Cash Flow Projection</h2>
+                <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
+                    <h2 className="mb-4 text-lg font-semibold text-slate-100">6-Month Cash Flow Projection</h2>
                     <ResponsiveContainer width="100%" height={300}>
                         <BarChart data={cashFlowProjections}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="month" />
-                            <YAxis />
-                            <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                            <XAxis dataKey="month" stroke="#94a3b8" />
+                            <YAxis stroke="#94a3b8" />
+                            <Tooltip
+                                contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }}
+                                formatter={(value) => `₹${value.toLocaleString()}`}
+                            />
                             <Legend />
                             <Bar dataKey="projectedIncome" fill="#10b981" name="Projected Income" />
                             <Bar dataKey="projectedExpense" fill="#ef4444" name="Projected Expense" />
@@ -359,12 +365,12 @@ export default function AdvancedAnalyticsPage() {
                     </ResponsiveContainer>
                     <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
                         {cashFlowProjections.map((projection: any, idx: number) => (
-                            <div key={idx} className="rounded-lg border border-gray-200 p-3">
-                                <p className="text-xs font-medium text-gray-600">{projection.month}</p>
-                                <p className={`mt-1 text-lg font-bold ${projection.netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            <div key={idx} className="rounded-lg border border-slate-700 p-3">
+                                <p className="text-xs font-medium text-slate-400">{projection.month}</p>
+                                <p className={`mt-1 text-lg font-bold ${projection.netCashFlow >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                     ₹{Math.round(projection.netCashFlow / 1000)}K
                                 </p>
-                                <p className="mt-1 text-xs text-gray-500">{projection.confidence.toUpperCase()}</p>
+                                <p className="mt-1 text-xs text-slate-500">{projection.confidence.toUpperCase()}</p>
                             </div>
                         ))}
                     </div>
@@ -374,36 +380,36 @@ export default function AdvancedAnalyticsPage() {
             {/* Local Insights */}
             {localInsights && (
                 <div className="space-y-6">
-                    <h2 className="text-lg font-semibold text-gray-900">Local Insights - Sodepur, West Bengal</h2>
+                    <h2 className="text-lg font-semibold text-slate-100">Local Insights - Sodepur, West Bengal</h2>
 
                     {/* Festival Impact */}
                     {localInsights.festivalImpact && localInsights.festivalImpact.length > 0 && (
-                        <div className="rounded-lg bg-white p-6 shadow">
-                            <h3 className="mb-4 text-md font-semibold text-gray-900">Festival Impact Analysis</h3>
+                        <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
+                            <h3 className="mb-4 text-md font-semibold text-slate-100">Festival Impact Analysis</h3>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                                 {localInsights.festivalImpact.map((festival: any, idx: number) => (
-                                    <div key={idx} className="rounded-lg border border-gray-200 p-4">
+                                    <div key={idx} className="rounded-lg border border-slate-700 p-4">
                                         <div className="flex items-center justify-between mb-2">
-                                            <h4 className="font-semibold text-gray-900">{festival.festival}</h4>
-                                            <span className={`px-2 py-1 rounded text-xs font-medium ${festival.impact === 'high' ? 'bg-red-100 text-red-800' :
-                                                festival.impact === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-green-100 text-green-800'
+                                            <h4 className="font-semibold text-slate-100">{festival.festival}</h4>
+                                            <span className={`px-2 py-1 rounded text-xs font-medium ${festival.impact === 'high' ? 'bg-red-900/30 text-red-400 border border-red-800/50' :
+                                                festival.impact === 'medium' ? 'bg-yellow-900/30 text-yellow-500 border border-yellow-800/50' :
+                                                    'bg-green-900/30 text-green-400 border border-green-800/50'
                                                 }`}>
                                                 {festival.impact.toUpperCase()}
                                             </span>
                                         </div>
                                         <div className="space-y-1 text-sm">
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Revenue:</span>
-                                                <span className="font-semibold text-green-600">₹{festival.revenue.toLocaleString()}</span>
+                                                <span className="text-slate-400">Revenue:</span>
+                                                <span className="font-semibold text-green-400">₹{festival.revenue.toLocaleString()}</span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Transactions:</span>
-                                                <span className="font-medium text-gray-900">{festival.transactions}</span>
+                                                <span className="text-slate-400">Transactions:</span>
+                                                <span className="font-medium text-slate-100">{festival.transactions}</span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Avg/Transaction:</span>
-                                                <span className="font-medium text-gray-900">₹{festival.avgPerTransaction.toLocaleString()}</span>
+                                                <span className="text-slate-400">Avg/Transaction:</span>
+                                                <span className="font-medium text-slate-100">₹{festival.avgPerTransaction.toLocaleString()}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -415,9 +421,9 @@ export default function AdvancedAnalyticsPage() {
                     {/* Seasonal Insights */}
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                         {/* Student Behavior */}
-                        <div className="rounded-lg bg-purple-50 border border-purple-200 p-6">
-                            <h4 className="font-semibold text-purple-900 mb-3">Student Behavior</h4>
-                            <div className="space-y-2 text-sm text-purple-800">
+                        <div className="rounded-lg bg-purple-900/20 border border-purple-800/50 p-6">
+                            <h4 className="font-semibold text-purple-300 mb-3">Student Behavior</h4>
+                            <div className="space-y-2 text-sm text-purple-200">
                                 <p><strong>Exam Period:</strong> {localInsights.studentBehavior.examPeriod}</p>
                                 <p><strong>Vacation:</strong> {localInsights.studentBehavior.vacationPeriod}</p>
                                 <p><strong>Peak Enrollment:</strong> {localInsights.studentBehavior.peakEnrollment}</p>
@@ -425,9 +431,9 @@ export default function AdvancedAnalyticsPage() {
                         </div>
 
                         {/* Monsoon Effect */}
-                        <div className="rounded-lg bg-blue-50 border border-blue-200 p-6">
-                            <h4 className="font-semibold text-blue-900 mb-3">Monsoon Effect</h4>
-                            <div className="space-y-2 text-sm text-blue-800">
+                        <div className="rounded-lg bg-blue-900/20 border border-blue-800/50 p-6">
+                            <h4 className="font-semibold text-blue-300 mb-3">Monsoon Effect</h4>
+                            <div className="space-y-2 text-sm text-blue-200">
                                 <p><strong>Period:</strong> {localInsights.monsoonEffect.period}</p>
                                 <p><strong>Impact:</strong> {localInsights.monsoonEffect.expectedImpact}</p>
                                 <p><strong>Action:</strong> {localInsights.monsoonEffect.recommendation}</p>
@@ -435,9 +441,9 @@ export default function AdvancedAnalyticsPage() {
                         </div>
 
                         {/* Wedding Season */}
-                        <div className="rounded-lg bg-pink-50 border border-pink-200 p-6">
-                            <h4 className="font-semibold text-pink-900 mb-3">Wedding Season</h4>
-                            <div className="space-y-2 text-sm text-pink-800">
+                        <div className="rounded-lg bg-pink-900/20 border border-pink-800/50 p-6">
+                            <h4 className="font-semibold text-pink-300 mb-3">Wedding Season</h4>
+                            <div className="space-y-2 text-sm text-pink-200">
                                 <p><strong>Period:</strong> {localInsights.weddingSeason.period}</p>
                                 <p><strong>Impact:</strong> {localInsights.weddingSeason.expectedImpact}</p>
                                 <p><strong>Action:</strong> {localInsights.weddingSeason.recommendation}</p>
@@ -449,13 +455,13 @@ export default function AdvancedAnalyticsPage() {
 
             {/* AI Predictions */}
             <div className="space-y-6">
-                <h2 className="text-lg font-semibold text-gray-900">AI-Powered Predictions</h2>
+                <h2 className="text-lg font-semibold text-slate-100">AI-Powered Predictions</h2>
 
                 {loadingAI && (
-                    <div className="flex h-40 items-center justify-center rounded-lg bg-white p-6 shadow">
+                    <div className="flex h-40 items-center justify-center rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
                         <div className="text-center">
                             <div className="mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-purple-600 mx-auto"></div>
-                            <p className="text-gray-600">Generating AI insights...</p>
+                            <p className="text-slate-400">Generating AI insights...</p>
                         </div>
                     </div>
                 )}
@@ -463,29 +469,29 @@ export default function AdvancedAnalyticsPage() {
                 {!loadingAI && aiPredictions && (
                     <>
                         {/* Churn Risk Analysis */}
-                        <div className="rounded-lg bg-white p-6 shadow">
-                            <h3 className="mb-4 text-md font-semibold text-gray-900">Member Churn Risk Analysis</h3>
+                        <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
+                            <h3 className="mb-4 text-md font-semibold text-slate-100">Member Churn Risk Analysis</h3>
                             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                                 <div>
                                     <div className="grid grid-cols-3 gap-4 mb-4">
-                                        <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-center">
-                                            <p className="text-sm font-medium text-red-900">High Risk</p>
-                                            <p className="mt-2 text-3xl font-bold text-red-600">{aiPredictions.churnRisk.highRiskCount}</p>
+                                        <div className="rounded-lg bg-red-900/20 border border-red-800/50 p-4 text-center">
+                                            <p className="text-sm font-medium text-red-300">High Risk</p>
+                                            <p className="mt-2 text-3xl font-bold text-red-500">{aiPredictions.churnRisk.highRiskCount}</p>
                                         </div>
-                                        <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4 text-center">
-                                            <p className="text-sm font-medium text-yellow-900">Medium Risk</p>
-                                            <p className="mt-2 text-3xl font-bold text-yellow-600">{aiPredictions.churnRisk.mediumRiskCount}</p>
+                                        <div className="rounded-lg bg-yellow-900/20 border border-yellow-800/50 p-4 text-center">
+                                            <p className="text-sm font-medium text-yellow-300">Medium Risk</p>
+                                            <p className="mt-2 text-3xl font-bold text-yellow-500">{aiPredictions.churnRisk.mediumRiskCount}</p>
                                         </div>
-                                        <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-center">
-                                            <p className="text-sm font-medium text-green-900">Low Risk</p>
-                                            <p className="mt-2 text-3xl font-bold text-green-600">{aiPredictions.churnRisk.lowRiskCount}</p>
+                                        <div className="rounded-lg bg-green-900/20 border border-green-800/50 p-4 text-center">
+                                            <p className="text-sm font-medium text-green-300">Low Risk</p>
+                                            <p className="mt-2 text-3xl font-bold text-green-500">{aiPredictions.churnRisk.lowRiskCount}</p>
                                         </div>
                                     </div>
-                                    <div className="rounded-lg bg-gray-50 p-4">
-                                        <p className="text-sm font-semibold text-gray-900 mb-2">Top Churn Reasons:</p>
+                                    <div className="rounded-lg bg-slate-900 p-4 border border-slate-700">
+                                        <p className="text-sm font-semibold text-slate-100 mb-2">Top Churn Reasons:</p>
                                         <ul className="space-y-1">
                                             {aiPredictions.churnRisk.topReasons.map((reason: string, idx: number) => (
-                                                <li key={idx} className="text-sm text-gray-700 flex items-start">
+                                                <li key={idx} className="text-sm text-slate-400 flex items-start">
                                                     <span className="mr-2">•</span>
                                                     <span>{reason}</span>
                                                 </li>
@@ -493,15 +499,15 @@ export default function AdvancedAnalyticsPage() {
                                         </ul>
                                     </div>
                                 </div>
-                                <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
-                                    <p className="text-sm font-semibold text-blue-900 mb-3">Recommended Actions:</p>
+                                <div className="rounded-lg bg-blue-900/20 border border-blue-800/50 p-4">
+                                    <p className="text-sm font-semibold text-blue-300 mb-3">Recommended Actions:</p>
                                     <div className="space-y-2">
                                         {aiPredictions.churnRisk.recommendations.map((rec: string, idx: number) => (
-                                            <div key={idx} className="flex items-start bg-white rounded p-3">
-                                                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold mr-3">
+                                            <div key={idx} className="flex items-start bg-slate-800 rounded p-3 border border-slate-700">
+                                                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-900/50 text-blue-300 flex items-center justify-center text-xs font-bold mr-3 border border-blue-800/50">
                                                     {idx + 1}
                                                 </span>
-                                                <span className="text-sm text-gray-800">{rec}</span>
+                                                <span className="text-sm text-slate-300">{rec}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -510,61 +516,61 @@ export default function AdvancedAnalyticsPage() {
                         </div>
 
                         {/* Pricing Optimization */}
-                        <div className="rounded-lg bg-white p-6 shadow">
-                            <h3 className="mb-4 text-md font-semibold text-gray-900">Pricing Optimization</h3>
+                        <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
+                            <h3 className="mb-4 text-md font-semibold text-slate-100">Pricing Optimization</h3>
                             <div className="space-y-4">
-                                <div className="rounded-lg bg-purple-50 border border-purple-200 p-4">
-                                    <p className="text-sm font-semibold text-purple-900">Current Strategy:</p>
-                                    <p className="mt-2 text-sm text-purple-800">{aiPredictions.pricingOptimization.currentStrategy}</p>
+                                <div className="rounded-lg bg-purple-900/20 border border-purple-800/50 p-4">
+                                    <p className="text-sm font-semibold text-purple-300">Current Strategy:</p>
+                                    <p className="mt-2 text-sm text-purple-200">{aiPredictions.pricingOptimization.currentStrategy}</p>
                                 </div>
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     {aiPredictions.pricingOptimization.recommendations.map((rec: any, idx: number) => (
-                                        <div key={idx} className="rounded-lg border border-gray-200 p-4">
+                                        <div key={idx} className="rounded-lg border border-slate-700 p-4">
                                             <div className="flex items-center justify-between mb-2">
-                                                <span className="text-xs font-semibold text-gray-500 uppercase">{rec.type}</span>
-                                                <span className={`px-2 py-1 rounded text-xs font-medium ${rec.priority === 'high' ? 'bg-red-100 text-red-800' :
-                                                    rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                                                        'bg-green-100 text-green-800'
+                                                <span className="text-xs font-semibold text-slate-500 uppercase">{rec.type}</span>
+                                                <span className={`px-2 py-1 rounded text-xs font-medium ${rec.priority === 'high' ? 'bg-red-900/30 text-red-500 border border-red-800/50' :
+                                                    rec.priority === 'medium' ? 'bg-yellow-900/30 text-yellow-500 border border-yellow-800/50' :
+                                                        'bg-green-900/30 text-green-500 border border-green-800/50'
                                                     }`}>
                                                     {rec.priority.toUpperCase()}
                                                 </span>
                                             </div>
-                                            <p className="text-sm font-semibold text-gray-900 mb-2">{rec.suggestion}</p>
-                                            <p className="text-xs text-gray-600">{rec.expectedImpact}</p>
+                                            <p className="text-sm font-semibold text-slate-200 mb-2">{rec.suggestion}</p>
+                                            <p className="text-xs text-slate-400">{rec.expectedImpact}</p>
                                         </div>
                                     ))}
                                 </div>
-                                <div className="rounded-lg bg-indigo-50 border border-indigo-200 p-4">
-                                    <p className="text-sm font-semibold text-indigo-900">Market Positioning:</p>
-                                    <p className="mt-2 text-sm text-indigo-800">{aiPredictions.pricingOptimization.competitiveAnalysis}</p>
+                                <div className="rounded-lg bg-indigo-900/20 border border-indigo-800/50 p-4">
+                                    <p className="text-sm font-semibold text-indigo-300">Market Positioning:</p>
+                                    <p className="mt-2 text-sm text-indigo-200">{aiPredictions.pricingOptimization.competitiveAnalysis}</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Revenue Opportunities */}
-                        <div className="rounded-lg bg-white p-6 shadow">
-                            <h3 className="mb-4 text-md font-semibold text-gray-900">Revenue Opportunities</h3>
+                        <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
+                            <h3 className="mb-4 text-md font-semibold text-slate-100">Revenue Opportunities</h3>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                                 {aiPredictions.revenueOpportunities.map((opp: any, idx: number) => (
-                                    <div key={idx} className="rounded-lg border-2 border-green-200 bg-green-50 p-4">
-                                        <h4 className="font-semibold text-gray-900 mb-2">{opp.opportunity}</h4>
+                                    <div key={idx} className="rounded-lg border-2 border-green-800/50 bg-green-900/20 p-4">
+                                        <h4 className="font-semibold text-slate-200 mb-2">{opp.opportunity}</h4>
                                         <div className="space-y-2 text-sm">
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Potential Revenue:</span>
-                                                <span className="font-bold text-green-600">₹{opp.potentialRevenue.toLocaleString()}</span>
+                                                <span className="text-slate-400">Potential Revenue:</span>
+                                                <span className="font-bold text-green-400">₹{opp.potentialRevenue.toLocaleString()}</span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Effort:</span>
-                                                <span className={`font-medium ${opp.effort === 'low' ? 'text-green-600' :
-                                                    opp.effort === 'medium' ? 'text-yellow-600' :
-                                                        'text-red-600'
+                                                <span className="text-slate-400">Effort:</span>
+                                                <span className={`font-medium ${opp.effort === 'low' ? 'text-green-400' :
+                                                    opp.effort === 'medium' ? 'text-yellow-400' :
+                                                        'text-red-400'
                                                     }`}>
                                                     {opp.effort.toUpperCase()}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Timeline:</span>
-                                                <span className="font-medium text-gray-900">{opp.timeline}</span>
+                                                <span className="text-slate-400">Timeline:</span>
+                                                <span className="font-medium text-slate-300">{opp.timeline}</span>
                                             </div>
                                         </div>
                                     </div>

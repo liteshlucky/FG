@@ -53,59 +53,59 @@ export default function TrainerDetailPage() {
             <div className="flex items-center space-x-4">
                 <Avatar name={trainer.name} src={trainer.profilePicture} size="lg" />
                 <div>
-                    <h1 className="text-2xl font-bold">{trainer.name}</h1>
-                    <p className="text-sm text-gray-500 mb-1">ID: {trainer.trainerId || 'N/A'}</p>
-                    <p className="text-gray-600">{trainer.specialization}</p>
+                    <h1 className="text-2xl font-bold text-slate-100">{trainer.name}</h1>
+                    <p className="text-sm text-slate-400 mb-1">ID: {trainer.trainerId || 'N/A'}</p>
+                    <p className="text-slate-300">{trainer.specialization}</p>
                 </div>
                 <button
-                    onClick={() => router.push(`/dashboard/trainers/${id}/edit`)}
+                    onClick={() => router.push(`/dashboard/staff/${id}/edit`)}
                     className="ml-auto rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                 >
-                    Edit Trainer
+                    Edit Staff
                 </button>
             </div>
             <div className="grid grid-cols-2 gap-4">
-                <div className="rounded bg-gray-100 p-4">
-                    <p className="text-sm text-gray-500">Base Salary</p>
-                    <p className="text-lg font-medium">₹ {trainer.baseSalary || 0}</p>
+                <div className="rounded bg-slate-700 p-4">
+                    <p className="text-sm text-slate-400">Base Salary</p>
+                    <p className="text-lg font-medium text-slate-100">₹ {trainer.baseSalary || 0}</p>
                 </div>
-                <div className="rounded bg-gray-100 p-4">
-                    <p className="text-sm text-gray-500">PT Fee</p>
-                    <p className="text-lg font-medium">₹ {trainer.ptFee || 0}</p>
+                <div className="rounded bg-slate-700 p-4">
+                    <p className="text-sm text-slate-400">PT Fee</p>
+                    <p className="text-lg font-medium text-slate-100">₹ {trainer.ptFee || 0}</p>
                 </div>
-                <div className="rounded bg-gray-100 p-4">
-                    <p className="text-sm text-gray-500">Commission</p>
-                    <p className="text-lg font-medium">
+                <div className="rounded bg-slate-700 p-4">
+                    <p className="text-sm text-slate-400">Commission</p>
+                    <p className="text-lg font-medium text-slate-100">
                         {trainer.commissionType === 'fixed'
                             ? `₹ ${trainer.commissionValue}`
                             : `${trainer.commissionValue}%`}
                     </p>
                 </div>
-                <div className="rounded bg-gray-100 p-4">
-                    <p className="text-sm text-gray-500">Day Off</p>
-                    <p className="text-lg font-medium">{trainer.dayOff || 'None'}</p>
+                <div className="rounded bg-slate-700 p-4">
+                    <p className="text-sm text-slate-400">Day Off</p>
+                    <p className="text-lg font-medium text-slate-100">{trainer.dayOff || 'None'}</p>
                 </div>
             </div>
 
             {/* Bank Details */}
-            <div className="mt-6 rounded bg-gray-50 p-4 border border-gray-200">
-                <h3 className="text-md font-medium text-gray-900 mb-3">Bank Information</h3>
+            <div className="mt-6 rounded bg-slate-700 p-4 border border-slate-600">
+                <h3 className="text-md font-medium text-slate-100 mb-3">Bank Information</h3>
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <p className="text-sm text-gray-500">Account Name</p>
-                        <p className="font-medium">{trainer.bankDetails?.accountName || '-'}</p>
+                        <p className="text-sm text-slate-400">Account Name</p>
+                        <p className="font-medium text-slate-100">{trainer.bankDetails?.accountName || '-'}</p>
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500">Account Number</p>
-                        <p className="font-medium">{trainer.bankDetails?.accountNumber || '-'}</p>
+                        <p className="text-sm text-slate-400">Account Number</p>
+                        <p className="font-medium text-slate-100">{trainer.bankDetails?.accountNumber || '-'}</p>
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500">Bank Name</p>
-                        <p className="font-medium">{trainer.bankDetails?.bankName || '-'}</p>
+                        <p className="text-sm text-slate-400">Bank Name</p>
+                        <p className="font-medium text-slate-100">{trainer.bankDetails?.bankName || '-'}</p>
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500">IFSC Code</p>
-                        <p className="font-medium">{trainer.bankDetails?.ifscCode || '-'}</p>
+                        <p className="text-sm text-slate-400">IFSC Code</p>
+                        <p className="font-medium text-slate-100">{trainer.bankDetails?.ifscCode || '-'}</p>
                     </div>
                 </div>
             </div>
@@ -126,7 +126,7 @@ export default function TrainerDetailPage() {
     const renderSalaryAndPayments = () => (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
-                <h2 className="text-lg font-medium">Salary & Payments</h2>
+                <h2 className="text-lg font-medium text-slate-100">Salary & Payments</h2>
                 <button
                     onClick={() => setSalaryModalOpen(true)}
                     className="rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700"
@@ -135,19 +135,19 @@ export default function TrainerDetailPage() {
                 </button>
             </div>
 
-            <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-slate-700">
+                <thead className="bg-slate-900/50">
                     <tr>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Date</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Month/Year</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Base (₹)</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Comm. (₹)</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Total (₹)</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Mode</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Status</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Date</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Month/Year</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Base (₹)</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Comm. (₹)</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Total (₹)</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Mode</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Status</th>
                     </tr>
                 </thead>
-                <tbody className="bg-white">
+                <tbody className="bg-slate-800 text-slate-100">
                     {payments.length > 0 ? (
                         payments.map((p: any, idx) => (
                             <tr key={idx} className="border-t">
@@ -166,7 +166,7 @@ export default function TrainerDetailPage() {
                         ))
                     ) : (
                         <tr>
-                            <td colSpan={7} className="px-4 py-4 text-center text-sm text-gray-500">
+                            <td colSpan={7} className="px-4 py-4 text-center text-sm text-slate-400">
                                 No payment history found.
                             </td>
                         </tr>
@@ -177,15 +177,15 @@ export default function TrainerDetailPage() {
     );
 
     const renderPtHistory = () => (
-        <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-slate-700">
+            <thead className="bg-slate-900/50">
                 <tr>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Date</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Member</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Amount (₹)</th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Date</th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Member</th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Amount (₹)</th>
                 </tr>
             </thead>
-            <tbody className="bg-white">
+            <tbody className="bg-slate-800 text-slate-100">
                 {ptHistory.map((p, idx) => (
                     <tr key={idx} className="border-t">
                         <td className="px-4 py-2 text-sm">{new Date(p.date).toLocaleDateString()}</td>
@@ -204,30 +204,30 @@ export default function TrainerDetailPage() {
                 <div className="mb-4 flex space-x-4">
                     <button
                         onClick={() => setActiveTab('overview')}
-                        className={`px-4 py-2 rounded-t ${activeTab === 'overview' ? 'bg-white shadow' : 'bg-gray-200'}`}
+                        className={`px-4 py-2 rounded-t transition-colors ${activeTab === 'overview' ? 'bg-slate-800 text-white shadow' : 'bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-white'}`}
                     >
                         Overview
                     </button>
                     <button
                         onClick={() => setActiveTab('clients')}
-                        className={`px-4 py-2 rounded-t ${activeTab === 'clients' ? 'bg-white shadow' : 'bg-gray-200'}`}
+                        className={`px-4 py-2 rounded-t transition-colors ${activeTab === 'clients' ? 'bg-slate-800 text-white shadow' : 'bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-white'}`}
                     >
                         PT Members
                     </button>
                     <button
                         onClick={() => setActiveTab('salary')}
-                        className={`px-4 py-2 rounded-t ${activeTab === 'salary' ? 'bg-white shadow' : 'bg-gray-200'}`}
+                        className={`px-4 py-2 rounded-t transition-colors ${activeTab === 'salary' ? 'bg-slate-800 text-white shadow' : 'bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-white'}`}
                     >
                         Salary & Payments
                     </button>
                     <button
                         onClick={() => setActiveTab('pt')}
-                        className={`px-4 py-2 rounded-t ${activeTab === 'pt' ? 'bg-white shadow' : 'bg-gray-200'}`}
+                        className={`px-4 py-2 rounded-t transition-colors ${activeTab === 'pt' ? 'bg-slate-800 text-white shadow' : 'bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-white'}`}
                     >
                         PT History
                     </button>
                 </div>
-                <div className="bg-white p-4 rounded-b shadow">
+                <div className="bg-slate-800 p-4 rounded-b shadow border border-slate-700">
                     {activeTab === 'overview' && renderOverview()}
                     {activeTab === 'clients' && renderClients()}
                     {activeTab === 'salary' && renderSalaryAndPayments()}

@@ -64,17 +64,17 @@ export default function SettingsPage() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+            <h1 className="text-2xl font-bold text-slate-100">Settings</h1>
 
-            <div className="bg-white shadow sm:rounded-lg">
+            <div className="bg-slate-900 border border-slate-800 shadow-sm sm:rounded-xl">
                 <div className="px-4 py-5 sm:p-6">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900">Data Management</h3>
-                    <div className="mt-2 max-w-xl text-sm text-gray-500">
+                    <h3 className="text-lg font-medium leading-6 text-slate-100">Data Management</h3>
+                    <div className="mt-2 max-w-xl text-sm text-slate-400">
                         <p>Export your data to a JSON file for backup, or import data to restore/migrate.</p>
                     </div>
 
                     {message && (
-                        <div className={`mt-4 p-4 rounded-md ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'} flex items-center`}>
+                        <div className={`mt-4 p-4 rounded-lg border ${message.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-400'} flex items-center animate-in fade-in duration-300`}>
                             {message.type === 'success' ? <CheckCircle className="h-5 w-5 mr-2" /> : <AlertCircle className="h-5 w-5 mr-2" />}
                             {message.text}
                         </div>
@@ -83,7 +83,7 @@ export default function SettingsPage() {
                     <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-4">
                         <button
                             onClick={handleExport}
-                            className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto"
+                            className="inline-flex items-center justify-center rounded-lg border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 hover:shadow-blue-500/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto transition-all hover:scale-105 active:scale-95"
                         >
                             <Download className="-ml-1 mr-2 h-5 w-5" />
                             Export Data
@@ -100,7 +100,7 @@ export default function SettingsPage() {
                             />
                             <label
                                 htmlFor="file-upload"
-                                className={`inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto cursor-pointer ${importing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 shadow-sm hover:bg-slate-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto cursor-pointer transition-colors ${importing ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 <Upload className="-ml-1 mr-2 h-5 w-5" />
                                 {importing ? 'Importing...' : 'Import Data'}

@@ -93,11 +93,11 @@ export default function QuickEditModal({ isOpen, onClose, onSave, section, initi
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-            <div className="w-full max-w-lg rounded-lg bg-white shadow-xl">
-                <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-                    <h3 className="text-lg font-medium text-gray-900">{getTitle()}</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
+            <div className="w-full max-w-lg rounded-lg bg-slate-800 shadow-xl border border-slate-700">
+                <div className="flex items-center justify-between border-b border-slate-700 px-6 py-4">
+                    <h3 className="text-lg font-medium text-slate-100">{getTitle()}</h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-300">
                         <X className="h-6 w-6" />
                     </button>
                 </div>
@@ -107,53 +107,53 @@ export default function QuickEditModal({ isOpen, onClose, onSave, section, initi
                         {section === 'personal' && (
                             <>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Name</label>
+                                    <label className="block text-sm font-medium text-slate-300">Name</label>
                                     <input
                                         type="text"
                                         name="name"
                                         value={formData.name || ''}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                                    <label className="block text-sm font-medium text-slate-300">Email</label>
                                     <input
                                         type="email"
                                         name="email"
                                         value={formData.email || ''}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Phone</label>
+                                    <label className="block text-sm font-medium text-slate-300">Phone</label>
                                     <input
                                         type="text"
                                         name="phone"
                                         value={formData.phone || ''}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">Age</label>
+                                        <label className="block text-sm font-medium text-slate-300">Age</label>
                                         <input
                                             type="number"
                                             name="age"
                                             value={formData.age || ''}
                                             onChange={handleChange}
-                                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                            className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">Gender</label>
+                                        <label className="block text-sm font-medium text-slate-300">Gender</label>
                                         <select
                                             name="gender"
                                             value={formData.gender || ''}
                                             onChange={handleChange}
-                                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                            className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
                                         >
                                             <option value="Male">Male</option>
                                             <option value="Female">Female</option>
@@ -168,7 +168,7 @@ export default function QuickEditModal({ isOpen, onClose, onSave, section, initi
                             <div className="grid grid-cols-2 gap-4">
                                 {['height', 'weight', 'chest', 'waist', 'hips', 'arms', 'thighs'].map((field) => (
                                     <div key={field}>
-                                        <label className="block text-sm font-medium text-gray-700 capitalize">
+                                        <label className="block text-sm font-medium text-slate-300 capitalize">
                                             {field} ({field === 'weight' ? 'kg' : field === 'height' ? 'cm' : 'in'})
                                         </label>
                                         <input
@@ -176,7 +176,7 @@ export default function QuickEditModal({ isOpen, onClose, onSave, section, initi
                                             name={`bodyMeasurements.${field}`}
                                             value={formData.bodyMeasurements?.[field] || ''}
                                             onChange={handleChange}
-                                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                            className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
                                         />
                                     </div>
                                 ))}
@@ -186,7 +186,7 @@ export default function QuickEditModal({ isOpen, onClose, onSave, section, initi
                         {section === 'health' && (
                             <>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Dietary Preferences</label>
+                                    <label className="block text-sm font-medium text-slate-300 mb-2">Dietary Preferences</label>
                                     <div className="space-y-2">
                                         {['Vegetarian', 'Non-Vegetarian', 'Vegan', 'Eggetarian', 'Other'].map((pref) => (
                                             <div key={pref} className="flex items-center">
@@ -196,42 +196,42 @@ export default function QuickEditModal({ isOpen, onClose, onSave, section, initi
                                                     value={pref}
                                                     checked={(formData.dietaryPreferences || []).includes(pref)}
                                                     onChange={handleChange}
-                                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                                    className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-red-600 focus:ring-red-500"
                                                 />
-                                                <label className="ml-2 text-sm text-gray-700">{pref}</label>
+                                                <label className="ml-2 text-sm text-slate-300">{pref}</label>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Allergies</label>
+                                    <label className="block text-sm font-medium text-slate-300">Allergies</label>
                                     <input
                                         type="text"
                                         name="allergies"
                                         value={formData.allergies || ''}
                                         onChange={handleChange}
                                         placeholder="e.g. Peanuts, Dairy"
-                                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Medical History</label>
+                                    <label className="block text-sm font-medium text-slate-300">Medical History</label>
                                     <textarea
                                         name="medicalHistory"
                                         rows={3}
                                         value={formData.medicalHistory || ''}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Goals</label>
+                                    <label className="block text-sm font-medium text-slate-300">Goals</label>
                                     <textarea
                                         name="goals"
                                         rows={3}
                                         value={formData.goals || ''}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
                                     />
                                 </div>
                             </>
@@ -242,14 +242,14 @@ export default function QuickEditModal({ isOpen, onClose, onSave, section, initi
                         <button
                             type="button"
                             onClick={onClose}
-                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            className="rounded-md border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
                         >
                             {loading ? 'Saving...' : 'Save Changes'}
                         </button>

@@ -112,20 +112,20 @@ export default function QRCodePage() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">QR Code for Attendance</h1>
-                <p className="mt-1 text-sm text-gray-500">
+                <h1 className="text-2xl font-bold text-slate-100">QR Code for Attendance</h1>
+                <p className="mt-1 text-sm text-slate-400">
                     Display this QR code at your gym entrance for easy check-in/out
                 </p>
             </div>
 
             {/* QR Code Display */}
-            <div className="rounded-lg bg-white p-8 shadow">
+            <div className="rounded-lg bg-slate-800 p-8 shadow border border-slate-700">
                 <div className="flex flex-col items-center space-y-6">
                     {/* QR Code */}
-                    <div className="rounded-lg border-4 border-gray-200 bg-white p-6">
+                    <div className="rounded-lg border-4 border-slate-700 bg-white p-6">
                         {loading && (
                             <div className="flex h-[300px] w-[300px] items-center justify-center">
-                                <div className="text-gray-500">Generating QR Code...</div>
+                                <div className="text-slate-500">Generating QR Code...</div>
                             </div>
                         )}
                         <canvas
@@ -136,19 +136,19 @@ export default function QRCodePage() {
 
                     {/* Instructions */}
                     <div className="text-center">
-                        <div className="flex items-center justify-center space-x-2 text-lg font-semibold text-gray-900">
+                        <div className="flex items-center justify-center space-x-2 text-lg font-semibold text-slate-100">
                             <QrCodeIcon className="h-6 w-6" />
                             <span>Scan to Check In / Check Out</span>
                         </div>
-                        <p className="mt-2 text-sm text-gray-500">
+                        <p className="mt-2 text-sm text-slate-400">
                             Members and trainers can scan this code with their phone camera
                         </p>
                     </div>
 
                     {/* URL Display */}
-                    <div className="w-full rounded-lg bg-gray-50 p-4">
-                        <p className="text-xs font-medium text-gray-500 uppercase">Check-In URL</p>
-                        <p className="mt-1 text-sm text-gray-900 break-all">{checkInUrl}</p>
+                    <div className="w-full rounded-lg bg-slate-900 p-4 border border-slate-700">
+                        <p className="text-xs font-medium text-slate-500 uppercase">Check-In URL</p>
+                        <p className="mt-1 text-sm text-slate-300 break-all">{checkInUrl}</p>
                     </div>
 
                     {/* Action Buttons */}
@@ -172,7 +172,7 @@ export default function QRCodePage() {
                         <button
                             onClick={printQRCode}
                             disabled={loading}
-                            className="flex items-center rounded-md bg-gray-600 px-6 py-3 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+                            className="flex items-center rounded-md bg-slate-600 px-6 py-3 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
                         >
                             <Printer className="mr-2 h-4 w-4" />
                             Print QR Code
@@ -182,9 +182,9 @@ export default function QRCodePage() {
             </div>
 
             {/* Usage Instructions */}
-            <div className="rounded-lg bg-blue-50 p-6">
-                <h2 className="text-lg font-semibold text-blue-900">How to Use</h2>
-                <ol className="mt-4 space-y-2 text-sm text-blue-800">
+            <div className="rounded-lg bg-blue-900/20 p-6 border border-blue-800/50">
+                <h2 className="text-lg font-semibold text-blue-300">How to Use</h2>
+                <ol className="mt-4 space-y-2 text-sm text-blue-200">
                     <li className="flex items-start">
                         <span className="mr-2 font-bold">1.</span>
                         <span>Download or print the QR code above</span>

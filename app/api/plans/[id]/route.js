@@ -6,7 +6,7 @@ export async function GET(request, { params }) {
     await dbConnect();
     const { id } = await params;
     try {
-        const plan = await Plan.findById(id).populate('trainerId');
+        const plan = await Plan.findById(id);
         if (!plan) {
             return NextResponse.json({ success: false, error: 'Plan not found' }, { status: 404 });
         }
