@@ -130,8 +130,8 @@ export default function AttendanceHistoryPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Attendance History</h1>
-                    <p className="mt-1 text-sm text-gray-500">View and manage attendance records</p>
+                    <h1 className="text-2xl font-bold text-slate-100">Attendance History</h1>
+                    <p className="mt-1 text-sm text-slate-400">View and manage attendance records</p>
                 </div>
                 <button
                     onClick={exportToCSV}
@@ -143,18 +143,18 @@ export default function AttendanceHistoryPage() {
             </div>
 
             {/* Filters */}
-            <div className="rounded-lg bg-white p-6 shadow">
-                <h2 className="mb-4 text-lg font-semibold text-gray-900">Filters</h2>
+            <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
+                <h2 className="mb-4 text-lg font-semibold text-slate-100">Filters</h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                     {/* Filter Type */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-slate-300 mb-2">
                             Time Period
                         </label>
                         <select
                             value={filterType}
                             onChange={(e) => setFilterType(e.target.value)}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            className="w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
                         >
                             <option value="all">All Time</option>
                             <option value="day">By Day</option>
@@ -166,35 +166,35 @@ export default function AttendanceHistoryPage() {
                     {/* Date Selector */}
                     {filterType === 'day' && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-slate-300 mb-2">
                                 Select Date
                             </label>
                             <input
                                 type="date"
                                 value={selectedDate}
                                 onChange={(e) => setSelectedDate(e.target.value)}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
                             />
                         </div>
                     )}
 
                     {filterType === 'month' && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-slate-300 mb-2">
                                 Select Month
                             </label>
                             <input
                                 type="month"
                                 value={selectedMonth}
                                 onChange={(e) => setSelectedMonth(e.target.value)}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
                             />
                         </div>
                     )}
 
                     {filterType === 'year' && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-slate-300 mb-2">
                                 Select Year
                             </label>
                             <input
@@ -203,20 +203,20 @@ export default function AttendanceHistoryPage() {
                                 onChange={(e) => setSelectedYear(e.target.value)}
                                 min="2020"
                                 max="2030"
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
                             />
                         </div>
                     )}
 
                     {/* User Type Filter */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-slate-300 mb-2">
                             User Type
                         </label>
                         <select
                             value={userTypeFilter}
                             onChange={(e) => setUserTypeFilter(e.target.value)}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            className="w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
                         >
                             <option value="all">All</option>
                             <option value="Member">Members</option>
@@ -228,17 +228,17 @@ export default function AttendanceHistoryPage() {
                 {/* Stats */}
                 {stats.totalVisits !== undefined && (
                     <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                        <div className="rounded-lg bg-blue-50 p-4">
-                            <p className="text-sm font-medium text-blue-900">Total Visits</p>
-                            <p className="mt-1 text-2xl font-bold text-blue-600">{stats.totalVisits}</p>
+                        <div className="rounded-lg bg-blue-900/20 p-4 border border-blue-800/50">
+                            <p className="text-sm font-medium text-blue-300">Total Visits</p>
+                            <p className="mt-1 text-2xl font-bold text-blue-400">{stats.totalVisits}</p>
                         </div>
-                        <div className="rounded-lg bg-green-50 p-4">
-                            <p className="text-sm font-medium text-green-900">Avg Duration</p>
-                            <p className="mt-1 text-2xl font-bold text-green-600">{formatDuration(stats.avgDuration)}</p>
+                        <div className="rounded-lg bg-green-900/20 p-4 border border-green-800/50">
+                            <p className="text-sm font-medium text-green-300">Avg Duration</p>
+                            <p className="mt-1 text-2xl font-bold text-green-400">{formatDuration(stats.avgDuration)}</p>
                         </div>
-                        <div className="rounded-lg bg-purple-50 p-4">
-                            <p className="text-sm font-medium text-purple-900">Total Hours</p>
-                            <p className="mt-1 text-2xl font-bold text-purple-600">
+                        <div className="rounded-lg bg-purple-900/20 p-4 border border-purple-800/50">
+                            <p className="text-sm font-medium text-purple-300">Total Hours</p>
+                            <p className="mt-1 text-2xl font-bold text-purple-400">
                                 {Math.round((stats.totalDuration || 0) / 60)}h
                             </p>
                         </div>
@@ -247,81 +247,81 @@ export default function AttendanceHistoryPage() {
             </div>
 
             {/* Attendance Table */}
-            <div className="rounded-lg bg-white shadow">
-                <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-900">
+            <div className="rounded-lg bg-slate-800 shadow border border-slate-700">
+                <div className="px-6 py-4 border-b border-slate-700">
+                    <h2 className="text-lg font-semibold text-slate-100">
                         Attendance Records ({attendanceData.length})
                     </h2>
                 </div>
                 <div className="overflow-x-auto">
                     {loading ? (
-                        <div className="p-8 text-center text-gray-500">Loading...</div>
+                        <div className="p-8 text-center text-slate-400">Loading...</div>
                     ) : attendanceData.length === 0 ? (
-                        <div className="p-8 text-center text-gray-500">
+                        <div className="p-8 text-center text-slate-400">
                             No attendance records found
                         </div>
                     ) : (
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                        <table className="min-w-full divide-y divide-slate-700">
+                            <thead className="bg-slate-900">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
                                         Date
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
                                         Name
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
                                         Type
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
                                         Check-In
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
                                         Check-Out
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
                                         Duration
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
                                         Photos
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
                                         Status
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
                                         Action
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200 bg-white">
+                            <tbody className="divide-y divide-slate-700 bg-slate-800">
                                 {attendanceData.map((attendance: any) => (
-                                    <tr key={attendance._id} className="hover:bg-gray-50">
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                                    <tr key={attendance._id} className="hover:bg-slate-700/50">
+                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-300">
                                             {formatDate(attendance.checkInTime)}
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4">
-                                            <div className="text-sm font-medium text-gray-900">
+                                            <div className="text-sm font-medium text-slate-100">
                                                 {attendance.userId?.name || 'Unknown'}
                                             </div>
-                                            <div className="text-sm text-gray-500">
+                                            <div className="text-sm text-slate-400">
                                                 {attendance.userId?.phone || ''}
                                             </div>
                                         </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-400">
                                             <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${attendance.userType === 'Member'
-                                                ? 'bg-blue-100 text-blue-800'
-                                                : 'bg-purple-100 text-purple-800'
+                                                ? 'bg-blue-900/30 text-blue-400 border border-blue-800/50'
+                                                : 'bg-purple-900/30 text-purple-400 border border-purple-800/50'
                                                 }`}>
                                                 {attendance.userType}
                                             </span>
                                         </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-400">
                                             {formatTime(attendance.checkInTime)}
                                         </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-400">
                                             {formatTime(attendance.checkOutTime)}
                                         </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-100">
                                             {formatDuration(attendance.duration)}
                                         </td>
                                         <td className="px-6 py-4">
@@ -355,14 +355,14 @@ export default function AttendanceHistoryPage() {
                                                     </div>
                                                 )}
                                                 {!attendance.checkInPhoto && !attendance.checkOutPhoto && (
-                                                    <span className="text-xs text-gray-400">No photos</span>
+                                                    <span className="text-xs text-slate-500">No photos</span>
                                                 )}
                                             </div>
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4 text-sm">
                                             <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${attendance.status === 'checked-in'
-                                                ? 'bg-green-100 text-green-800'
-                                                : 'bg-gray-100 text-gray-800'
+                                                ? 'bg-green-900/30 text-green-400 border border-green-800/50'
+                                                : 'bg-slate-700/50 text-slate-300 border border-slate-600'
                                                 }`}>
                                                 {attendance.status === 'checked-in' ? 'Active' : 'Completed'}
                                             </span>
@@ -397,7 +397,7 @@ export default function AttendanceHistoryPage() {
                         {/* Close Button */}
                         <button
                             onClick={() => setZoomedPhoto(null)}
-                            className="absolute -top-12 right-0 rounded-full bg-white p-2 text-gray-900 hover:bg-gray-200"
+                            className="absolute -top-12 right-0 rounded-full bg-slate-800 p-2 text-slate-100 hover:bg-slate-700"
                         >
                             <X className="h-6 w-6" />
                         </button>

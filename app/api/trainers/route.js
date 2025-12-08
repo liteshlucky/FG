@@ -2,10 +2,14 @@ import dbConnect from '@/lib/db';
 import Trainer from '@/models/Trainer';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request) {
     await dbConnect();
+    const { searchParams } = new URL(request.url);
+    const role = searchParams.get('role');
+
     try {
-        const trainers = await Trainer.find({}).sort({ createdAt: -1 });
+        const query = role ? { role } : {};
+        const trainers = await Trainer.find(query).sort({ createdAt: -1 });
         return NextResponse.json({ success: true, data: trainers });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });

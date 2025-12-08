@@ -71,33 +71,33 @@ export default function CheckInModal({ userType, onClose, onSuccess }: CheckInMo
         <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-screen items-center justify-center p-4">
                 {/* Backdrop */}
-                <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
+                <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={onClose}></div>
 
                 {/* Modal */}
-                <div className="relative w-full max-w-2xl rounded-lg bg-white shadow-xl">
+                <div className="relative w-full max-w-2xl rounded-xl bg-slate-900 border border-slate-800 shadow-2xl animate-in zoom-in-95 duration-200">
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-                        <h2 className="text-lg font-semibold text-gray-900">
+                    <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
+                        <h2 className="text-lg font-semibold text-slate-100">
                             Check In {userType}
                         </h2>
                         <button
                             onClick={onClose}
-                            className="text-gray-400 hover:text-gray-500"
+                            className="text-slate-400 hover:text-slate-200 transition-colors"
                         >
                             <X className="h-6 w-6" />
                         </button>
                     </div>
 
                     {/* Search */}
-                    <div className="px-6 py-4 border-b border-gray-200">
+                    <div className="px-6 py-4 border-b border-slate-800">
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
                             <input
                                 type="text"
                                 placeholder="Search by name, email, or phone..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full rounded-md border border-gray-300 pl-10 pr-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-full rounded-lg border border-slate-700 bg-slate-950 pl-10 pr-4 py-2 text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                             />
                         </div>
                     </div>
@@ -105,9 +105,9 @@ export default function CheckInModal({ userType, onClose, onSuccess }: CheckInMo
                     {/* User List */}
                     <div className="max-h-96 overflow-y-auto px-6 py-4">
                         {loading ? (
-                            <div className="text-center py-8 text-gray-500">Loading...</div>
+                            <div className="text-center py-8 text-slate-400">Loading...</div>
                         ) : filteredUsers.length === 0 ? (
-                            <div className="text-center py-8 text-gray-500">
+                            <div className="text-center py-8 text-slate-400">
                                 No {userType.toLowerCase()}s found
                             </div>
                         ) : (
@@ -115,18 +115,18 @@ export default function CheckInModal({ userType, onClose, onSuccess }: CheckInMo
                                 {filteredUsers.map((user: any) => (
                                     <div
                                         key={user._id}
-                                        className="flex items-center justify-between rounded-lg border border-gray-200 p-4 hover:bg-gray-50"
+                                        className="flex items-center justify-between rounded-lg border border-slate-800 p-4 hover:bg-slate-800/50 transition-colors"
                                     >
                                         <div>
-                                            <p className="font-medium text-gray-900">{user.name}</p>
-                                            <p className="text-sm text-gray-500">
+                                            <p className="font-medium text-slate-100">{user.name}</p>
+                                            <p className="text-sm text-slate-400">
                                                 {user.email || user.phone || 'No contact info'}
                                             </p>
                                         </div>
                                         <button
                                             onClick={() => handleCheckIn(user._id)}
                                             disabled={checkingIn}
-                                            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 hover:shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-50"
                                         >
                                             {checkingIn ? 'Checking In...' : 'Check In'}
                                         </button>
@@ -137,10 +137,10 @@ export default function CheckInModal({ userType, onClose, onSuccess }: CheckInMo
                     </div>
 
                     {/* Footer */}
-                    <div className="border-t border-gray-200 px-6 py-4">
+                    <div className="border-t border-slate-800 px-6 py-4">
                         <button
                             onClick={onClose}
-                            className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            className="w-full rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
                         >
                             Cancel
                         </button>

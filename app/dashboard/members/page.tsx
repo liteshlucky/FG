@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, DollarSign, Download, Upload, Search, Filter } from 'lucide-react';
+import { Plus, Edit, Trash2, DollarSign, Download, Upload, Search, Filter, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import PaymentForm from '@/components/PaymentForm';
 import Avatar from '@/components/Avatar';
@@ -20,6 +20,8 @@ export default function MembersPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
+    const [typeFilter, setTypeFilter] = useState('all');
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'joinDate', direction: 'desc' });
 
     useEffect(() => {
         fetchMembers();
@@ -75,14 +77,51 @@ export default function MembersPage() {
                 member.memberId?.toLowerCase().includes(searchLower);
 
             // Status filter
-            const matchesStatus = statusFilter === 'all' || member.status === statusFilter;
+            let matchesStatus = true;
+            if (statusFilter === 'Expiring Soon') {
+                // Filter members expiring in next 7 days (but not already expired)
+                if (member.membershipEndDate) {
+                    const daysLeft = Math.ceil((new Date(member.membershipEndDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                    matchesStatus = daysLeft >= 0 && daysLeft <= 10;
+                } else {
+                    matchesStatus = false;
+                }
+            } else {
+                matchesStatus = statusFilter === 'all' || member.status === statusFilter;
+            }
 
             // Payment status filter
             const matchesPaymentStatus = paymentStatusFilter === 'all' || member.paymentStatus === paymentStatusFilter;
 
-            return matchesSearch && matchesStatus && matchesPaymentStatus;
+            // Type filter (PT/Non-PT)
+            const matchesType = typeFilter === 'all' ||
+                (typeFilter === 'pt' && member.ptPlanId) ||
+                (typeFilter === 'non-pt' && !member.ptPlanId);
+
+            return matchesSearch && matchesStatus && matchesPaymentStatus && matchesType;
+        }).sort((a: any, b: any) => {
+            const { key, direction } = sortConfig;
+            let modifier = direction === 'asc' ? 1 : -1;
+
+            if (key === 'joinDate') {
+                return (new Date(a.joinDate || 0).getTime() - new Date(b.joinDate || 0).getTime()) * modifier;
+            } else if (key === 'name') {
+                return a.name.localeCompare(b.name) * modifier;
+            } else if (key === 'status') {
+                return a.status.localeCompare(b.status) * modifier;
+            } else if (key === 'plan') {
+                return (a.planId?.name || '').localeCompare(b.planId?.name || '') * modifier;
+            }
+            return 0;
         });
-    }, [members, searchQuery, statusFilter, paymentStatusFilter]);
+    }, [members, searchQuery, statusFilter, paymentStatusFilter, typeFilter, sortConfig]);
+
+    const handleSort = (key: string) => {
+        setSortConfig((current) => ({
+            key,
+            direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc',
+        }));
+    };
 
     const handleExport = () => {
         if (!members.length) return;
@@ -246,17 +285,22 @@ export default function MembersPage() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-gray-900">Members</h1>
+                <h1 className="text-2xl font-bold text-slate-100">
+                    Members
+                    <span className="ml-2 text-lg font-normal text-slate-500">
+                        ({filteredMembers.length})
+                    </span>
+                </h1>
                 <div className="flex space-x-3">
                     <button
                         onClick={handleExport}
                         disabled={!members.length}
-                        className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                        className="inline-flex items-center rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-50 transition-colors"
                     >
                         <Download className="mr-2 h-4 w-4" />
                         Export CSV
                     </button>
-                    <label className="inline-flex cursor-pointer items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <label className="inline-flex cursor-pointer items-center rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition-colors">
                         <Upload className="mr-2 h-4 w-4" />
                         {importing ? 'Importing...' : 'Import CSV'}
                         <input
@@ -269,7 +313,7 @@ export default function MembersPage() {
                     </label>
                     <Link
                         href="/dashboard/members/new"
-                        className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                        className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all"
                     >
                         <Plus className="mr-2 h-4 w-4" />
                         Add Member
@@ -278,31 +322,32 @@ export default function MembersPage() {
             </div>
 
             {/* Search and Filter Bar */}
-            <div className="flex flex-col gap-4 rounded-lg bg-white p-4 shadow sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-4 rounded-xl bg-slate-900 border border-slate-800 p-4 shadow-sm sm:flex-row sm:items-center">
                 {/* Search */}
                 <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
                     <input
                         type="text"
                         placeholder="Search by name, email, phone, or member ID..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-4 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="w-full rounded-lg border border-slate-700 bg-slate-950 py-2 pl-10 pr-4 text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                 </div>
 
                 {/* Status Filter */}
                 <div className="flex items-center gap-2">
-                    <Filter className="h-5 w-5 text-gray-400" />
+                    <Filter className="h-5 w-5 text-slate-500" />
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     >
                         <option value="all">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="expired">Expired</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Expired">Expired</option>
+                        <option value="Expiring Soon">Expiring Soon (≤10 days)</option>
                     </select>
                 </div>
 
@@ -311,7 +356,7 @@ export default function MembersPage() {
                     <select
                         value={paymentStatusFilter}
                         onChange={(e) => setPaymentStatusFilter(e.target.value)}
-                        className="rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     >
                         <option value="all">All Payments</option>
                         <option value="paid">Paid</option>
@@ -320,60 +365,122 @@ export default function MembersPage() {
                     </select>
                 </div>
 
+                {/* Type Filter */}
+                <div>
+                    <select
+                        value={typeFilter}
+                        onChange={(e) => setTypeFilter(e.target.value)}
+                        className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    >
+                        <option value="all">All Types</option>
+                        <option value="pt">PT Members</option>
+                        <option value="non-pt">Non-PT Members</option>
+                    </select>
+                </div>
+
+                {/* Sort Order Removed */}
+
                 {/* Results Count */}
-                {searchQuery || statusFilter !== 'all' || paymentStatusFilter !== 'all' ? (
-                    <div className="text-sm text-gray-600">
+                {searchQuery || statusFilter !== 'all' || paymentStatusFilter !== 'all' || typeFilter !== 'all' ? (
+                    <div className="text-sm text-slate-400">
                         {filteredMembers.length} of {members.length} members
                     </div>
                 ) : null}
             </div>
 
-            <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+            <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-sm">
+                <table className="min-w-full divide-y divide-slate-800">
+                    <thead className="bg-slate-950/50 sticky top-0 z-10">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Contact</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Plan</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Payment</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                            <th
+                                className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 cursor-pointer hover:bg-slate-800/50 hover:text-slate-200 transition-colors group"
+                                onClick={() => handleSort('name')}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Name
+                                    {sortConfig.key === 'name' ? (
+                                        sortConfig.direction === 'asc' ? <ArrowUp className="h-4 w-4 text-blue-500" /> : <ArrowDown className="h-4 w-4 text-blue-500" />
+                                    ) : (
+                                        <ArrowUpDown className="h-4 w-4 opacity-0 group-hover:opacity-50" />
+                                    )}
+                                </div>
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Contact</th>
+                            <th
+                                className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 cursor-pointer hover:bg-slate-800/50 hover:text-slate-200 transition-colors group"
+                                onClick={() => handleSort('plan')}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Plan
+                                    {sortConfig.key === 'plan' ? (
+                                        sortConfig.direction === 'asc' ? <ArrowUp className="h-4 w-4 text-blue-500" /> : <ArrowDown className="h-4 w-4 text-blue-500" />
+                                    ) : (
+                                        <ArrowUpDown className="h-4 w-4 opacity-0 group-hover:opacity-50" />
+                                    )}
+                                </div>
+                            </th>
+                            <th
+                                className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 cursor-pointer hover:bg-slate-800/50 hover:text-slate-200 transition-colors group"
+                                onClick={() => handleSort('status')}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Status
+                                    {sortConfig.key === 'status' ? (
+                                        sortConfig.direction === 'asc' ? <ArrowUp className="h-4 w-4 text-blue-500" /> : <ArrowDown className="h-4 w-4 text-blue-500" />
+                                    ) : (
+                                        <ArrowUpDown className="h-4 w-4 opacity-0 group-hover:opacity-50" />
+                                    )}
+                                </div>
+                            </th>
+                            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-400">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
+                    <tbody className="divide-y divide-slate-800 bg-slate-900">
                         {filteredMembers.map((member: any) => (
-                            <tr key={member._id}>
+                            <tr key={member._id} className="hover:bg-slate-800/50 transition-colors">
                                 <td className="whitespace-nowrap px-6 py-4">
                                     <div className="flex items-center">
                                         <div className="flex-shrink-0 h-10 w-10">
                                             <Avatar src={member.profilePicture} name={member.name} />
                                         </div>
                                         <div className="ml-4">
-                                            <Link href={`/dashboard/members/${member._id}`} className="text-sm font-medium text-blue-600 hover:text-blue-900">
+                                            <Link href={`/dashboard/members/${member._id}`} className="text-sm font-medium text-blue-400 hover:text-blue-300">
                                                 {member.name}
                                             </Link>
-                                            <div className="text-xs text-gray-500">ID: {member.memberId || 'N/A'}</div>
-                                            <div className="text-xs text-gray-500">Joined: {new Date(member.joinDate).toLocaleDateString()}</div>
+                                            <div className="text-xs text-slate-500">ID: {member.memberId || 'N/A'}</div>
+                                            <div className="text-xs">
+                                                {member.membershipEndDate ? (() => {
+                                                    const daysLeft = Math.ceil((new Date(member.membershipEndDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+
+                                                    if (daysLeft < 0) {
+                                                        return null;
+                                                    }
+
+                                                    let colorClass = 'text-green-400 font-semibold';
+                                                    if (daysLeft <= 7) colorClass = 'text-amber-400 font-semibold';
+
+                                                    return (
+                                                        <span className={colorClass}>
+                                                            {daysLeft} days left
+                                                        </span>
+                                                    );
+                                                })() : <span className="text-slate-600">-</span>}
+                                            </div>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="whitespace-nowrap px-6 py-4">
-                                    <div className="text-sm text-gray-900">{member.email}</div>
-                                    <div className="text-sm text-gray-500">{member.phone}</div>
+                                    <div className="text-sm text-slate-200">{member.email}</div>
+                                    <div className="text-sm text-slate-500">{member.phone}</div>
                                 </td>
                                 <td className="whitespace-nowrap px-6 py-4">
-                                    <span className="inline-flex rounded-full bg-blue-100 px-2 text-xs font-semibold leading-5 text-blue-800">
+                                    <span className="inline-flex rounded-full bg-blue-500/10 border border-blue-500/20 px-2.5 py-0.5 text-xs font-medium text-blue-400">
                                         {member.planId?.name || 'No Plan'}
                                     </span>
                                 </td>
+
                                 <td className="whitespace-nowrap px-6 py-4">
-                                    <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${member.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : member.paymentStatus === 'partial' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}
-                                    >
-                                        {member.paymentStatus?.toUpperCase() || 'UNPAID'}
-                                    </span>
-                                </td>
-                                <td className="whitespace-nowrap px-6 py-4">
-                                    <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${member.status === 'Active' ? 'bg-green-100 text-green-800' : member.status === 'Expired' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}
+                                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium border ${member.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : member.status === 'Expired' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}
                                     >
                                         {member.status}
                                     </span>
@@ -381,20 +488,22 @@ export default function MembersPage() {
                                 <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                                     <button
                                         onClick={() => handleRecordPayment(member)}
-                                        className="mr-4 text-green-600 hover:text-green-900"
+                                        className="mr-4 text-emerald-500 hover:text-emerald-400 transition-colors"
                                         title="Record Payment"
                                     >
                                         <DollarSign className="h-4 w-4" />
                                     </button>
                                     <button
                                         onClick={() => router.push(`/dashboard/members/${member._id}/edit`)}
-                                        className="mr-4 text-indigo-600 hover:text-indigo-900"
+                                        className="mr-4 text-blue-500 hover:text-blue-400 transition-colors"
+                                        title="Edit Member"
                                     >
                                         <Edit className="h-4 w-4" />
                                     </button>
                                     <button
                                         onClick={() => handleDelete(member._id)}
-                                        className="text-red-600 hover:text-red-900"
+                                        className="text-rose-500 hover:text-rose-400 transition-colors"
+                                        title="Delete Member"
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </button>

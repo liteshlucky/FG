@@ -121,6 +121,12 @@ const MemberSchema = new mongoose.Schema({
         type: String,
         default: '',
     },
+    membershipStartDate: {
+        type: Date,
+    },
+    membershipEndDate: {
+        type: Date,
+    },
 }, { timestamps: true });
 
 export default mongoose.models.Member || mongoose.model('Member', MemberSchema);

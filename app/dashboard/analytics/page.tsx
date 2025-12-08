@@ -61,14 +61,14 @@ export default function AnalyticsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Business Analytics</h1>
-                    <p className="mt-1 text-sm text-gray-500">AI-powered insights with weather analysis for Sodepur, West Bengal</p>
+                    <h1 className="text-2xl font-bold text-slate-100">Business Analytics</h1>
+                    <p className="mt-1 text-sm text-slate-400">AI-powered insights with weather analysis for Sodepur, West Bengal</p>
                 </div>
                 <div className="flex space-x-3">
                     <select
                         value={weatherFilter}
                         onChange={(e) => setWeatherFilter(e.target.value)}
-                        className="rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="rounded-md border border-slate-700 bg-slate-800 text-slate-100 px-4 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
                     >
                         <option value="all">All Weather</option>
                         <option value="rainy">Rainy Periods</option>
@@ -79,7 +79,7 @@ export default function AnalyticsPage() {
                     <select
                         value={timeRange}
                         onChange={(e) => setTimeRange(e.target.value)}
-                        className="rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="rounded-md border border-slate-700 bg-slate-800 text-slate-100 px-4 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
                     >
                         <option value="3">Last 3 Months</option>
                         <option value="6">Last 6 Months</option>
@@ -151,14 +151,17 @@ export default function AnalyticsPage() {
             )}
 
             {/* Revenue Trends Chart */}
-            <div className="rounded-lg bg-white p-6 shadow">
-                <h2 className="mb-4 text-lg font-semibold text-gray-900">Revenue Trends</h2>
+            <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
+                <h2 className="mb-4 text-lg font-semibold text-slate-100">Revenue Trends</h2>
                 <ResponsiveContainer width="100%" height={300}>
                     <AreaChart data={filteredData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="month" stroke="#94a3b8" />
+                        <YAxis stroke="#94a3b8" />
+                        <Tooltip
+                            contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }}
+                            formatter={(value) => `₹${value.toLocaleString()}`}
+                        />
                         <Legend />
                         <Area type="monotone" dataKey="income" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name="Income" />
                         <Area type="monotone" dataKey="expense" stackId="2" stroke="#ef4444" fill="#ef4444" fillOpacity={0.6} name="Expense" />
@@ -167,14 +170,17 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Income vs Expense Comparison */}
-            <div className="rounded-lg bg-white p-6 shadow">
-                <h2 className="mb-4 text-lg font-semibold text-gray-900">Monthly Comparison</h2>
+            <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
+                <h2 className="mb-4 text-lg font-semibold text-slate-100">Monthly Comparison</h2>
                 <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={filteredData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="month" stroke="#94a3b8" />
+                        <YAxis stroke="#94a3b8" />
+                        <Tooltip
+                            contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }}
+                            formatter={(value) => `₹${value.toLocaleString()}`}
+                        />
                         <Legend />
                         <Bar dataKey="income" fill="#10b981" name="Income" />
                         <Bar dataKey="expense" fill="#ef4444" name="Expense" />
@@ -183,10 +189,10 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Revenue Projection Chart */}
-            <div className="rounded-lg bg-white p-6 shadow">
+            <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
                 <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-gray-900">Revenue Projection</h2>
-                    <span className="text-xs text-gray-500">Historical + AI Forecast</span>
+                    <h2 className="text-lg font-semibold text-slate-100">Revenue Projection</h2>
+                    <span className="text-xs text-slate-400">Historical + AI Forecast</span>
                 </div>
                 <ResponsiveContainer width="100%" height={350}>
                     <LineChart data={[
@@ -201,10 +207,13 @@ export default function AnalyticsPage() {
                             type: 'forecast'
                         }
                     ]}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="month" stroke="#94a3b8" />
+                        <YAxis stroke="#94a3b8" />
+                        <Tooltip
+                            contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }}
+                            formatter={(value) => `₹${value.toLocaleString()}`}
+                        />
                         <Legend />
                         <Line
                             type="monotone"
@@ -226,17 +235,17 @@ export default function AnalyticsPage() {
                     </LineChart>
                 </ResponsiveContainer>
                 <div className="mt-4 grid grid-cols-2 gap-4">
-                    <div className="rounded-lg bg-purple-50 p-4">
-                        <p className="text-sm font-medium text-purple-900">Next Month Forecast</p>
-                        <p className="mt-1 text-2xl font-bold text-purple-600">₹{insights.forecast.nextMonth.income.toLocaleString()}</p>
-                        <p className="mt-1 text-xs text-purple-700">
+                    <div className="rounded-lg bg-purple-900/20 p-4 border border-purple-800/50">
+                        <p className="text-sm font-medium text-purple-300">Next Month Forecast</p>
+                        <p className="mt-1 text-2xl font-bold text-purple-400">₹{insights.forecast.nextMonth.income.toLocaleString()}</p>
+                        <p className="mt-1 text-xs text-purple-400">
                             Confidence: <span className="font-semibold">{insights.forecast.nextMonth.confidence.toUpperCase()}</span>
                         </p>
                     </div>
-                    <div className="rounded-lg bg-blue-50 p-4">
-                        <p className="text-sm font-medium text-blue-900">3-Month Projection</p>
-                        <p className="mt-1 text-2xl font-bold text-blue-600">₹{insights.forecast.next3Months.income.toLocaleString()}</p>
-                        <p className="mt-1 text-xs text-blue-700">
+                    <div className="rounded-lg bg-blue-900/20 p-4 border border-blue-800/50">
+                        <p className="text-sm font-medium text-blue-300">3-Month Projection</p>
+                        <p className="mt-1 text-2xl font-bold text-blue-400">₹{insights.forecast.next3Months.income.toLocaleString()}</p>
+                        <p className="mt-1 text-xs text-blue-400">
                             Avg/Month: <span className="font-semibold">₹{Math.round(insights.forecast.next3Months.income / 3).toLocaleString()}</span>
                         </p>
                     </div>
@@ -258,10 +267,10 @@ export default function AnalyticsPage() {
                 />
 
                 {/* Forecast */}
-                <div className="rounded-lg bg-white p-6 shadow">
+                <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
                     <div className="mb-4 flex items-center">
-                        <Calendar className="mr-2 h-5 w-5 text-purple-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">Revenue Forecast</h3>
+                        <Calendar className="mr-2 h-5 w-5 text-purple-400" />
+                        <h3 className="text-lg font-semibold text-slate-100">Revenue Forecast</h3>
                     </div>
                     <div className="space-y-3">
                         <ForecastItem
@@ -323,20 +332,20 @@ export default function AnalyticsPage() {
 
 function MetricCard({ title, value, icon: Icon, color }: any) {
     const colors: any = {
-        green: 'text-green-600 bg-green-100',
-        red: 'text-red-600 bg-red-100',
-        blue: 'text-blue-600 bg-blue-100'
+        green: 'text-green-400 bg-green-900/20 border border-green-800/50',
+        red: 'text-red-400 bg-red-900/20 border border-red-800/50',
+        blue: 'text-blue-400 bg-blue-900/20 border border-blue-800/50'
     };
 
     return (
-        <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+        <div className="overflow-hidden rounded-lg bg-slate-800 px-4 py-5 shadow sm:p-6 border border-slate-700">
             <div className="flex items-center">
                 <div className={`rounded-md p-3 ${colors[color]}`}>
                     <Icon className="h-6 w-6" />
                 </div>
                 <div className="ml-4">
-                    <dt className="truncate text-sm font-medium text-gray-500">{title}</dt>
-                    <dd className="mt-1 text-2xl font-semibold text-gray-900">{value}</dd>
+                    <dt className="truncate text-sm font-medium text-slate-400">{title}</dt>
+                    <dd className="mt-1 text-2xl font-semibold text-slate-100">{value}</dd>
                 </div>
             </div>
         </div>
@@ -345,22 +354,22 @@ function MetricCard({ title, value, icon: Icon, color }: any) {
 
 function WeatherMetricCard({ title, days, avgRevenue, icon: Icon, color }: any) {
     const colors: any = {
-        blue: 'text-blue-600 bg-blue-100',
-        orange: 'text-orange-600 bg-orange-100',
-        cyan: 'text-cyan-600 bg-cyan-100',
-        gray: 'text-gray-600 bg-gray-100'
+        blue: 'text-blue-400 bg-blue-900/20 border border-blue-800/50',
+        orange: 'text-orange-400 bg-orange-900/20 border border-orange-800/50',
+        cyan: 'text-cyan-400 bg-cyan-900/20 border border-cyan-800/50',
+        gray: 'text-slate-400 bg-slate-700/50 border border-slate-600'
     };
 
     return (
-        <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+        <div className="overflow-hidden rounded-lg bg-slate-800 px-4 py-5 shadow sm:p-6 border border-slate-700">
             <div className="flex items-center">
                 <div className={`rounded-md p-3 ${colors[color]}`}>
                     <Icon className="h-6 w-6" />
                 </div>
                 <div className="ml-4 flex-1">
-                    <dt className="truncate text-sm font-medium text-gray-500">{title}</dt>
-                    <dd className="mt-1 text-lg font-semibold text-gray-900">{days} days</dd>
-                    <dd className="text-xs text-gray-600">Avg: ₹{avgRevenue.toLocaleString()}/day</dd>
+                    <dt className="truncate text-sm font-medium text-slate-400">{title}</dt>
+                    <dd className="mt-1 text-lg font-semibold text-slate-100">{days} days</dd>
+                    <dd className="text-xs text-slate-500">Avg: ₹{avgRevenue.toLocaleString()}/day</dd>
                 </div>
             </div>
         </div>
@@ -369,22 +378,22 @@ function WeatherMetricCard({ title, days, avgRevenue, icon: Icon, color }: any) 
 
 function InsightCard({ title, icon: Icon, color, items }: any) {
     const colors: any = {
-        blue: 'text-blue-600',
-        green: 'text-green-600',
-        yellow: 'text-yellow-600'
+        blue: 'text-blue-400',
+        green: 'text-green-400',
+        yellow: 'text-yellow-400'
     };
 
     return (
-        <div className="rounded-lg bg-white p-6 shadow">
+        <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
             <div className="mb-4 flex items-center">
                 <Icon className={`mr-2 h-5 w-5 ${colors[color]}`} />
-                <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+                <h3 className="text-lg font-semibold text-slate-100">{title}</h3>
             </div>
             <div className="space-y-3">
                 {items.map((item: any, idx: number) => (
-                    <div key={idx} className="border-l-4 border-gray-200 pl-4">
-                        <p className="text-sm font-medium text-gray-700">{item.label}</p>
-                        <p className="mt-1 text-sm text-gray-600">{item.value}</p>
+                    <div key={idx} className="border-l-4 border-slate-700 pl-4">
+                        <p className="text-sm font-medium text-slate-300">{item.label}</p>
+                        <p className="mt-1 text-sm text-slate-400">{item.value}</p>
                     </div>
                 ))}
             </div>
@@ -394,23 +403,23 @@ function InsightCard({ title, icon: Icon, color, items }: any) {
 
 function ListCard({ title, icon: Icon, color, items }: any) {
     const colors: any = {
-        yellow: 'text-yellow-600',
-        green: 'text-green-600',
-        red: 'text-red-600',
-        blue: 'text-blue-600'
+        yellow: 'text-yellow-400',
+        green: 'text-green-400',
+        red: 'text-red-400',
+        blue: 'text-blue-400'
     };
 
     return (
-        <div className="rounded-lg bg-white p-6 shadow">
+        <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
             <div className="mb-4 flex items-center">
                 <Icon className={`mr-2 h-5 w-5 ${colors[color]}`} />
-                <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+                <h3 className="text-lg font-semibold text-slate-100">{title}</h3>
             </div>
             <ul className="space-y-2">
                 {items.map((item: any, idx: number) => (
                     <li key={idx} className="flex items-start">
-                        <span className="mr-2 mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-400"></span>
-                        <span className="text-sm text-gray-700">{item}</span>
+                        <span className="mr-2 mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-slate-500"></span>
+                        <span className="text-sm text-slate-300">{item}</span>
                     </li>
                 ))}
             </ul>
@@ -421,31 +430,31 @@ function ListCard({ title, icon: Icon, color, items }: any) {
 function ForecastItem({ period, income, expense, confidence }: any) {
     const net = income - expense;
     const confidenceColors: any = {
-        high: 'bg-green-100 text-green-800',
-        medium: 'bg-yellow-100 text-yellow-800',
-        low: 'bg-red-100 text-red-800'
+        high: 'bg-green-900/30 text-green-400 border border-green-800/50',
+        medium: 'bg-yellow-900/30 text-yellow-400 border border-yellow-800/50',
+        low: 'bg-red-900/30 text-red-400 border border-red-800/50'
     };
 
     return (
-        <div className="rounded-lg border border-gray-200 p-4">
+        <div className="rounded-lg border border-slate-700 p-4">
             <div className="mb-2 flex items-center justify-between">
-                <span className="font-medium text-gray-900">{period}</span>
+                <span className="font-medium text-slate-100">{period}</span>
                 <span className={`rounded-full px-2 py-1 text-xs font-medium ${confidenceColors[confidence]}`}>
                     {confidence.toUpperCase()}
                 </span>
             </div>
             <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                    <span className="text-gray-600">Income:</span>
-                    <span className="font-medium text-green-600">₹{income.toLocaleString()}</span>
+                    <span className="text-slate-400">Income:</span>
+                    <span className="font-medium text-green-400">₹{income.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                    <span className="text-gray-600">Expense:</span>
-                    <span className="font-medium text-red-600">₹{expense.toLocaleString()}</span>
+                    <span className="text-slate-400">Expense:</span>
+                    <span className="font-medium text-red-400">₹{expense.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between border-t pt-1">
-                    <span className="font-medium text-gray-700">Net:</span>
-                    <span className={`font-semibold ${net >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <div className="flex justify-between border-t border-slate-700 pt-1">
+                    <span className="font-medium text-slate-300">Net:</span>
+                    <span className={`font-semibold ${net >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         ₹{net.toLocaleString()}
                     </span>
                 </div>

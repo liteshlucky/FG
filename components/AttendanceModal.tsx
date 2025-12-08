@@ -55,19 +55,19 @@ export default function AttendanceModal({ isOpen, onClose, trainerId, onAttendan
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-            <div className="w-full max-w-lg rounded-lg bg-white shadow-xl">
-                <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-                    <h3 className="text-lg font-medium text-gray-900">Trainer Attendance</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
+            <div className="w-full max-w-lg rounded-lg bg-slate-800 shadow-xl border border-slate-700"> // Added border
+                <div className="flex items-center justify-between border-b border-slate-700 px-6 py-4">
+                    <h3 className="text-lg font-medium text-slate-100">Trainer Attendance</h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-300">
                         <X className="h-6 w-6" />
                     </button>
                 </div>
                 <div className="p-6">
                     {lastRecord && (
                         <div className="mb-4 space-y-2">
-                            <p className="text-sm text-gray-500">Last Record:</p>
-                            <p className="font-medium">
+                            <p className="text-sm text-slate-400">Last Record:</p>
+                            <p className="font-medium text-slate-100">
                                 Date: {new Date(lastRecord.date).toLocaleDateString()} –
                                 Check‑In: {lastRecord.checkIn ? new Date(lastRecord.checkIn).toLocaleTimeString() : '-'} –
                                 Check‑Out: {lastRecord.checkOut ? new Date(lastRecord.checkOut).toLocaleTimeString() : '-'}

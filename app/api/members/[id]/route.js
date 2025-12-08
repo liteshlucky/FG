@@ -10,7 +10,22 @@ export async function GET(request, { params }) {
         if (!member) {
             return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
         }
-        return NextResponse.json({ success: true, data: member });
+
+        // Calculate membership dates if missing
+        const memberObj = member.toObject();
+        if (memberObj.planId) {
+            if (!memberObj.membershipStartDate) {
+                memberObj.membershipStartDate = memberObj.joinDate;
+            }
+            if (!memberObj.membershipEndDate && memberObj.planId.duration) {
+                const startDate = new Date(memberObj.membershipStartDate);
+                const endDate = new Date(startDate);
+                endDate.setMonth(endDate.getMonth() + memberObj.planId.duration);
+                memberObj.membershipEndDate = endDate;
+            }
+        }
+
+        return NextResponse.json({ success: true, data: memberObj });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }

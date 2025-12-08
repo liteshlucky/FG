@@ -65,10 +65,10 @@ export default function DiscountsPage() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-gray-900">Discounts & Coupons</h1>
+                <h1 className="text-2xl font-bold text-slate-100">Discounts & Coupons</h1>
                 <button
                     onClick={() => setShowForm(!showForm)}
-                    className="flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                    className="flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 hover:shadow-blue-500/30 transition-all hover:scale-105 active:scale-95"
                 >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Discount
@@ -76,33 +76,33 @@ export default function DiscountsPage() {
             </div>
 
             {showForm && (
-                <div className="rounded-lg bg-white p-6 shadow">
+                <div className="rounded-xl bg-slate-900 p-6 border border-slate-800 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Code</label>
+                                <label className="block text-sm font-medium text-slate-400">Code</label>
                                 <input
                                     type="text"
                                     required
-                                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                                     value={formData.code}
                                     onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Description</label>
+                                <label className="block text-sm font-medium text-slate-400">Description</label>
                                 <input
                                     type="text"
                                     required
-                                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Type</label>
+                                <label className="block text-sm font-medium text-slate-400">Type</label>
                                 <select
-                                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                                     value={formData.type}
                                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                                 >
@@ -111,12 +111,12 @@ export default function DiscountsPage() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Value</label>
+                                <label className="block text-sm font-medium text-slate-400">Value</label>
                                 <input
                                     type="number"
                                     required
                                     min="0"
-                                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                                     value={formData.value}
                                     onChange={(e) => setFormData({ ...formData, value: e.target.value })}
                                 />
@@ -125,7 +125,7 @@ export default function DiscountsPage() {
                         <div className="flex justify-end">
                             <button
                                 type="submit"
-                                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 hover:shadow-blue-500/30 font-medium transition-all hover:scale-105 active:scale-95"
                             >
                                 Save Discount
                             </button>
@@ -136,16 +136,16 @@ export default function DiscountsPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {discounts.map((discount: any) => (
-                    <div key={discount._id} className="relative rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                    <div key={discount._id} className="relative rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-sm hover:shadow-xl hover:border-slate-700 transition-all duration-300 group">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-medium text-gray-900">{discount.code}</h3>
-                            <button onClick={() => handleDelete(discount._id)} className="text-red-600 hover:text-red-900">
+                            <h3 className="text-lg font-medium text-slate-100 group-hover:text-blue-400 transition-colors">{discount.code}</h3>
+                            <button onClick={() => handleDelete(discount._id)} className="text-slate-400 hover:text-rose-400 transition-colors p-1 rounded-md hover:bg-rose-500/10">
                                 <Trash2 className="h-4 w-4" />
                             </button>
                         </div>
-                        <p className="mt-1 text-sm text-gray-500">{discount.description}</p>
+                        <p className="mt-1 text-sm text-slate-400">{discount.description}</p>
                         <div className="mt-4">
-                            <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                            <span className="inline-flex items-center rounded-lg bg-green-500/10 border border-green-500/20 px-3 py-1 text-xs font-medium text-emerald-400">
                                 {discount.type === 'percentage' ? `${discount.value}% OFF` : `₹${discount.value} OFF`}
                             </span>
                         </div>

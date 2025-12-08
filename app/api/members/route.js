@@ -12,14 +12,28 @@ export async function GET() {
         const now = new Date();
         const updates = [];
 
-        members = members.map(member => {
-            if (member.status === 'Active' && member.planId) {
-                const joinDate = new Date(member.joinDate);
-                const durationMonths = member.planId.duration;
-                const expirationDate = new Date(joinDate);
-                expirationDate.setMonth(expirationDate.getMonth() + durationMonths);
+        members = members.map(doc => {
+            const member = doc.toObject();
 
-                if (now > expirationDate) {
+            if (member.planId) {
+                // Default start date to join date if missing
+                if (!member.membershipStartDate) {
+                    member.membershipStartDate = member.joinDate;
+                }
+
+                // Calculate end date if missing
+                if (!member.membershipEndDate && member.planId.duration) {
+                    const startDate = new Date(member.membershipStartDate);
+                    const endDate = new Date(startDate);
+                    endDate.setMonth(endDate.getMonth() + member.planId.duration);
+                    member.membershipEndDate = endDate;
+                }
+            }
+
+            // Check for expiration
+            if (member.status === 'Active' && member.membershipEndDate) {
+                const endDate = new Date(member.membershipEndDate);
+                if (now > endDate) {
                     member.status = 'Expired';
                     updates.push(Member.findByIdAndUpdate(member._id, { status: 'Expired' }));
                 }

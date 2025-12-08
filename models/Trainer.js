@@ -5,6 +5,11 @@ const TrainerSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Please provide a name'],
     },
+    role: {
+        type: String,
+        enum: ['Management', 'Trainer', 'Support Staff', 'Other'],
+        default: 'Trainer',
+    },
     trainerId: {
         type: String,
         unique: true,
