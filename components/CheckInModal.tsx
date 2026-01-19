@@ -64,7 +64,9 @@ export default function CheckInModal({ userType, onClose, onSuccess }: CheckInMo
     const filteredUsers = users.filter((user: any) =>
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (user.phone && user.phone.includes(searchTerm))
+        (user.phone && user.phone.includes(searchTerm)) ||
+        (user.memberId && user.memberId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (user.trainerId && user.trainerId.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     return (
