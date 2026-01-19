@@ -153,7 +153,7 @@ export default function QRCheckInPage() {
                                     onChange={(e) => setIdentifier(e.target.value)}
                                     onKeyPress={(e) => e.key === 'Enter' && lookupUser()}
                                     placeholder="Enter numeric ID (e.g., 112) or phone..."
-                                    className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 text-lg focus:border-blue-500 focus:outline-none"
+                                    className="w-full rounded-lg border-2 border-gray-300 text-black px-4 py-3 text-lg focus:border-blue-500 focus:outline-none"
                                 />
                             </div>
                             <p className="mt-1 text-xs text-gray-500">

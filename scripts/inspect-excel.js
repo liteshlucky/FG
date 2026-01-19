@@ -1,7 +1,7 @@
 const XLSX = require('xlsx');
 const path = require('path');
 
-const filePath = '/Users/apple/Desktop/fit-app/payments_25-11-2025 (1).xlsx';
+const filePath = process.argv[2] || '/Users/apple/Desktop/fit-app/payments_25-11-2025 (1).xlsx';
 
 try {
     const workbook = XLSX.readFile(filePath);

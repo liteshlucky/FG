@@ -11,6 +11,7 @@ export async function POST(request) {
     try {
         const body = await request.json();
         let { identifier } = body; // Can be membership ID or phone number
+        console.log('Lookup Request Identifier:', identifier);
 
         if (!identifier) {
             return NextResponse.json(
@@ -19,22 +20,52 @@ export async function POST(request) {
             );
         }
 
-        // If identifier is numeric only, try to find by adding prefixes
-        const isNumericOnly = /^\d+$/.test(identifier);
+        // Normalize identifier (remove spaces, dashes) to handle "MEM 59", "MEM-59"
+        const cleanIdentifier = identifier.replace(/[\s-]/g, '');
+
+        // Check if it's numeric OR starts with MEM/TR followed by numbers
+        const numericMatch = cleanIdentifier.match(/^(\d+)$/) || cleanIdentifier.match(/^(?:MEM|TR)(\d+)$/i);
+        const coreNumber = numericMatch ? numericMatch[1] : null;
+        const isNumericSearch = coreNumber !== null;
+
+        // If we found a number (either pure, or extracted from MEM/TR prefix), use that for ID lookup
+        // Otherwise use the original identifier for name/phone search execution
+        const searchId = isNumericSearch ? coreNumber : identifier;
+
+        // Log for debug
+        console.log(`Processing: Original="${identifier}", Clean="${cleanIdentifier}", CoreNum="${coreNumber}"`);
+
+        const isNumericOnly = isNumericSearch; // Reuse existing flag name to minimize code change ripple
 
         let user = null;
         let userType = 'Member';
 
         if (isNumericOnly) {
-            // Try with MEM prefix first
+            // Try with MEM prefix (handling potential leading zeros)
+            // Example: User types "59", we check "MEM59", "MEM059", "MEM0059"
+            const queries = [
+                { memberId: `MEM${searchId}` },
+                { memberId: `MEM0${searchId}` },
+                { memberId: `MEM00${searchId}` },
+                { memberId: searchId }, // Support raw ID (e.g. "284")
+                { phone: identifier } // Keep original identifier for phone check
+            ];
+
             user = await Member.findOne({
-                memberId: `MEM${identifier}`
+                $or: queries
             }).select('_id name phone memberId membershipStatus status membershipEndDate').lean();
 
             // If not found, try with TR prefix for trainers
             if (!user) {
+                const trainerQueries = [
+                    { trainerId: `TR${searchId}` },
+                    { trainerId: `TR0${searchId}` },
+                    { trainerId: `TR00${searchId}` },
+                    { phone: identifier }
+                ];
+
                 user = await Trainer.findOne({
-                    trainerId: `TR${identifier}`
+                    $or: trainerQueries
                 }).select('_id name phone trainerId').lean();
 
                 if (user) {
@@ -42,11 +73,12 @@ export async function POST(request) {
                 }
             }
         } else {
-            // Try to find member with full ID or phone
+            // Try to find member with full ID, phone, OR NAME regex
             user = await Member.findOne({
                 $or: [
                     { memberId: identifier },
-                    { phone: identifier }
+                    { phone: identifier },
+                    { name: { $regex: identifier, $options: 'i' } }
                 ]
             }).select('_id name phone memberId membershipStatus status membershipEndDate').lean();
 
@@ -55,7 +87,8 @@ export async function POST(request) {
                 user = await Trainer.findOne({
                     $or: [
                         { trainerId: identifier },
-                        { phone: identifier }
+                        { phone: identifier },
+                        { name: { $regex: identifier, $options: 'i' } }
                     ]
                 }).select('_id name phone trainerId').lean();
 
@@ -63,12 +96,20 @@ export async function POST(request) {
             }
         }
 
+        if (isNumericOnly) {
+            console.log('Strategy: Numeric Search');
+        } else {
+            console.log('Strategy: Text/Full ID Search');
+        }
+
         if (!user) {
+            console.log('User NOT found for identifier:', identifier);
             return NextResponse.json(
                 { success: false, error: 'User not found. Please check your ID or phone number.' },
                 { status: 404 }
             );
         }
+        console.log('User FOUND:', user._id, user.name);
 
         // Check current attendance status
         const activeAttendance = await Attendance.findOne({
