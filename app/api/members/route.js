@@ -8,13 +8,24 @@ import { NextResponse } from 'next/server';
 export async function GET() {
     await dbConnect();
     try {
-        let members = await Member.find({}).populate('planId').populate('discountId').populate('ptPlanId').sort({ createdAt: -1 });
         const now = new Date();
-        const updates = [];
 
-        members = members.map(doc => {
-            const member = doc.toObject();
+        // Batch update expired members
+        await Member.updateMany(
+            { status: 'Active', membershipEndDate: { $lt: now } },
+            { $set: { status: 'Expired' } }
+        );
 
+        // Fetch using lean() for better performance
+        let members = await Member.find({})
+            .populate('planId')
+            .populate('discountId')
+            .populate('ptPlanId')
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // Apply runtime logic for missing dates (in-memory only)
+        members = members.map(member => {
             if (member.planId) {
                 // Default start date to join date if missing
                 if (!member.membershipStartDate) {
@@ -29,21 +40,8 @@ export async function GET() {
                     member.membershipEndDate = endDate;
                 }
             }
-
-            // Check for expiration
-            if (member.status === 'Active' && member.membershipEndDate) {
-                const endDate = new Date(member.membershipEndDate);
-                if (now > endDate) {
-                    member.status = 'Expired';
-                    updates.push(Member.findByIdAndUpdate(member._id, { status: 'Expired' }));
-                }
-            }
             return member;
         });
-
-        if (updates.length > 0) {
-            await Promise.all(updates);
-        }
 
         return NextResponse.json({ success: true, data: members });
     } catch (error) {
