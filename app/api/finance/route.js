@@ -98,7 +98,12 @@ export async function GET(request) {
 
     } catch (error) {
         console.error('Finance API Error:', error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        console.error(error.stack);
+        return NextResponse.json({
+            success: false,
+            error: error.message,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        }, { status: 500 });
     }
 }
 

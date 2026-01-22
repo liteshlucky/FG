@@ -129,4 +129,12 @@ const MemberSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
+// Indexes for better performance
+MemberSchema.index({ name: 1 });
+MemberSchema.index({ email: 1 });
+MemberSchema.index({ phone: 1 });
+MemberSchema.index({ memberId: 1 });
+MemberSchema.index({ status: 1 });
+MemberSchema.index({ status: 1, membershipEndDate: 1 }); // For expiration checks
+
 export default mongoose.models.Member || mongoose.model('Member', MemberSchema);
