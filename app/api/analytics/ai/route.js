@@ -3,6 +3,7 @@ import Payment from '@/models/Payment';
 import Transaction from '@/models/Transaction';
 import Member from '@/models/Member';
 import TrainerPayment from '@/models/TrainerPayment';
+import AnalyticsCache from '@/models/AnalyticsCache';
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -15,6 +16,28 @@ export async function GET(request) {
 
         const { searchParams } = new URL(request.url);
         const months = parseInt(searchParams.get('months') || '12');
+        const forceRefresh = searchParams.get('force') === 'true';
+
+        // Check cache first
+        if (!forceRefresh) {
+            const fifteenDaysAgo = new Date();
+            fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+
+            const cachedResult = await AnalyticsCache.findOne({
+                type: 'ai_predictions',
+                timeRange: months.toString(),
+                createdAt: { $gte: fifteenDaysAgo }
+            }).sort({ createdAt: -1 });
+
+            if (cachedResult) {
+                return NextResponse.json({
+                    success: true,
+                    data: cachedResult.data,
+                    cached: true,
+                    lastUpdated: cachedResult.createdAt
+                });
+            }
+        }
 
         // Calculate date ranges
         const endDate = new Date();
@@ -65,9 +88,19 @@ export async function GET(request) {
             profitMargins
         });
 
+        // Save to cache
+        await AnalyticsCache.create({
+            type: 'ai_predictions',
+            timeRange: months.toString(),
+            data: predictions,
+            createdAt: new Date()
+        });
+
         return NextResponse.json({
             success: true,
-            data: predictions
+            data: predictions,
+            cached: false,
+            lastUpdated: new Date()
         });
 
     } catch (error) {
@@ -87,11 +120,22 @@ async function generateAIPredictions(data) {
     }
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        // User requested gemini-2.5-flash-lite
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
         const totalRevenue = revenueBreakdown.membership + revenueBreakdown.pt + revenueBreakdown.other;
         const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0) +
             trainerPayments.reduce((sum, tp) => sum + tp.amount, 0);
+
+        // Calculate monthly trends for context
+        const monthlyRevenue = {};
+        payments.forEach(p => {
+            const month = new Date(p.paymentDate).toLocaleString('default', { month: 'short' });
+            monthlyRevenue[month] = (monthlyRevenue[month] || 0) + p.amount;
+        });
+        const revenueTrendStr = Object.entries(monthlyRevenue)
+            .map(([m, val]) => `${m}: ₹${val}`)
+            .join(', ');
 
         const prompt = `You are a business analytics AI for a gym in Sodepur, West Bengal, India.
         
@@ -100,15 +144,16 @@ FINANCIAL DATA:
 - Total Expense: ₹${totalExpense.toLocaleString()}
 - Membership Revenue: ₹${revenueBreakdown.membership.toLocaleString()}
 - PT Revenue: ₹${revenueBreakdown.pt.toLocaleString()}
-- Other Revenue: ₹${revenueBreakdown.other.toLocaleString()}
+- Monthly Revenue Trend: ${revenueTrendStr}
 - Membership Profit Margin: ${profitMargins.membership.margin}%
 - PT Profit Margin: ${profitMargins.pt.margin}%
 
 MEMBER DATA:
 - Total Members: ${members.length}
 - Recent Payments: ${payments.length}
+- Current Date: ${new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 
-TASK: Provide AI-powered predictions in the following JSON format:
+TASK: Provide AI-powered predictions and LOCAL INSIGHTS in the following JSON format:
 
 {
   "churnRisk": {
@@ -137,19 +182,35 @@ TASK: Provide AI-powered predictions in the following JSON format:
       "effort": "low" or "medium" or "high",
       "timeline": "timeframe to implement"
     }
-  ]
+  ],
+  "localInsights": {
+    "festivalImpact": [
+      { "festival": "Name", "impact": "high/medium/low", "details": "Specific impact analysis based on Sodepur context and data" }
+    ],
+    "studentBehavior": {
+      "insight": "Analysis of student enrollment patterns (exams/vacations)",
+      "action": "Recommended action"
+    },
+    "seasonalAnalysis": [
+       { "season": "Upcoming Season/Event", "impact": "Predicted Impact", "recommendation": "Preparation Strategy" }
+    ],
+    "upcomingEvents": [
+        { "event": "Name (e.g. Next Major Festival)", "date": "Approx Date", "prediction": "Expected business impact" }
+    ]
+  }
 }
 
 IMPORTANT:
 - Base churn risk on payment frequency and member count
-- Consider local context (Sodepur, West Bengal)
-- Pricing should be competitive for Indian gym market
-- Focus on actionable, specific recommendations
+- **CRITICAL**: Adopt a holistic view for Sodepur, West Bengal. Do NOT attribute everything to a single festival like Durga Puja unless the data strongly correlates.
+- **Analyze Multiple Factors**: user general local trends, weather patterns (monsoon, summer heat), exam seasons, economic factors, AND cultural events.
+- **Data Driven**: Look at the provided Monthly Revenue Trend. If there is a dip, find the most logical local explanation (e.g. heavy rains in July vs exams in May).
+- **LOOK AHEAD**: Identify upcoming seasonal shifts or events based on Current Date.
 - Return ONLY valid JSON, no markdown formatting`;
 
-        // 8 second timeout for dedicated endpoint (slightly longer than before since it's isolated)
+        // 30 second timeout for AI generation (increased to prevent false timeouts)
         const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('AI generation timed out')), 8000)
+            setTimeout(() => reject(new Error('AI generation timed out')), 30000)
         );
 
         const result = await Promise.race([
@@ -169,7 +230,8 @@ IMPORTANT:
 
     } catch (error) {
         console.error('AI Generation Error:', error);
-        return getFallbackPredictions(members);
+        // User requested NO fallback data. Re-throw error to be handled by main API handler.
+        throw error;
     }
 }
 
@@ -193,6 +255,21 @@ function getFallbackPredictions(members) {
         revenueOpportunities: [
             { opportunity: 'Group fitness classes', potentialRevenue: 50000, effort: 'medium', timeline: '2-3 months' },
             { opportunity: 'Nutrition consultation add-on', potentialRevenue: 30000, effort: 'low', timeline: '1 month' }
-        ]
+        ],
+        localInsights: {
+            festivalImpact: [
+                { festival: 'Major Regional Festivals', impact: 'high', details: 'High footfall variance expected during major cultural events' }
+            ],
+            studentBehavior: {
+                insight: 'Seasonal attendance fluctuations observed due to academic calendars',
+                action: 'Offer flexible pause options during exam months'
+            },
+            seasonalAnalysis: [
+                { season: 'Monsoon (Jun-Sep)', impact: 'potential attendance drop due to weather', recommendation: 'Promote indoor group activities & challenges' }
+            ],
+            upcomingEvents: [
+                { event: 'Check Local Calendar', date: 'Upcoming', prediction: 'Review local event schedule for impact' }
+            ]
+        }
     };
 }

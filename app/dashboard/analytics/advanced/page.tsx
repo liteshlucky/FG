@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, DollarSign, Users, Award, PieChart as PieChartIcon, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Users, Award, PieChart as PieChartIcon, ArrowUpRight, ArrowDownRight, RefreshCw } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -11,6 +11,7 @@ export default function AdvancedAnalyticsPage() {
     const [loading, setLoading] = useState(true);
     const [aiPredictions, setAiPredictions] = useState<any>(null);
     const [loadingAI, setLoadingAI] = useState(false);
+    const [lastUpdated, setLastUpdated] = useState<string | null>(null);
     const [timeRange, setTimeRange] = useState('12');
     const [compareMode, setCompareMode] = useState('');
 
@@ -40,13 +41,16 @@ export default function AdvancedAnalyticsPage() {
         }
     };
 
-    const fetchAIPredictions = async (months: string) => {
+    const fetchAIPredictions = async (months: string, force = false) => {
         setLoadingAI(true);
         try {
-            const res = await fetch(`/api/analytics/ai?months=${months}`);
+            const res = await fetch(`/api/analytics/ai?months=${months}&force=${force}`);
             const data = await res.json();
             if (data.success) {
                 setAiPredictions(data.data);
+                if (data.lastUpdated) {
+                    setLastUpdated(new Date(data.lastUpdated).toLocaleDateString() + ' ' + new Date(data.lastUpdated).toLocaleTimeString());
+                }
             }
         } catch (error) {
             console.error('Failed to fetch AI predictions', error);
@@ -377,17 +381,20 @@ export default function AdvancedAnalyticsPage() {
                 </div>
             )}
 
-            {/* Local Insights */}
-            {localInsights && (
+            {/* AI Local Insights (Switched from hardcoded to AI) */}
+            {aiPredictions && aiPredictions.localInsights && (
                 <div className="space-y-6">
-                    <h2 className="text-lg font-semibold text-slate-100">Local Insights - Sodepur, West Bengal</h2>
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-semibold text-slate-100">AI Local Insights - Sodepur Context</h2>
+                        <span className="text-xs bg-purple-900/40 text-purple-300 px-2 py-1 rounded border border-purple-800/50">AI Generated</span>
+                    </div>
 
                     {/* Festival Impact */}
-                    {localInsights.festivalImpact && localInsights.festivalImpact.length > 0 && (
+                    {aiPredictions.localInsights.festivalImpact && aiPredictions.localInsights.festivalImpact.length > 0 && (
                         <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
                             <h3 className="mb-4 text-md font-semibold text-slate-100">Festival Impact Analysis</h3>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {localInsights.festivalImpact.map((festival: any, idx: number) => (
+                                {aiPredictions.localInsights.festivalImpact.map((festival: any, idx: number) => (
                                     <div key={idx} className="rounded-lg border border-slate-700 p-4">
                                         <div className="flex items-center justify-between mb-2">
                                             <h4 className="font-semibold text-slate-100">{festival.festival}</h4>
@@ -398,20 +405,7 @@ export default function AdvancedAnalyticsPage() {
                                                 {festival.impact.toUpperCase()}
                                             </span>
                                         </div>
-                                        <div className="space-y-1 text-sm">
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-400">Revenue:</span>
-                                                <span className="font-semibold text-green-400">₹{festival.revenue.toLocaleString()}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-400">Transactions:</span>
-                                                <span className="font-medium text-slate-100">{festival.transactions}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-400">Avg/Transaction:</span>
-                                                <span className="font-medium text-slate-100">₹{festival.avgPerTransaction.toLocaleString()}</span>
-                                            </div>
-                                        </div>
+                                        <p className="text-sm text-slate-400">{festival.details}</p>
                                     </div>
                                 ))}
                             </div>
@@ -424,38 +418,63 @@ export default function AdvancedAnalyticsPage() {
                         <div className="rounded-lg bg-purple-900/20 border border-purple-800/50 p-6">
                             <h4 className="font-semibold text-purple-300 mb-3">Student Behavior</h4>
                             <div className="space-y-2 text-sm text-purple-200">
-                                <p><strong>Exam Period:</strong> {localInsights.studentBehavior.examPeriod}</p>
-                                <p><strong>Vacation:</strong> {localInsights.studentBehavior.vacationPeriod}</p>
-                                <p><strong>Peak Enrollment:</strong> {localInsights.studentBehavior.peakEnrollment}</p>
+                                <p><strong>Insight:</strong> {aiPredictions.localInsights.studentBehavior?.insight}</p>
+                                <p><strong>Action:</strong> {aiPredictions.localInsights.studentBehavior?.action}</p>
                             </div>
                         </div>
 
-                        {/* Monsoon Effect */}
-                        <div className="rounded-lg bg-blue-900/20 border border-blue-800/50 p-6">
-                            <h4 className="font-semibold text-blue-300 mb-3">Monsoon Effect</h4>
-                            <div className="space-y-2 text-sm text-blue-200">
-                                <p><strong>Period:</strong> {localInsights.monsoonEffect.period}</p>
-                                <p><strong>Impact:</strong> {localInsights.monsoonEffect.expectedImpact}</p>
-                                <p><strong>Action:</strong> {localInsights.monsoonEffect.recommendation}</p>
+                        {/* Seasonal Analysis Loop */}
+                        {aiPredictions.localInsights.seasonalAnalysis && aiPredictions.localInsights.seasonalAnalysis.map((season: any, idx: number) => (
+                            <div key={idx} className="rounded-lg bg-blue-900/20 border border-blue-800/50 p-6">
+                                <h4 className="font-semibold text-blue-300 mb-3">{season.season}</h4>
+                                <div className="space-y-2 text-sm text-blue-200">
+                                    <p><strong>Impact:</strong> {season.impact}</p>
+                                    <p><strong>Recommendation:</strong> {season.recommendation}</p>
+                                </div>
                             </div>
-                        </div>
+                        ))}
 
-                        {/* Wedding Season */}
-                        <div className="rounded-lg bg-pink-900/20 border border-pink-800/50 p-6">
-                            <h4 className="font-semibold text-pink-300 mb-3">Wedding Season</h4>
-                            <div className="space-y-2 text-sm text-pink-200">
-                                <p><strong>Period:</strong> {localInsights.weddingSeason.period}</p>
-                                <p><strong>Impact:</strong> {localInsights.weddingSeason.expectedImpact}</p>
-                                <p><strong>Action:</strong> {localInsights.weddingSeason.recommendation}</p>
+                        {/* Upcoming Events (New) */}
+                        {aiPredictions.localInsights.upcomingEvents && aiPredictions.localInsights.upcomingEvents.length > 0 && (
+                            <div className="col-span-1 lg:col-span-3 rounded-lg bg-indigo-900/20 border border-indigo-800/50 p-6">
+                                <h4 className="font-semibold text-indigo-300 mb-3">Upcoming Major Events</h4>
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                    {aiPredictions.localInsights.upcomingEvents.map((event: any, idx: number) => (
+                                        <div key={idx} className="rounded border border-indigo-700/50 p-3 bg-indigo-900/10">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <span className="font-semibold text-slate-200">{event.event}</span>
+                                                <span className="text-xs text-indigo-300 bg-indigo-900/50 px-2 py-0.5 rounded">{event.date}</span>
+                                            </div>
+                                            <p className="text-sm text-slate-400">{event.prediction}</p>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             )}
 
             {/* AI Predictions */}
             <div className="space-y-6">
-                <h2 className="text-lg font-semibold text-slate-100">AI-Powered Predictions</h2>
+                <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-slate-100">AI-Powered Predictions</h2>
+                    <div className="flex items-center space-x-4">
+                        {lastUpdated && (
+                            <span className="text-xs text-slate-500">
+                                Last updated: {lastUpdated}
+                            </span>
+                        )}
+                        <button
+                            onClick={() => fetchAIPredictions(timeRange, true)}
+                            disabled={loadingAI}
+                            className="flex items-center space-x-2 rounded bg-purple-600 px-4 py-2 text-xs font-bold text-white hover:bg-purple-700 disabled:opacity-50 transition-colors shadow-lg"
+                        >
+                            <RefreshCw className={`h-3.5 w-3.5 ${loadingAI ? 'animate-spin' : ''}`} />
+                            <span>{loadingAI ? 'Generating...' : 'Regenerate Analysis'}</span>
+                        </button>
+                    </div>
+                </div>
 
                 {loadingAI && (
                     <div className="flex h-40 items-center justify-center rounded-lg bg-slate-800 p-6 shadow border border-slate-700">

@@ -251,13 +251,8 @@ export async function GET(request) {
             months: 6
         });
 
-        // 8. LOCAL INSIGHTS (Festival Impact)
-        const localInsights = await generateLocalInsights({
-            payments,
-            transactions,
-            startDate,
-            endDate
-        });
+        // 8. LOCAL INSIGHTS (Hardcoded removed, now AI powered)
+        const localInsights = null;
 
         // 9. AI PREDICTIONS (Moved to separate endpoint)
         const aiPredictions = null;
@@ -374,73 +369,6 @@ async function generateCashFlowProjections(data) {
     return projections;
 }
 
-// Helper function: Generate local insights
-async function generateLocalInsights(data) {
-    const { payments, transactions, startDate, endDate } = data;
 
-    // Festival periods (approximate dates)
-    const festivals = [
-        { name: 'Durga Puja', months: [8, 9], impact: 'high' },
-        { name: 'Diwali', months: [9, 10], impact: 'medium' },
-        { name: 'Bengali New Year', months: [3], impact: 'low' },
-        { name: 'Holi', months: [2], impact: 'low' },
-        { name: 'New Year', months: [0], impact: 'high' }
-    ];
-
-    const festivalImpact = [];
-
-    for (const festival of festivals) {
-        let festivalRevenue = 0;
-        let festivalCount = 0;
-
-        payments.forEach(p => {
-            const month = new Date(p.paymentDate).getMonth();
-            if (festival.months.includes(month)) {
-                festivalRevenue += p.amount;
-                festivalCount++;
-            }
-        });
-
-        transactions.forEach(t => {
-            const month = new Date(t.date).getMonth();
-            if (t.type === 'income' && festival.months.includes(month)) {
-                festivalRevenue += t.amount;
-                festivalCount++;
-            }
-        });
-
-        if (festivalCount > 0) {
-            festivalImpact.push({
-                festival: festival.name,
-                revenue: festivalRevenue,
-                transactions: festivalCount,
-                avgPerTransaction: Math.round(festivalRevenue / festivalCount),
-                impact: festival.impact
-            });
-        }
-    }
-
-    // Student behavior analysis (college semesters)
-    const studentInsights = {
-        examPeriod: 'May-June & Nov-Dec: Expect 15-20% drop in attendance',
-        vacationPeriod: 'June-July: Summer vacation, potential for special programs',
-        peakEnrollment: 'August & January: New semester starts, high enrollment opportunity'
-    };
-
-    return {
-        festivalImpact: festivalImpact.sort((a, b) => b.revenue - a.revenue),
-        studentBehavior: studentInsights,
-        monsoonEffect: {
-            period: 'June-September',
-            expectedImpact: '-10 to -15% revenue',
-            recommendation: 'Offer indoor activities, monsoon special packages'
-        },
-        weddingSeason: {
-            period: 'November-February',
-            expectedImpact: '-5 to -10% attendance',
-            recommendation: 'Target post-wedding fitness goals, couple packages'
-        }
-    };
-}
 
 
