@@ -130,10 +130,12 @@ const MemberSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Indexes for better performance
+// MemberSchema.index({ name: 1 }); // Already indexed by schema definition if unique, but explicit is fine unless duplicate
+// MemberSchema.index({ email: 1 }); // Duplicate: unique: true creates an index
+// MemberSchema.index({ phone: 1 }); // Indexed by schema? No, explicit needed.
+// MemberSchema.index({ memberId: 1 }); // Duplicate: unique: true creates an index
 MemberSchema.index({ name: 1 });
-MemberSchema.index({ email: 1 });
 MemberSchema.index({ phone: 1 });
-MemberSchema.index({ memberId: 1 });
 MemberSchema.index({ status: 1 });
 MemberSchema.index({ status: 1, membershipEndDate: 1 }); // For expiration checks
 
