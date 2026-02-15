@@ -18,7 +18,7 @@ export async function POST(request) {
                     { $inc: { seq: 1 } },
                     { new: true, upsert: true }
                 );
-                memberData.memberId = `MEM${String(counter.seq).padStart(3, '0')}`;
+                memberData.memberId = String(counter.seq);
             }
 
             // Clean up empty strings for ObjectIds

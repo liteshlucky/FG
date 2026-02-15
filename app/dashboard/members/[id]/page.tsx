@@ -8,6 +8,7 @@ import Avatar from '@/components/Avatar';
 import AIAnalysis from '@/components/AIAnalysis';
 
 import QuickEditModal from '@/components/QuickEditModal';
+import EditPaymentModal from '@/components/EditPaymentModal';
 
 export default function MemberDetailPage() {
     const params = useParams();
@@ -16,6 +17,7 @@ export default function MemberDetailPage() {
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showPaymentForm, setShowPaymentForm] = useState(false);
+    const [editingPayment, setEditingPayment] = useState<any>(null);
     const [activeTab, setActiveTab] = useState<'all' | 'membership' | 'pt'>('all');
     const [editingSection, setEditingSection] = useState<'personal' | 'physical' | 'health' | null>(null);
 
@@ -533,61 +535,83 @@ export default function MemberDetailPage() {
                         <tbody className="divide-y divide-slate-700 bg-slate-800">
                             {(() => {
                                 const filteredPayments = payments.filter((payment: any) => {
-                                    if (activeTab === 'all') return true;
-                                    if (activeTab === 'membership') return payment.planType === 'membership';
-                                    if (activeTab === 'pt') return payment.planType === 'pt_plan';
+                                    const category = (payment.paymentCategory || payment.planType || '').toLowerCase();
+                                    const isMembership = category === 'plan' || category === 'membership';
+                                    const isPT = category === 'trainer' || category === 'pt' || category === 'pt plan';
+
+                                    if (activeTab === 'membership' && !isMembership) return false;
+                                    if (activeTab === 'pt' && !isPT) return false;
                                     return true;
                                 });
 
                                 if (filteredPayments.length === 0) {
                                     return (
                                         <tr>
-                                            <td colSpan={7} className="px-6 py-8 text-center text-sm text-slate-400">
+                                            <td colSpan={8} className="px-6 py-8 text-center text-sm text-slate-400">
                                                 No payment history for {activeTab === 'all' ? 'this member' : activeTab === 'membership' ? 'membership plans' : 'PT plans'}
                                             </td>
                                         </tr>
                                     );
                                 }
 
-                                return filteredPayments.map((payment: any) => (
-                                    <tr key={payment._id}>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-100">
-                                            {formatDate(payment.paymentDate)}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4">
-                                            <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${payment.planType === 'membership'
-                                                ? 'bg-purple-100 text-purple-800'
-                                                : 'bg-orange-100 text-orange-800'
-                                                }`}>
-                                                {payment.planType === 'membership' ? 'Membership' : 'PT Plan'}
-                                            </span>
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-slate-100">
-                                            ₹{payment.amount.toLocaleString()}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4">
-                                            <span className="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-800">
-                                                {payment.paymentMode.replace('_', ' ').toUpperCase()}
-                                            </span>
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4">
-                                            <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${payment.paymentStatus === 'completed' ? 'bg-green-100 text-green-800' :
-                                                payment.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-red-100 text-red-800'
-                                                }`}>
-                                                {payment.paymentStatus.toUpperCase()}
-                                            </span>
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-400">
-                                            {payment.transactionId || '-'}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-slate-400">
-                                            <div className="max-w-xs truncate" title={payment.notes}>
-                                                {payment.notes || '-'}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ));
+                                return filteredPayments.map((payment: any) => {
+                                    const category = (payment.paymentCategory || payment.planType || '').toLowerCase();
+                                    const isMembership = category === 'plan' || category === 'membership';
+                                    const label = isMembership ? 'Membership' :
+                                        category === 'trainer' ? 'PT Plan' :
+                                            category === 'admission fee' ? 'Admission' :
+                                                'Other';
+
+                                    return (
+                                        <tr key={payment._id}>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-100">
+                                                {formatDate(payment.paymentDate)}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4">
+                                                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${isMembership
+                                                    ? 'bg-purple-100 text-purple-800'
+                                                    : label === 'PT Plan' ? 'bg-orange-100 text-orange-800'
+                                                        : 'bg-gray-100 text-gray-800'
+                                                    }`}>
+                                                    {/* Show specific Plan Name if available (e.g., 'Yearly'), otherwise Category */}
+                                                    {payment.planId?.name || label}
+                                                </span>
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-slate-100">
+                                                ₹{payment.amount.toLocaleString()}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4">
+                                                <span className="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-800">
+                                                    {(payment.paymentMode || 'Cash').replace('_', ' ').toUpperCase()}
+                                                </span>
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4">
+                                                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${payment.paymentStatus === 'completed' || !payment.paymentStatus ? 'bg-green-100 text-green-800' :
+                                                    payment.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                        'bg-red-100 text-red-800'
+                                                    }`}>
+                                                    {(payment.paymentStatus || 'Completed').toUpperCase()}
+                                                </span>
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-400">
+                                                {payment.transactionId || payment.receiptNumber || '-'}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-400">
+                                                <div className="max-w-xs truncate" title={payment.notes}>
+                                                    {payment.notes || '-'}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-right text-sm font-medium">
+                                                <button
+                                                    onClick={() => setEditingPayment(payment)}
+                                                    className="text-indigo-400 hover:text-indigo-300"
+                                                >
+                                                    Edit
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    )
+                                });
                             })()}
                         </tbody>
                     </table>
@@ -599,6 +623,17 @@ export default function MemberDetailPage() {
                     member={member}
                     onClose={() => setShowPaymentForm(false)}
                     onSuccess={handlePaymentSuccess}
+                />
+            )}
+
+            {editingPayment && (
+                <EditPaymentModal
+                    payment={editingPayment}
+                    onClose={() => setEditingPayment(null)}
+                    onSuccess={() => {
+                        fetchPayments();
+                        fetchMemberDetails();
+                    }}
                 />
             )}
         </div>

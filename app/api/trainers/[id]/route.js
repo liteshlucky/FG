@@ -41,8 +41,8 @@ export async function DELETE(req, { params }) {
     await dbConnect();
 
     try {
-        const deletedTrainer = await Trainer.deleteOne({ _id: id });
-        if (!deletedTrainer) {
+        const result = await Trainer.deleteOne({ _id: id });
+        if (result.deletedCount === 0) {
             return NextResponse.json({ success: false, error: 'Trainer not found' }, { status: 404 });
         }
         return NextResponse.json({ success: true, data: {} });
@@ -50,3 +50,4 @@ export async function DELETE(req, { params }) {
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }
 }
+

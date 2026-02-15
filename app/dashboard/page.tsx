@@ -1,5 +1,6 @@
 import dbConnect from '@/lib/db';
 import Member from '@/models/Member';
+import MemberListView from '@/models/MemberListView';
 import Trainer from '@/models/Trainer';
 import '@/models/Plan';
 import Link from 'next/link';
@@ -20,113 +21,129 @@ async function getComprehensiveStats() {
     const endOfToday = new Date(startOfToday);
     endOfToday.setDate(endOfToday.getDate() + 1);
 
-    // Fetch all members and trainers
-    const allMembers = await Member.find().populate('planId');
-    const allTrainers = await Trainer.find();
+    // Calculate future dates for expiry checks
+    const in1Day = new Date(startOfToday);
+    in1Day.setDate(in1Day.getDate() + 1);
 
-    // Basic counts
-    const totalClients = allMembers.length;
-    const activeClients = allMembers.filter(m => m.status === 'Active').length;
-    const inactiveClients = allMembers.filter(m => m.status === 'Expired' || m.status === 'Inactive').length;
+    const in3Days = new Date(startOfToday);
+    in3Days.setDate(in3Days.getDate() + 3);
 
-    // New clients this month
-    const newClientsThisMonth = allMembers.filter(m =>
-        new Date(m.joinDate) >= startOfMonth
-    ).length;
+    const in4Days = new Date(startOfToday);
+    in4Days.setDate(in4Days.getDate() + 4);
 
-    // Membership renewed this month
-    const renewedThisMonth = allMembers.filter(m =>
-        m.membershipStartDate && new Date(m.membershipStartDate) >= startOfMonth
-    ).length;
+    const in8Days = new Date(startOfToday);
+    in8Days.setDate(in8Days.getDate() + 8);
 
-    // Dues calculations
-    const membersWithDues = allMembers.filter(m =>
-        m.paymentStatus === 'partial' || m.paymentStatus === 'unpaid'
-    );
-    const totalDues = membersWithDues.length;
+    const in9Days = new Date(startOfToday);
+    in9Days.setDate(in9Days.getDate() + 9);
 
-    // Today's dues (simplified)
-    const todaysDues = 0;
+    const in15Days = new Date(startOfToday);
+    in15Days.setDate(in15Days.getDate() + 15);
 
-    // Overdue
-    const totalOverdue = allMembers.filter(m =>
-        m.membershipEndDate && new Date(m.membershipEndDate) < now &&
-        (m.paymentStatus === 'partial' || m.paymentStatus === 'unpaid')
-    ).length;
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    // Birthday tracking
-    const totalBirthday = 0;
-    const todaysBirthday = 0;
+    // Use parallel queries for maximum performance
+    const [
+        totalClients,
+        activeClients,
+        inactiveClients,
+        newClientsThisMonth,
+        renewedThisMonth,
+        totalDues,
+        totalOverdue,
+        activePT,
+        inactivePT,
+        noMembership,
+        pendingClients,
+        expiringToday,
+        expiring1to3,
+        expiring4to8,
+        expiring9to15,
+        expiringThisMonth,
+        expiredUnder30,
+        totalTrainers
+    ] = await Promise.all([
+        // Basic counts
+        MemberListView.countDocuments({}),
+        MemberListView.countDocuments({ status: 'Active' }),
+        MemberListView.countDocuments({ status: { $in: ['Expired', 'Inactive'] } }),
+        MemberListView.countDocuments({ joinDate: { $gte: startOfMonth } }),
+        MemberListView.countDocuments({ membershipStartDate: { $gte: startOfMonth } }),
 
-    // Enquiries
-    const totalEnquiries = 0;
-    const followUpThisMonth = 0;
-    const todaysFollowUp = 0;
+        // Dues
+        MemberListView.countDocuments({ paymentStatus: { $in: ['partial', 'unpaid'] } }),
+        MemberListView.countDocuments({
+            membershipEndDate: { $lt: now },
+            paymentStatus: { $in: ['partial', 'unpaid'] }
+        }),
 
-    // PT statistics
-    const activePT = allMembers.filter(m => m.ptPlanId).length;
-    const inactivePT = allMembers.filter(m => !m.ptPlanId && m.status === 'Active').length;
+        // PT stats
+        MemberListView.countDocuments({ ptPlanId: { $exists: true, $ne: null } }),
+        MemberListView.countDocuments({
+            ptPlanId: { $exists: false }, // Explicitly check for no PT plan
+            status: 'Active'
+        }),
 
-    // Attendance
-    const todaysPresent = 0;
-    const todaysAbsent = 0;
+        // Other statuses
+        MemberListView.countDocuments({ planId: { $exists: false } }),
+        MemberListView.countDocuments({ status: 'Pending' }),
 
-    // Other statuses
-    const noMembership = allMembers.filter(m => !m.planId).length;
-    const disabledClients = 0;
-    const pendingClients = allMembers.filter(m => m.status === 'Pending').length;
+        // Expiry checks - using efficient range queries on indexed Date fields
+        MemberListView.countDocuments({
+            membershipEndDate: { $gte: startOfToday, $lt: endOfToday }
+        }),
+        MemberListView.countDocuments({
+            membershipEndDate: { $gte: in1Day, $lte: in3Days }
+        }),
+        MemberListView.countDocuments({
+            membershipEndDate: { $gte: in4Days, $lte: in8Days }
+        }),
+        MemberListView.countDocuments({
+            membershipEndDate: { $gte: in9Days, $lte: in15Days }
+        }),
+        MemberListView.countDocuments({
+            membershipEndDate: { $gte: startOfMonth, $lte: endOfMonth }
+        }),
+        MemberListView.countDocuments({
+            membershipEndDate: { $gte: thirtyDaysAgo, $lt: now }
+        }),
 
-    // Membership expiring calculations
-    const membershipExpiring = {
-        today: allMembers.filter(m => {
-            if (!m.membershipEndDate) return false;
-            const endDate = new Date(m.membershipEndDate);
-            return endDate >= startOfToday && endDate < endOfToday;
-        }).length,
-
-        days1to3: allMembers.filter(m => {
-            if (!m.membershipEndDate) return false;
-            const endDate = new Date(m.membershipEndDate);
-            const daysUntilExpiry = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-            return daysUntilExpiry >= 1 && daysUntilExpiry <= 3;
-        }).length,
-
-        days4to8: allMembers.filter(m => {
-            if (!m.membershipEndDate) return false;
-            const endDate = new Date(m.membershipEndDate);
-            const daysUntilExpiry = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-            return daysUntilExpiry >= 4 && daysUntilExpiry <= 8;
-        }).length,
-
-        days9to15: allMembers.filter(m => {
-            if (!m.membershipEndDate) return false;
-            const endDate = new Date(m.membershipEndDate);
-            const daysUntilExpiry = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-            return daysUntilExpiry >= 9 && daysUntilExpiry <= 15;
-        }).length,
-
-        expiringThisMonth: allMembers.filter(m => {
-            if (!m.membershipEndDate) return false;
-            const endDate = new Date(m.membershipEndDate);
-            return endDate.getMonth() === now.getMonth() && endDate.getFullYear() === now.getFullYear();
-        }).length,
-
-        expiredUnder30Days: allMembers.filter(m => {
-            if (!m.membershipEndDate) return false;
-            const endDate = new Date(m.membershipEndDate);
-            const daysSinceExpiry = Math.ceil((now.getTime() - endDate.getTime()) / (1000 * 60 * 60 * 24));
-            return daysSinceExpiry > 0 && daysSinceExpiry <= 30;
-        }).length,
-    };
-
-    const totalTrainers = allTrainers.length;
+        // Trainer count
+        Trainer.countDocuments({})
+    ]);
 
     return {
-        totalClients, activeClients, inactiveClients, newClientsThisMonth, renewedThisMonth,
-        totalDues, todaysDues, totalOverdue, totalBirthday, todaysBirthday,
-        totalEnquiries, followUpThisMonth, todaysFollowUp, activePT, inactivePT,
-        todaysPresent, todaysAbsent, noMembership, disabledClients, pendingClients,
-        totalTrainers, membershipExpiring,
+        totalClients,
+        activeClients,
+        inactiveClients,
+        newClientsThisMonth,
+        renewedThisMonth,
+        totalDues,
+        todaysDues: 0,
+        totalOverdue,
+        totalBirthday: 0,
+        todaysBirthday: 0,
+        totalEnquiries: 0,
+        followUpThisMonth: 0,
+        todaysFollowUp: 0,
+        activePT,
+        inactivePT,
+        todaysPresent: 0,
+        todaysAbsent: 0,
+        noMembership,
+        disabledClients: 0,
+        pendingClients,
+        totalTrainers,
+        membershipExpiring: {
+            today: expiringToday,
+            days1to3: expiring1to3,
+            days4to8: expiring4to8,
+            days9to15: expiring9to15,
+            expiringThisMonth,
+            expiredUnder30Days: expiredUnder30,
+        },
     };
 }
 

@@ -224,14 +224,11 @@ async function getTrainerStats(name) {
             status: 'Active'
         });
 
-        // Calculate revenue from PT plans associated with this trainer?
-        // This is complex, maybe just return client count and bio for now.
-
         return JSON.stringify({
             trainer: trainer.name,
             specialization: trainer.specialization,
             activeClients: clientCount,
-            rating: 4.8 // Hardcoded for MVP or fetch if available
+            rating: 4.8 // Hardcoded for MVP
         });
     } catch (error) {
         return JSON.stringify({ error: error.message });
@@ -294,8 +291,6 @@ async function getMemberDetails(idInput) {
         let member = await Member.findOne({ memberId: idInput });
 
         if (!member) {
-            // If not found by custom ID, try by ObjectId if valid
-            // (We import mongoose to check validity, or just try-catch)
             try {
                 member = await Member.findById(idInput);
             } catch (e) {
@@ -332,20 +327,17 @@ async function getFinancialMetrics(startDate, endDate) {
         const start = new Date(startDate);
         const end = new Date(endDate);
 
-        // 1. Calculate General Transactions (Income/Expense)
         const transactions = await Transaction.aggregate([
             { $match: { date: { $gte: start, $lte: end } } },
             { $group: { _id: "$type", total: { $sum: "$amount" } } }
         ]);
 
-        // 2. Calculate Membership Payments
         const payments = await Payment.aggregate([
             { $match: { paymentDate: { $gte: start, $lte: end }, paymentStatus: 'completed' } },
             { $group: { _id: null, total: { $sum: "$amount" } } }
         ]);
 
         const totalPayments = payments.length > 0 ? payments[0].total : 0;
-
         const incomeTxn = transactions.find(t => t._id === 'income')?.total || 0;
         const expenseTxn = transactions.find(t => t._id === 'expense')?.total || 0;
 
@@ -363,7 +355,6 @@ async function getFinancialMetrics(startDate, endDate) {
                 expenses: expenseTxn
             }
         });
-
     } catch (error) {
         return JSON.stringify({ error: error.message });
     }
@@ -379,7 +370,6 @@ async function getAttendanceStats(startDate, endDate) {
             date: { $gte: start, $lte: end }
         });
 
-        // Maybe get daily average?
         const daysDiff = (end - start) / (1000 * 60 * 60 * 24);
         const avgDaily = daysDiff > 0 ? (count / daysDiff).toFixed(1) : count;
 
@@ -388,7 +378,6 @@ async function getAttendanceStats(startDate, endDate) {
             period: { startDate, endDate },
             averageDailyCheckins: avgDaily
         });
-
     } catch (error) {
         return JSON.stringify({ error: error.message });
     }
@@ -396,20 +385,34 @@ async function getAttendanceStats(startDate, endDate) {
 
 // --- MAIN HANDLER ---
 
+const sendMessageWithRetry = async (chat, message, retries = 3) => {
+    for (let i = 0; i < retries; i++) {
+        try {
+            return await chat.sendMessage(message);
+        } catch (error) {
+            if (error.status === 429 || error.message?.includes('429')) {
+                if (i === retries - 1) throw error;
+                const delay = Math.pow(2, i + 1) * 1000;
+                console.log(`[AI] Rate limit hit. Retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            } else {
+                throw error;
+            }
+        }
+    }
+};
+
 export async function POST(req) {
     try {
         const { message, history } = await req.json();
 
-        // Use a lightweight model for speed, or a standard one if complex tools needed.
-        // gemini-1.5-flash is good.
+        // Use gemini-1.5-flash for reliability and speed (free tier friendly)
         const model = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash-lite",
+            model: "gemini-1.5-flash",
             tools: [{ functionDeclarations: tools }],
         });
 
-        // Sanitize history:
-        // Google Gemini requires that the history starts with a 'user' turn.
-        // If the client sends a history starting with 'model', we must strip it.
+        // Backend Sanitization for Google Gemini (History must start with User)
         let sanitizedHistory = history || [];
         while (sanitizedHistory.length > 0 && sanitizedHistory[0].role !== 'user') {
             sanitizedHistory.shift();
@@ -422,8 +425,7 @@ export async function POST(req) {
             },
         });
 
-        // Send the user message
-        const result = await chat.sendMessage(message);
+        const result = await sendMessageWithRetry(chat, message);
         const response = await result.response;
         const call = response.functionCalls();
 
@@ -432,7 +434,6 @@ export async function POST(req) {
             const functionName = call[0].name;
 
             let toolResult = "";
-
             console.log(`[AI] Calling tool: ${functionName}`, functionParams);
 
             if (functionName === "findMember") {
@@ -457,8 +458,7 @@ export async function POST(req) {
                 toolResult = JSON.stringify({ error: "Unknown tool" });
             }
 
-            // Send tool result back to model
-            const finalResult = await chat.sendMessage([{
+            const finalResult = await sendMessageWithRetry(chat, [{
                 functionResponse: {
                     name: functionName,
                     response: { content: toolResult }
@@ -472,6 +472,9 @@ export async function POST(req) {
 
     } catch (error) {
         console.error("Chatbot Error:", error);
+        if (error.status === 429 || error.message?.includes('429')) {
+            return NextResponse.json({ error: "Rate limit checks. Please wait a moment." }, { status: 429 });
+        }
         return NextResponse.json({ error: "Failed to process chat" }, { status: 500 });
     }
 }
