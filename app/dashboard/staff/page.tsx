@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Edit } from 'lucide-react';
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import Avatar from '@/components/Avatar';
 
 export default function StaffPage() {
     const [staff, setStaff] = useState([]);
     const [loading, setLoading] = useState(true);
     const [roleFilter, setRoleFilter] = useState('All');
+    const [deleting, setDeleting] = useState<string | null>(null);
 
     useEffect(() => {
         fetchStaff();
@@ -25,6 +26,41 @@ export default function StaffPage() {
             console.error('Failed to fetch staff', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id: string, name: string) => {
+        // Prevent double-clicks or concurrent deletions
+        if (deleting) {
+            return;
+        }
+
+        const confirmed = window.confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`);
+
+        if (!confirmed) {
+            return;
+        }
+
+        setDeleting(id);
+        try {
+            const res = await fetch(`/api/trainers/${id}`, {
+                method: 'DELETE',
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                // Remove from local state immediately
+                setStaff(staff.filter((s: any) => s._id !== id));
+            } else {
+                console.error('Delete failed:', data);
+                window.alert(`Failed to delete ${name}: ${data.error || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Failed to delete staff', error);
+            window.alert('An error occurred while deleting the staff member.');
+        } finally {
+            setDeleting(null);
         }
     };
 
@@ -88,9 +124,19 @@ export default function StaffPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <Link href={`/dashboard/staff/${person._id}/edit`} className="text-slate-500 hover:text-blue-400 transition-colors">
-                                    <Edit className="h-5 w-5" />
-                                </Link>
+                                <div className="flex items-center space-x-2">
+                                    <Link href={`/dashboard/staff/${person._id}/edit`} className="text-slate-500 hover:text-blue-400 transition-colors">
+                                        <Edit className="h-5 w-5" />
+                                    </Link>
+                                    <button
+                                        onClick={() => handleDelete(person._id, person.name)}
+                                        disabled={deleting === person._id}
+                                        className="text-slate-500 hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title="Delete staff member"
+                                    >
+                                        <Trash2 className="h-5 w-5" />
+                                    </button>
+                                </div>
                             </div>
                             <div className="mt-4">
                                 <p className="text-sm text-slate-400 font-medium">{person.specialization}</p>

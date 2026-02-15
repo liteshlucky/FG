@@ -2,6 +2,7 @@ import dbConnect from '@/lib/db';
 import Member from '@/models/Member';
 import Trainer from '@/models/Trainer';
 import Attendance from '@/models/Attendance';
+import TrainerAttendance from '@/models/TrainerAttendance';
 import { NextResponse } from 'next/server';
 
 // POST: Lookup user by membership ID or phone number
@@ -20,52 +21,31 @@ export async function POST(request) {
             );
         }
 
-        // Normalize identifier (remove spaces, dashes) to handle "MEM 59", "MEM-59"
+        // Normalize identifier (remove spaces, dashes)
         const cleanIdentifier = identifier.replace(/[\s-]/g, '');
 
-        // Check if it's numeric OR starts with MEM/TR followed by numbers
-        const numericMatch = cleanIdentifier.match(/^(\d+)$/) || cleanIdentifier.match(/^(?:MEM|TR)(\d+)$/i);
-        const coreNumber = numericMatch ? numericMatch[1] : null;
-        const isNumericSearch = coreNumber !== null;
-
-        // If we found a number (either pure, or extracted from MEM/TR prefix), use that for ID lookup
-        // Otherwise use the original identifier for name/phone search execution
-        const searchId = isNumericSearch ? coreNumber : identifier;
-
-        // Log for debug
-        console.log(`Processing: Original="${identifier}", Clean="${cleanIdentifier}", CoreNum="${coreNumber}"`);
-
-        const isNumericOnly = isNumericSearch; // Reuse existing flag name to minimize code change ripple
+        // Check if it's numeric
+        const isNumericOnly = /^\d+$/.test(cleanIdentifier);
 
         let user = null;
         let userType = 'Member';
 
         if (isNumericOnly) {
-            // Try with MEM prefix (handling potential leading zeros)
-            // Example: User types "59", we check "MEM59", "MEM059", "MEM0059"
-            const queries = [
-                { memberId: `MEM${searchId}` },
-                { memberId: `MEM0${searchId}` },
-                { memberId: `MEM00${searchId}` },
-                { memberId: searchId }, // Support raw ID (e.g. "284")
-                { phone: identifier } // Keep original identifier for phone check
-            ];
-
+            // Search by numeric member ID or phone
             user = await Member.findOne({
-                $or: queries
+                $or: [
+                    { memberId: cleanIdentifier },
+                    { phone: identifier }
+                ]
             }).select('_id name phone memberId membershipStatus status membershipEndDate').lean();
 
-            // If not found, try with TR prefix for trainers
+            // If not found, try trainers
             if (!user) {
-                const trainerQueries = [
-                    { trainerId: `TR${searchId}` },
-                    { trainerId: `TR0${searchId}` },
-                    { trainerId: `TR00${searchId}` },
-                    { phone: identifier }
-                ];
-
                 user = await Trainer.findOne({
-                    $or: trainerQueries
+                    $or: [
+                        { trainerId: cleanIdentifier },
+                        { phone: identifier }
+                    ]
                 }).select('_id name phone trainerId').lean();
 
                 if (user) {
@@ -74,9 +54,11 @@ export async function POST(request) {
             }
         } else {
             // Try to find member with full ID, phone, OR NAME regex
+            // Priority: Member ID -> Phone -> Name
             user = await Member.findOne({
                 $or: [
-                    { memberId: identifier },
+                    { memberId: identifier }, // Exact match
+                    { memberId: cleanIdentifier }, // Clean match
                     { phone: identifier },
                     { name: { $regex: identifier, $options: 'i' } }
                 ]
@@ -84,15 +66,21 @@ export async function POST(request) {
 
             // If not found in members, try trainers
             if (!user) {
+                // For trainers, try exact ID, clean ID, phone, name
+                // Case insensitive for ID "st9" vs "ST9"
                 user = await Trainer.findOne({
                     $or: [
                         { trainerId: identifier },
+                        { trainerId: cleanIdentifier },
+                        { trainerId: { $regex: `^${cleanIdentifier}$`, $options: 'i' } }, // Case insensitive ID
                         { phone: identifier },
                         { name: { $regex: identifier, $options: 'i' } }
                     ]
                 }).select('_id name phone trainerId').lean();
 
-                userType = 'Trainer';
+                if (user) {
+                    userType = 'Trainer';
+                }
             }
         }
 
@@ -109,38 +97,69 @@ export async function POST(request) {
                 { status: 404 }
             );
         }
-        console.log('User FOUND:', user._id, user.name);
+        console.log('User FOUND:', user._id, user.name, userType);
 
         // Check current attendance status
-        const activeAttendance = await Attendance.findOne({
-            userId: user._id,
-            status: 'checked-in'
-        });
-
-        const isCheckedIn = activeAttendance !== null;
+        let isCheckedIn = false;
+        let hasCheckedInToday = false;
         let currentDuration = null;
+        let activeAttendanceId = null;
 
-        if (isCheckedIn && activeAttendance) {
-            const now = new Date();
-            const durationMs = now - new Date(activeAttendance.checkInTime);
-            currentDuration = Math.round(durationMs / (1000 * 60)); // minutes
-        }
-
-        // Check if user has already checked in today (even if checked out)
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
 
-        const todayAttendance = await Attendance.findOne({
-            userId: user._id,
-            date: {
-                $gte: today,
-                $lt: tomorrow
-            }
-        });
+        if (userType === 'Member') {
+            const activeAttendance = await Attendance.findOne({
+                userId: user._id,
+                status: 'checked-in'
+            });
 
-        const hasCheckedInToday = todayAttendance !== null;
+            isCheckedIn = activeAttendance !== null;
+            activeAttendanceId = activeAttendance?._id;
+
+            if (isCheckedIn && activeAttendance) {
+                const now = new Date();
+                const durationMs = now - new Date(activeAttendance.checkInTime);
+                currentDuration = Math.round(durationMs / (1000 * 60)); // minutes
+            }
+
+            const todayAttendance = await Attendance.findOne({
+                userId: user._id,
+                date: {
+                    $gte: today,
+                    $lt: tomorrow
+                }
+            });
+
+            hasCheckedInToday = todayAttendance !== null;
+
+        } else if (userType === 'Trainer') {
+            // Check TrainerAttendance
+            const todayRecord = await TrainerAttendance.findOne({
+                trainerId: user._id,
+                date: today
+            });
+
+            if (todayRecord) {
+                hasCheckedInToday = !!todayRecord.checkIn;
+
+                if (todayRecord.checkIn && !todayRecord.checkOut) {
+                    isCheckedIn = true;
+                    activeAttendanceId = todayRecord._id;
+
+                    const now = new Date();
+                    const durationMs = now - new Date(todayRecord.checkIn);
+                    currentDuration = Math.round(durationMs / (1000 * 60)); // minutes
+                } else if (todayRecord.checkIn && todayRecord.checkOut) {
+                    isCheckedIn = false;
+                }
+            } else {
+                hasCheckedInToday = false;
+                isCheckedIn = false;
+            }
+        }
 
         // Calculate membership expiry info for members
         let membershipExpired = false;
@@ -173,7 +192,7 @@ export async function POST(request) {
                 membershipExpired,
                 isCheckedIn,
                 currentDuration,
-                attendanceId: activeAttendance?._id,
+                attendanceId: activeAttendanceId,
                 hasCheckedInToday
             }
         });

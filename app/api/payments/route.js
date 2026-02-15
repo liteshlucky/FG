@@ -47,112 +47,101 @@ export async function POST(request) {
     try {
         const body = await request.json();
 
-        // Create payment with additional fields
+        // Import utilities dynamically if needed, or at top level (better at top, but sticking to file structure)
+        const { calculatePaymentStatus, generateReceiptNumber } = await import('@/lib/paymentCalculations');
+        const Plan = (await import('@/models/Plan')).default;
+
+        // 1. Prepare Payment Data
         const paymentData = {
             ...body,
-            paymentStatus: 'completed', // Always set to completed
+            paymentStatus: 'completed',
+            receiptNumber: generateReceiptNumber(),
+            paymentDate: body.paymentDate || new Date(),
         };
 
-        // If part payment, store the full amount
-        if (body.paymentType === 'part_payment' && body.fullAmount) {
-            paymentData.fullAmount = parseFloat(body.fullAmount);
+        // Determine Membership Action
+        if (body.isRenewal) {
+            paymentData.membershipAction = 'renewal';
+        } else if (body.activateMembership) {
+            paymentData.membershipAction = 'new';
+        } else if (body.membershipAction) {
+            paymentData.membershipAction = body.membershipAction;
         }
 
-        const payment = await Payment.create(paymentData);
+        // 2. Handle Member Updates
+        const member = await Member.findById(body.memberId);
+        if (!member) throw new Error('Member not found');
 
-        // Update member's totalPaid and paymentStatus
-        const member = await Member.findById(body.memberId).populate('planId').populate('ptPlanId').populate('discountId');
+        // Logic for Membership Changes (New/Renewal/Upgrade)
+        if (body.isRenewal || (body.activateMembership && body.planType === 'membership')) {
+            const planIdToUse = body.renewalPlanId || body.planId || member.planId;
 
-        if (member) {
-            // Handle membership activation
-            if (body.activateMembership && body.planType === 'membership') {
-                member.status = 'Active';
-            }
+            if (planIdToUse) {
+                const plan = await Plan.findById(planIdToUse);
+                if (plan) {
+                    // Update Member Plan Details
+                    member.planId = plan._id;
+                    member.totalPlanPrice = plan.price; // Update snapshot of price
 
-            // Handle membership renewal
-            if (body.isRenewal && body.planType === 'membership' && body.renewalPlanId && body.renewalStartDate) {
-                // Fetch the renewal plan to get its duration
-                const Plan = (await import('@/models/Plan')).default;
-                const renewalPlan = await Plan.findById(body.renewalPlanId);
+                    // Set Dates
+                    const startDate = body.renewalStartDate ? new Date(body.renewalStartDate) : new Date();
+                    member.membershipStartDate = startDate;
 
-                if (renewalPlan) {
-                    // Update member's plan
-                    member.planId = body.renewalPlanId;
-
-                    // Set membership start date
-                    member.membershipStartDate = new Date(body.renewalStartDate);
-
-                    // Calculate membership end date based on plan duration
-                    const endDate = new Date(body.renewalStartDate);
-                    endDate.setMonth(endDate.getMonth() + renewalPlan.duration);
+                    const endDate = new Date(startDate);
+                    endDate.setMonth(endDate.getMonth() + plan.duration);
                     member.membershipEndDate = endDate;
 
-                    // Reset payment tracking for new billing cycle
-                    member.totalPaid = body.amount;
+                    // Reset Payment Tracking for new cycle
+                    // If it's a renewal, we might want to reset totalPaid to just this payment?
+                    // OR do we keep cumulative? 
+                    // Usually for renewals, we reset 'totalPaid' for the *current* membership cycle.
+                    // But our 'totalPaid' field on Member is simple. 
+                    // Let's assume 'totalPaid' tracks payments towards *current* plan.
+                    member.totalPaid = 0; // Will be added to below
 
-                    // Calculate new payment status based on renewal plan price
-                    let totalDue = renewalPlan.price;
-
-                    // Apply discount if exists
-                    if (member.discountId) {
-                        if (member.discountId.type === 'percentage') {
-                            totalDue -= (totalDue * member.discountId.value) / 100;
-                        } else {
-                            totalDue -= member.discountId.value;
-                        }
+                    // Allow overriding plan price if provided (custom discount/deal)
+                    if (body.customPlanPrice) {
+                        member.totalPlanPrice = parseFloat(body.customPlanPrice);
                     }
 
-                    // Update payment status
-                    if (member.totalPaid >= totalDue) {
-                        member.paymentStatus = 'paid';
-                    } else if (member.totalPaid > 0) {
-                        member.paymentStatus = 'partial';
-                    } else {
-                        member.paymentStatus = 'unpaid';
-                    }
-                }
-            } else {
-                // Regular payment (no renewal)
-
-                // Determine total due based on payment type
-                let totalDue = 0;
-
-                if (body.paymentType === 'part_payment' && body.fullAmount) {
-                    // For part payment, use the full amount specified
-                    totalDue = parseFloat(body.fullAmount);
-                    member.totalPaid = (member.totalPaid || 0) + body.amount;
-                } else {
-                    // For due clear, calculate from plans
-                    if (member.planId) totalDue += member.planId.price;
-                    if (member.ptPlanId) totalDue += member.ptPlanId.price;
-
-                    // Apply discount
-                    if (member.discountId) {
-                        if (member.discountId.type === 'percentage') {
-                            totalDue -= (totalDue * member.discountId.value) / 100;
-                        } else {
-                            totalDue -= member.discountId.value;
-                        }
-                    }
-
-                    member.totalPaid = (member.totalPaid || 0) + body.amount;
-                }
-
-                // Update payment status
-                if (member.totalPaid >= totalDue) {
-                    member.paymentStatus = 'paid';
-                } else if (member.totalPaid > 0) {
-                    member.paymentStatus = 'partial';
-                } else {
-                    member.paymentStatus = 'unpaid';
+                    // Snapshot plan price in payment too
+                    paymentData.planPrice = member.totalPlanPrice;
                 }
             }
 
-            await member.save();
+            member.status = 'Active';
         }
+
+        // 3. Create Payment Record
+        const payment = await Payment.create(paymentData);
+
+        // 4. Update Member Totals
+        // Add this payment to member's total
+        member.totalPaid = (member.totalPaid || 0) + payment.amount;
+
+        // Update last payment info
+        member.lastPaymentDate = payment.paymentDate;
+        member.lastPaymentAmount = payment.amount;
+
+        // Handle Admission Fee
+        if (body.admissionFee && body.admissionFee > 0) {
+            member.admissionFeeAmount = body.admissionFee;
+            // If this payment covers admission, mark as paid? 
+            // Simplified: We assume totalPaid covers everything.
+        }
+
+        // 5. Update Payment Status (paid/partial/unpaid)
+        member.paymentStatus = calculatePaymentStatus(
+            member.totalPlanPrice || 0,
+            member.totalPaid,
+            member.admissionFeeAmount || 0
+        );
+
+        await member.save();
 
         return NextResponse.json({ success: true, data: payment }, { status: 201 });
     } catch (error) {
+        console.error('Payment creation error:', error);
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }
 }

@@ -21,18 +21,41 @@ export default function MembersPage() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
-    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'joinDate', direction: 'desc' });
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'memberId', direction: 'desc' });
 
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalMembers, setTotalMembers] = useState(0);
+
+    // Fetch members when filters/sort/page changes
     useEffect(() => {
         fetchMembers();
-    }, []);
+    }, [searchQuery, statusFilter, paymentStatusFilter, typeFilter, sortConfig, currentPage]);
 
     const fetchMembers = async () => {
+        setLoading(true);
         try {
-            const res = await fetch('/api/members');
+            // Build query params for server-side filtering
+            const params = new URLSearchParams({
+                page: currentPage.toString(),
+                limit: '50',
+                sortBy: sortConfig.key,
+                sortOrder: sortConfig.direction,
+                search: searchQuery,
+                status: statusFilter,
+                paymentStatus: paymentStatusFilter,
+                type: typeFilter
+            });
+
+            const res = await fetch(`/api/members?${params}`);
             const data = await res.json();
             if (data.success) {
                 setMembers(data.data);
+                if (data.pagination) {
+                    setTotalPages(data.pagination.totalPages);
+                    setTotalMembers(data.pagination.total);
+                }
             }
         } catch (error) {
             console.error('Failed to fetch members', error);
@@ -65,62 +88,15 @@ export default function MembersPage() {
         fetchMembers();
     };
 
-    // Filter and search members
-    const filteredMembers = useMemo(() => {
-        return members.filter((member: any) => {
-            // Search filter
-            const searchLower = searchQuery.toLowerCase();
-            const matchesSearch =
-                member.name?.toLowerCase().includes(searchLower) ||
-                member.email?.toLowerCase().includes(searchLower) ||
-                member.phone?.includes(searchQuery) ||
-                member.memberId?.toLowerCase().includes(searchLower);
-
-            // Status filter
-            let matchesStatus = true;
-            if (statusFilter === 'Expiring Soon') {
-                // Filter members expiring in next 7 days (but not already expired)
-                if (member.membershipEndDate) {
-                    const daysLeft = Math.ceil((new Date(member.membershipEndDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                    matchesStatus = daysLeft >= 0 && daysLeft <= 10;
-                } else {
-                    matchesStatus = false;
-                }
-            } else {
-                matchesStatus = statusFilter === 'all' || member.status === statusFilter;
-            }
-
-            // Payment status filter
-            const matchesPaymentStatus = paymentStatusFilter === 'all' || member.paymentStatus === paymentStatusFilter;
-
-            // Type filter (PT/Non-PT)
-            const matchesType = typeFilter === 'all' ||
-                (typeFilter === 'pt' && member.ptPlanId) ||
-                (typeFilter === 'non-pt' && !member.ptPlanId);
-
-            return matchesSearch && matchesStatus && matchesPaymentStatus && matchesType;
-        }).sort((a: any, b: any) => {
-            const { key, direction } = sortConfig;
-            let modifier = direction === 'asc' ? 1 : -1;
-
-            if (key === 'joinDate') {
-                return (new Date(a.joinDate || 0).getTime() - new Date(b.joinDate || 0).getTime()) * modifier;
-            } else if (key === 'name') {
-                return a.name.localeCompare(b.name) * modifier;
-            } else if (key === 'status') {
-                return a.status.localeCompare(b.status) * modifier;
-            } else if (key === 'plan') {
-                return (a.planId?.name || '').localeCompare(b.planId?.name || '') * modifier;
-            }
-            return 0;
-        });
-    }, [members, searchQuery, statusFilter, paymentStatusFilter, typeFilter, sortConfig]);
+    // No client-side filtering needed - all done on server!
+    // Members are already filtered, sorted, and paginated
 
     const handleSort = (key: string) => {
         setSortConfig((current) => ({
             key,
             direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc',
         }));
+        setCurrentPage(1); // Reset to first page when sorting changes
     };
 
     const handleExport = () => {
@@ -288,7 +264,7 @@ export default function MembersPage() {
                 <h1 className="text-2xl font-bold text-slate-100">
                     Members
                     <span className="ml-2 text-lg font-normal text-slate-500">
-                        ({filteredMembers.length})
+                        ({totalMembers})
                     </span>
                 </h1>
                 <div className="flex space-x-3">
@@ -345,6 +321,7 @@ export default function MembersPage() {
                     >
                         <option value="all">All Status</option>
                         <option value="Active">Active</option>
+                        <option value="Pending">Pending</option>
                         <option value="Inactive">Inactive</option>
                         <option value="Expired">Expired</option>
                         <option value="Expiring Soon">Expiring Soon (≤10 days)</option>
@@ -383,7 +360,7 @@ export default function MembersPage() {
                 {/* Results Count */}
                 {searchQuery || statusFilter !== 'all' || paymentStatusFilter !== 'all' || typeFilter !== 'all' ? (
                     <div className="text-sm text-slate-400">
-                        {filteredMembers.length} of {members.length} members
+                        {members.length} of {totalMembers} members
                     </div>
                 ) : null}
             </div>
@@ -392,6 +369,19 @@ export default function MembersPage() {
                 <table className="min-w-full divide-y divide-slate-800">
                     <thead className="bg-slate-950/50 sticky top-0 z-10">
                         <tr>
+                            <th
+                                className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 cursor-pointer hover:bg-slate-800/50 hover:text-slate-200 transition-colors group"
+                                onClick={() => handleSort('memberId')}
+                            >
+                                <div className="flex items-center gap-1">
+                                    ID
+                                    {sortConfig.key === 'memberId' ? (
+                                        sortConfig.direction === 'asc' ? <ArrowUp className="h-4 w-4 text-blue-500" /> : <ArrowDown className="h-4 w-4 text-blue-500" />
+                                    ) : (
+                                        <ArrowUpDown className="h-4 w-4 opacity-0 group-hover:opacity-50" />
+                                    )}
+                                </div>
+                            </th>
                             <th
                                 className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 cursor-pointer hover:bg-slate-800/50 hover:text-slate-200 transition-colors group"
                                 onClick={() => handleSort('name')}
@@ -436,8 +426,13 @@ export default function MembersPage() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800 bg-slate-900">
-                        {filteredMembers.map((member: any) => (
+                        {members.map((member: any) => (
                             <tr key={member._id} className="hover:bg-slate-800/50 transition-colors">
+                                <td className="whitespace-nowrap px-6 py-4">
+                                    <div className="text-sm font-mono font-medium text-slate-300">
+                                        {member.memberId || 'N/A'}
+                                    </div>
+                                </td>
                                 <td className="whitespace-nowrap px-6 py-4">
                                     <div className="flex items-center">
                                         <div className="flex-shrink-0 h-10 w-10">
@@ -447,7 +442,6 @@ export default function MembersPage() {
                                             <Link href={`/dashboard/members/${member._id}`} className="text-sm font-medium text-blue-400 hover:text-blue-300">
                                                 {member.name}
                                             </Link>
-                                            <div className="text-xs text-slate-500">ID: {member.memberId || 'N/A'}</div>
                                             <div className="text-xs">
                                                 {member.membershipEndDate ? (() => {
                                                     const daysLeft = Math.ceil((new Date(member.membershipEndDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
@@ -475,12 +469,16 @@ export default function MembersPage() {
                                 </td>
                                 <td className="whitespace-nowrap px-6 py-4">
                                     <span className="inline-flex rounded-full bg-blue-500/10 border border-blue-500/20 px-2.5 py-0.5 text-xs font-medium text-blue-400">
-                                        {member.planId?.name || 'No Plan'}
+                                        {member.planName || 'No Plan'}
                                     </span>
                                 </td>
 
                                 <td className="whitespace-nowrap px-6 py-4">
-                                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium border ${member.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : member.status === 'Expired' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}
+                                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium border ${member.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                        member.status === 'Expired' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
+                                            member.status === 'Pending' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                        }`}
                                     >
                                         {member.status}
                                     </span>

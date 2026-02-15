@@ -47,6 +47,48 @@ const PaymentSchema = new mongoose.Schema({
         type: String,
         default: '',
     },
+    // ============================================
+    // NEW FIELDS for enhanced payment tracking
+    // ============================================
+    paymentCategory: {
+        type: String,
+        enum: ['Plan', 'Due Amount', 'Plan (Multiple)', 'Admission Fee', 'Other'],
+        default: 'Plan',
+    },
+    transactionType: {
+        type: String,
+        enum: ['Credit', 'Debit'],
+        default: 'Credit',
+    },
+    planPrice: {
+        type: Number, // Original plan price (snapshot at time of payment)
+        default: 0,
+    },
+    admissionFee: {
+        type: Number,
+        default: 0,
+    },
+    specialPlan: {
+        type: String, // COUPLE, SPECIAL, SPECIAL 1-4, etc.
+        default: '',
+    },
+    isInstallment: {
+        type: Boolean,
+        default: false,
+    },
+    installmentNumber: {
+        type: Number, // 1st payment, 2nd payment, etc.
+        default: 1,
+    },
+    receiptNumber: {
+        type: String, // For generating receipts
+        default: '',
+    },
+    membershipAction: {
+        type: String,
+        enum: ['new', 'renewal', 'upgrade', 'downgrade', 'extension', 'none'],
+        default: 'none', // Most payments are just installments
+    },
 }, { timestamps: true });
 
 export default mongoose.models.Payment || mongoose.model('Payment', PaymentSchema);

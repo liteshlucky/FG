@@ -1,0 +1,503 @@
+{
+  "added": [
+    {
+      "id": 336,
+      "name": "ARIJIT CHAKRABORTY",
+      "phone": "9073218462",
+      "email": "arijit.chakraborty@fitapp.local",
+      "mongoId": "699171808f356526425e0d83"
+    },
+    {
+      "id": 335,
+      "name": "RACHANA CHAKRABORTY",
+      "phone": "9073083388",
+      "email": "rachana.chakraborty@fitapp.local",
+      "mongoId": "699171808f356526425e0d88"
+    },
+    {
+      "id": 276,
+      "name": "ANA  BARUI",
+      "phone": "8777471820",
+      "email": "ana.barui@fitapp.local",
+      "mongoId": "699171808f356526425e0d8c"
+    },
+    {
+      "id": 334,
+      "name": "RAHUL RUDRA",
+      "phone": "7044942373",
+      "email": "rahul.rudra@fitapp.local",
+      "mongoId": "699171808f356526425e0d90"
+    },
+    {
+      "id": 333,
+      "name": "ARITRA MUKHERJEE",
+      "phone": "8777798393",
+      "email": "aritra.mukherjee@fitapp.local",
+      "mongoId": "699171808f356526425e0d95"
+    },
+    {
+      "id": 332,
+      "name": "BISHNU PRASAD DAS",
+      "phone": "6289722458",
+      "email": "bishnu.prasad.das@fitapp.local",
+      "mongoId": "699171808f356526425e0d99"
+    },
+    {
+      "id": 331,
+      "name": "SUBHAM SAHA",
+      "phone": "8981890699",
+      "email": "subham.saha@fitapp.local",
+      "mongoId": "699171808f356526425e0d9d"
+    },
+    {
+      "id": 330,
+      "name": "ARGHA DAS",
+      "phone": "9674075792",
+      "email": "argha.das@fitapp.local",
+      "mongoId": "699171808f356526425e0da1"
+    },
+    {
+      "id": 293,
+      "name": "RAMYA DUTTA",
+      "phone": "9433994229",
+      "email": "ramya.dutta@fitapp.local",
+      "mongoId": "699171808f356526425e0da5"
+    },
+    {
+      "id": 305,
+      "name": "KUNAL SANTRA",
+      "phone": "8670256282",
+      "email": "kunal.santra@fitapp.local",
+      "mongoId": "699171808f356526425e0da9"
+    },
+    {
+      "id": 327,
+      "name": "SHUVANIL DEY",
+      "phone": "6290768280",
+      "email": "shuvanil.dey@fitapp.local",
+      "mongoId": "699171808f356526425e0dad"
+    },
+    {
+      "id": 326,
+      "name": "AVIJIT PAUL",
+      "phone": "7059909653",
+      "email": "avijit.paul@fitapp.local",
+      "mongoId": "699171808f356526425e0db1"
+    },
+    {
+      "id": 325,
+      "name": "ARPITA BASU",
+      "phone": "7011727808",
+      "email": "arpita.basu@fitapp.local",
+      "mongoId": "699171808f356526425e0db5"
+    },
+    {
+      "id": 324,
+      "name": "ASHMIT BHATTACHARYYA",
+      "phone": "6289258036",
+      "email": "ashmit.bhattacharyya@fitapp.local",
+      "mongoId": "699171808f356526425e0db9"
+    },
+    {
+      "id": 323,
+      "name": "SAYAN SAHA",
+      "phone": "6292273440",
+      "email": "sayan.saha@fitapp.local",
+      "mongoId": "699171808f356526425e0dbd"
+    },
+    {
+      "id": 329,
+      "name": "SAGAR DEY",
+      "phone": "9874927180",
+      "email": "sagar.dey@fitapp.local",
+      "mongoId": "699171808f356526425e0dc1"
+    },
+    {
+      "id": 328,
+      "name": "PRIYANKAR GOSWAMI",
+      "phone": "9051315543",
+      "email": "priyankar.goswami@fitapp.local",
+      "mongoId": "699171808f356526425e0dc5"
+    },
+    {
+      "id": 287,
+      "name": "AISHIkI DAS",
+      "phone": "7439797177",
+      "email": "aishiki.das@fitapp.local",
+      "mongoId": "699171808f356526425e0dc9"
+    },
+    {
+      "id": 288,
+      "name": "SAYAN DUTTA",
+      "phone": "8777871961",
+      "email": "sayan.dutta@fitapp.local",
+      "mongoId": "699171808f356526425e0dcd"
+    },
+    {
+      "id": 322,
+      "name": "SAURABH DUTTA",
+      "phone": "9674195877",
+      "email": "saurabh.dutta@fitapp.local",
+      "mongoId": "699171808f356526425e0dd1"
+    },
+    {
+      "id": 283,
+      "name": "SAMIK GANGULY",
+      "phone": "7017956228",
+      "email": "samik.ganguly@fitapp.local",
+      "mongoId": "699171808f356526425e0dd5"
+    },
+    {
+      "id": 321,
+      "name": "BIJOY ROY",
+      "phone": "9674400542",
+      "email": "bijoy.roy@fitapp.local",
+      "mongoId": "699171808f356526425e0dd9"
+    },
+    {
+      "id": 320,
+      "name": "ANUP SEN",
+      "phone": "6289320795",
+      "email": "anup.sen@fitapp.local",
+      "mongoId": "699171808f356526425e0ddd"
+    },
+    {
+      "id": 319,
+      "name": "DUTTATRAYEE DAS KARMAKAR",
+      "phone": "8617782837",
+      "email": "duttatrayee.das.karmakar@fitapp.local",
+      "mongoId": "699171808f356526425e0de1"
+    },
+    {
+      "id": 318,
+      "name": "RICHIK SHARMA",
+      "phone": "9123036300",
+      "email": "richik.sharma@fitapp.local",
+      "mongoId": "699171808f356526425e0de5"
+    },
+    {
+      "id": 315,
+      "name": "SUBHOJIT DEBROY",
+      "phone": "8420166142",
+      "email": "subhojit.debroy@fitapp.local",
+      "mongoId": "699171808f356526425e0de9"
+    },
+    {
+      "id": 316,
+      "name": "BISWANATH SAHA",
+      "phone": "8910726834",
+      "email": "biswanath.saha@fitapp.local",
+      "mongoId": "699171808f356526425e0ded"
+    },
+    {
+      "id": 273,
+      "name": "DIPANWITA DAS",
+      "phone": "8617268688",
+      "email": "dipanwita.das@fitapp.local",
+      "mongoId": "699171808f356526425e0df1"
+    },
+    {
+      "id": 314,
+      "name": "DIYA BHATTACHARJEE",
+      "phone": "9073145529",
+      "email": "diya.bhattacharjee@fitapp.local",
+      "mongoId": "699171808f356526425e0df5"
+    },
+    {
+      "id": 279,
+      "name": "MUNMUN DEY",
+      "phone": "8240528687",
+      "email": "munmun.dey@fitapp.local",
+      "mongoId": "699171808f356526425e0df9"
+    },
+    {
+      "id": 313,
+      "name": "AKASH CHOWDHURY",
+      "phone": "9330356087",
+      "email": "akash.chowdhury@fitapp.local",
+      "mongoId": "699171808f356526425e0dfd"
+    },
+    {
+      "id": 312,
+      "name": "PRITAM SAHA",
+      "phone": "7439162876",
+      "email": "pritam.saha@fitapp.local",
+      "mongoId": "699171808f356526425e0e01"
+    },
+    {
+      "id": 311,
+      "name": "RADHA BAGCHI",
+      "phone": "8777429893",
+      "email": "radha.bagchi@fitapp.local",
+      "mongoId": "699171808f356526425e0e05"
+    },
+    {
+      "id": 310,
+      "name": "KAUNISH SARKAR",
+      "phone": "9674689661",
+      "email": "kaunish.sarkar@fitapp.local",
+      "mongoId": "699171808f356526425e0e09"
+    },
+    {
+      "id": 309,
+      "name": "ABHISHEK JHA",
+      "phone": "8777857936",
+      "email": "abhishek.jha@fitapp.local",
+      "mongoId": "699171808f356526425e0e0d"
+    },
+    {
+      "id": 297,
+      "name": "SUSMITA DUTTA BANERJEE",
+      "phone": "8240296741",
+      "email": "susmita.dutta.banerjee@fitapp.local",
+      "mongoId": "699171808f356526425e0e11"
+    },
+    {
+      "id": 308,
+      "name": "PRATIK SAHA",
+      "phone": "8257859617",
+      "email": "pratik.saha@fitapp.local",
+      "mongoId": "699171808f356526425e0e15"
+    },
+    {
+      "id": 307,
+      "name": "RITAM SAHA",
+      "phone": "8240747848",
+      "email": "ritam.saha@fitapp.local",
+      "mongoId": "699171808f356526425e0e19"
+    },
+    {
+      "id": 306,
+      "name": "RUKMINI DEY",
+      "phone": "9331873435",
+      "email": "rukmini.dey@fitapp.local",
+      "mongoId": "699171808f356526425e0e1d"
+    },
+    {
+      "id": 304,
+      "name": "KUNAL SARKAR",
+      "phone": "7003323898",
+      "email": "kunal.sarkar@fitapp.local",
+      "mongoId": "699171808f356526425e0e21"
+    },
+    {
+      "id": 303,
+      "name": "SRIZA NANDY",
+      "phone": "7980513358",
+      "email": "sriza.nandy@fitapp.local",
+      "mongoId": "699171808f356526425e0e25"
+    },
+    {
+      "id": 302,
+      "name": "ASIM PRAKASH",
+      "phone": "8445299403",
+      "email": "asim.prakash@fitapp.local",
+      "mongoId": "699171808f356526425e0e29"
+    },
+    {
+      "id": 301,
+      "name": "AKASH KUMAR GUPTA",
+      "phone": "9163007838",
+      "email": "akash.kumar.gupta@fitapp.local",
+      "mongoId": "699171808f356526425e0e2d"
+    },
+    {
+      "id": 300,
+      "name": "SREETAMA NANDY",
+      "phone": "8240737113",
+      "email": "sreetama.nandy@fitapp.local",
+      "mongoId": "699171808f356526425e0e31"
+    },
+    {
+      "id": 299,
+      "name": "EKAJA DAS",
+      "phone": "9748145112",
+      "email": "ekaja.das@fitapp.local",
+      "mongoId": "699171808f356526425e0e35"
+    },
+    {
+      "id": 298,
+      "name": "RAHUL MAJUMDER",
+      "phone": "7980823627",
+      "email": "rahul.majumder@fitapp.local",
+      "mongoId": "699171808f356526425e0e39"
+    },
+    {
+      "id": 296,
+      "name": "TRISHA DAS",
+      "phone": "9123316078",
+      "email": "trisha.das@fitapp.local",
+      "mongoId": "699171808f356526425e0e3d"
+    },
+    {
+      "id": 295,
+      "name": "JOYDEEP DAS",
+      "phone": "9790835682",
+      "email": "joydeep.das@fitapp.local",
+      "mongoId": "699171808f356526425e0e41"
+    },
+    {
+      "id": 294,
+      "name": "SUMANJIT MALAKAR",
+      "phone": "9674165814",
+      "email": "sumanjit.malakar@fitapp.local",
+      "mongoId": "699171808f356526425e0e45"
+    },
+    {
+      "id": 292,
+      "name": "ROHINA PERVIN",
+      "phone": "8240913197",
+      "email": "rohina.pervin@fitapp.local",
+      "mongoId": "699171808f356526425e0e49"
+    },
+    {
+      "id": 291,
+      "name": "BISHAL BANERJEE",
+      "phone": "8617758989",
+      "email": "bishal.banerjee@fitapp.local",
+      "mongoId": "699171808f356526425e0e4d"
+    },
+    {
+      "id": 290,
+      "name": "SUBHODEEP CHAKRABORTY",
+      "phone": "6289760389",
+      "email": "subhodeep.chakraborty@fitapp.local",
+      "mongoId": "699171808f356526425e0e51"
+    },
+    {
+      "id": 289,
+      "name": "BIJIT DUTTA",
+      "phone": "6289014990",
+      "email": "bijit.dutta@fitapp.local",
+      "mongoId": "699171808f356526425e0e55"
+    },
+    {
+      "id": 286,
+      "name": "ARYA RAY",
+      "phone": "8482078926",
+      "email": "arya.ray@fitapp.local",
+      "mongoId": "699171808f356526425e0e59"
+    },
+    {
+      "id": 285,
+      "name": "PRATYUSH GANGAPADHYAY",
+      "phone": "9123696901",
+      "email": "pratyush.gangapadhyay@fitapp.local",
+      "mongoId": "699171808f356526425e0e5d"
+    },
+    {
+      "id": 284,
+      "name": "SAYAN GANGULY",
+      "phone": "9859020304",
+      "email": "sayan.ganguly@fitapp.local",
+      "mongoId": "699171808f356526425e0e61"
+    },
+    {
+      "id": 282,
+      "name": "SOURAV NATH",
+      "phone": "7278669320",
+      "email": "sourav.nath@fitapp.local",
+      "mongoId": "699171808f356526425e0e65"
+    },
+    {
+      "id": 281,
+      "name": "POLAMI METYA",
+      "phone": "8240652882",
+      "email": "polami.metya@fitapp.local",
+      "mongoId": "699171808f356526425e0e69"
+    },
+    {
+      "id": 280,
+      "name": "AISHIK ROY CHOUDHURY",
+      "phone": "7980664297",
+      "email": "aishik.roy.choudhury@fitapp.local",
+      "mongoId": "699171808f356526425e0e6d"
+    },
+    {
+      "id": 278,
+      "name": "SANTANU BAIDYA",
+      "phone": "8638990425",
+      "email": "santanu.baidya@fitapp.local",
+      "mongoId": "699171808f356526425e0e71"
+    },
+    {
+      "id": 277,
+      "name": "SOMNATH ROY",
+      "phone": "9748330133",
+      "email": "somnath.roy@fitapp.local",
+      "mongoId": "699171808f356526425e0e75"
+    },
+    {
+      "id": 275,
+      "name": "DIBYENDU DAS",
+      "phone": "8100698609",
+      "email": "dibyendu.das@fitapp.local",
+      "mongoId": "699171808f356526425e0e79"
+    },
+    {
+      "id": 274,
+      "name": "RIDDHIMAN PATRA",
+      "phone": "8777269169",
+      "email": "riddhiman.patra@fitapp.local",
+      "mongoId": "699171808f356526425e0e7d"
+    },
+    {
+      "id": 272,
+      "name": "ARNISH MUKHERJEE",
+      "phone": "8527536739",
+      "email": "arnish.mukherjee@fitapp.local",
+      "mongoId": "699171808f356526425e0e81"
+    },
+    {
+      "id": 271,
+      "name": "MADHUMITA BISWAS",
+      "phone": "8240413437",
+      "email": "madhumita.biswas@fitapp.local",
+      "mongoId": "699171808f356526425e0e85"
+    },
+    {
+      "id": 270,
+      "name": "ARIJIT CHATTERJEE",
+      "phone": "7890772542",
+      "email": "arijit.chatterjee@fitapp.local",
+      "mongoId": "699171808f356526425e0e89"
+    },
+    {
+      "id": 269,
+      "name": "UJAN GANGULY",
+      "phone": "9477108354",
+      "email": "ujan.ganguly@fitapp.local",
+      "mongoId": "699171808f356526425e0e8d"
+    },
+    {
+      "id": 268,
+      "name": "SANCHITA SAHA",
+      "phone": "7980064044",
+      "email": "sanchita.saha@fitapp.local",
+      "mongoId": "699171808f356526425e0e91"
+    },
+    {
+      "id": 267,
+      "name": "JAI PRAKASH PATHAK",
+      "phone": "8232824299",
+      "email": "jai.prakash.pathak@fitapp.local",
+      "mongoId": "699171808f356526425e0e95"
+    },
+    {
+      "id": 266,
+      "name": "Sneha Paul",
+      "phone": "9903270516",
+      "email": "sneha.paul@fitapp.local",
+      "mongoId": "699171808f356526425e0e99"
+    },
+    {
+      "id": 98,
+      "name": "ANUBHAV DUTTA",
+      "phone": "9804999888",
+      "email": "anubhav.dutta@fitapp.local",
+      "mongoId": "699171808f356526425e0e9d"
+    }
+  ],
+  "skipped": [],
+  "errors": []
+}

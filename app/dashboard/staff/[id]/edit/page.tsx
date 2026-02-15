@@ -43,7 +43,7 @@ export default function EditTrainerPage() {
                 >
                     <ArrowLeft className="h-6 w-6" />
                 </button>
-                <h1 className="text-2xl font-bold text-gray-900">Edit Staff</h1>
+                <h1 className="text-2xl font-bold">Edit Staff</h1>
             </div>
             <TrainerForm initialData={trainer} isEdit={true} />
         </div>

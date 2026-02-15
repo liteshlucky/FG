@@ -157,7 +157,7 @@ export default function QRCheckInPage() {
                                 />
                             </div>
                             <p className="mt-1 text-xs text-gray-500">
-                                💡 Tip: Just enter the numbers (e.g., 112 for MEM112)
+                                💡 Tip: Just enter the member ID (e.g., 112)
                             </p>
                         </div>
 

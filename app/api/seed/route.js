@@ -65,7 +65,7 @@ export async function GET() {
                 { $inc: { seq: 1 } },
                 { new: true, upsert: true }
             );
-            const memberId = `MEM${String(counter.seq).padStart(3, '0')}`;
+            const memberId = String(counter.seq);
 
             const randomPlan = plans[Math.floor(Math.random() * plans.length)];
             const randomTrainer = Math.random() > 0.3 ? createdTrainers[Math.floor(Math.random() * createdTrainers.length)] : null; // 70% chance of having a trainer

@@ -1,0 +1,110 @@
+[
+  {
+    "matchedBy": "ID",
+    "csvId": 9,
+    "csvName": "SOUTRICK DAS",
+    "csvPhone": "8100575289",
+    "dbMemberId": "9",
+    "dbName": "SAMIR NANDY",
+    "dbPhone": "8617765188",
+    "dbEmail": "8617765188@fitapp.local",
+    "dbObjectId": "692f37b792b9d4f24f53aac7",
+    "mismatches": "Name (CSV: \"SOUTRICK DAS\", DB: \"SAMIR NANDY\"), Phone (CSV: 8100575289, DB: 8617765188)"
+  },
+  {
+    "matchedBy": "ID",
+    "csvId": 3,
+    "csvName": "MADHUCHHANDA NAG",
+    "csvPhone": "7003800634",
+    "dbMemberId": "3",
+    "dbName": "RATNA MUKHERJEE",
+    "dbPhone": "9051865897",
+    "dbEmail": "9051865897@fitapp.local",
+    "dbObjectId": "692f37b792b9d4f24f53aaa1",
+    "mismatches": "Name (CSV: \"MADHUCHHANDA NAG\", DB: \"RATNA MUKHERJEE\"), Phone (CSV: 7003800634, DB: 9051865897)"
+  },
+  {
+    "matchedBy": "ID",
+    "csvId": 2,
+    "csvName": "SANDIP DAS",
+    "csvPhone": "7688061261",
+    "dbMemberId": "2",
+    "dbName": "SOUVIK DUTTA",
+    "dbPhone": "8240438925",
+    "dbEmail": "8240438925@fitapp.local",
+    "dbObjectId": "692f37b792b9d4f24f53aabf",
+    "mismatches": "Name (CSV: \"SANDIP DAS\", DB: \"SOUVIK DUTTA\"), Phone (CSV: 7688061261, DB: 8240438925)"
+  },
+  {
+    "matchedBy": "ID",
+    "csvId": 6,
+    "csvName": "SANJIB SARKAR",
+    "csvPhone": "8910101497",
+    "dbMemberId": "6",
+    "dbName": "ABEL SARKAR",
+    "dbPhone": "8583038502",
+    "dbEmail": "8583038502@fitapp.local",
+    "dbObjectId": "692f37b792b9d4f24f53aa3f",
+    "mismatches": "Name (CSV: \"SANJIB SARKAR\", DB: \"ABEL SARKAR\"), Phone (CSV: 8910101497, DB: 8583038502)"
+  },
+  {
+    "matchedBy": "ID",
+    "csvId": 7,
+    "csvName": "Reshmi Saha",
+    "csvPhone": "7980130055",
+    "dbMemberId": "7",
+    "dbName": "SUBHAM DEY",
+    "dbPhone": "7003987246",
+    "dbEmail": "7003987246@fitapp.local",
+    "dbObjectId": "692f37b792b9d4f24f53aacb",
+    "mismatches": "Name (CSV: \"Reshmi Saha\", DB: \"SUBHAM DEY\"), Phone (CSV: 7980130055, DB: 7003987246)"
+  },
+  {
+    "matchedBy": "ID",
+    "csvId": 1,
+    "csvName": "AVIRUP BARMAN",
+    "csvPhone": "8961108482",
+    "dbMemberId": "1",
+    "dbName": "PRITAM SEN",
+    "dbPhone": "8820174820",
+    "dbEmail": "8820174820@fitapp.local",
+    "dbObjectId": "692f37b792b9d4f24f53aac1",
+    "mismatches": "Name (CSV: \"AVIRUP BARMAN\", DB: \"PRITAM SEN\"), Phone (CSV: 8961108482, DB: 8820174820)"
+  },
+  {
+    "matchedBy": "ID",
+    "csvId": 5,
+    "csvName": "ANGANA BHATTACHARJEE",
+    "csvPhone": "9836370922",
+    "dbMemberId": "5",
+    "dbName": "TEENA CHANDA",
+    "dbPhone": "9903185633",
+    "dbEmail": "9903185633@fitapp.local",
+    "dbObjectId": "692f37b792b9d4f24f53aacd",
+    "mismatches": "Name (CSV: \"ANGANA BHATTACHARJEE\", DB: \"TEENA CHANDA\"), Phone (CSV: 9836370922, DB: 9903185633)"
+  },
+  {
+    "matchedBy": "ID",
+    "csvId": 4,
+    "csvName": "PRITAM SAHA",
+    "csvPhone": "9830491766",
+    "dbMemberId": "4",
+    "dbName": "PRIYANKA DAS",
+    "dbPhone": "7980645063",
+    "dbEmail": "7980645063@fitapp.local",
+    "dbObjectId": "692f37b792b9d4f24f53aacf",
+    "mismatches": "Name (CSV: \"PRITAM SAHA\", DB: \"PRIYANKA DAS\"), Phone (CSV: 9830491766, DB: 7980645063)"
+  },
+  {
+    "matchedBy": "ID",
+    "csvId": 8,
+    "csvName": "Abhimanyu Shaw - Housekeeping",
+    "csvPhone": "9912345678",
+    "dbMemberId": "8",
+    "dbName": "SUROJIT MAJHI",
+    "dbPhone": "6291461471",
+    "dbEmail": "6291461471@fitapp.local",
+    "dbObjectId": "692f37b792b9d4f24f53aa0b",
+    "mismatches": "Name (CSV: \"Abhimanyu Shaw - Housekeeping\", DB: \"SUROJIT MAJHI\"), Phone (CSV: 9912345678, DB: 6291461471)"
+  }
+]
