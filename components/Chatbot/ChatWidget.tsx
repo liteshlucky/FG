@@ -20,7 +20,7 @@ export default function ChatWidget() {
         scrollToBottom();
     }, [messages, isOpen]);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
 
