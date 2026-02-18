@@ -406,9 +406,9 @@ export async function POST(req) {
     try {
         const { message, history } = await req.json();
 
-        // Use gemini-1.5-flash for reliability and speed (free tier friendly)
+        // Use gemini-2.5-flash for reliability and speed
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.5-flash",
             tools: [{ functionDeclarations: tools }],
         });
 

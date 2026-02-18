@@ -10,7 +10,7 @@ export default function ChatWidget() {
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const messagesEndRef = useRef(null);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
