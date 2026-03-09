@@ -29,6 +29,13 @@ export default function CameraCapture({ onCapture, onCancel, title = "Take a Sel
             setLoading(true);
             setError('');
 
+            // getUserMedia requires HTTPS (or localhost) — blocks on plain HTTP on mobile
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                setError('Camera not supported. Please ensure you are on HTTPS and using a modern browser.');
+                setLoading(false);
+                return;
+            }
+
             const mediaStream = await navigator.mediaDevices.getUserMedia({
                 video: {
                     facingMode: 'user', // Front camera for selfie
@@ -41,13 +48,30 @@ export default function CameraCapture({ onCapture, onCancel, title = "Take a Sel
             setStream(mediaStream);
 
             if (videoRef.current) {
-                videoRef.current.srcObject = mediaStream;
-            }
+                const video = videoRef.current;
+                video.srcObject = mediaStream;
 
-            setLoading(false);
-        } catch (err) {
+                // iOS Safari requires an explicit play() call and
+                // we wait for loadedmetadata before hiding the loader
+                video.onloadedmetadata = () => {
+                    video.play()
+                        .then(() => setLoading(false))
+                        .catch((playErr) => {
+                            console.error('Video play error:', playErr);
+                            setError('Camera started but video could not play. Please try again.');
+                            setLoading(false);
+                        });
+                };
+            }
+        } catch (err: any) {
             console.error('Camera error:', err);
-            setError('Unable to access camera. Please grant camera permissions and try again.');
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                setError('Camera permission denied. Allow camera access in your browser settings and try again.');
+            } else if (err.name === 'NotFoundError') {
+                setError('No camera found on this device.');
+            } else {
+                setError('Unable to access camera. Please grant camera permissions and try again.');
+            }
             setLoading(false);
         }
     };
