@@ -14,6 +14,8 @@ export default function CheckInModal({ userType, onClose, onSuccess }: CheckInMo
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [checkingIn, setCheckingIn] = useState(false);
+    // Stores locker key per user id — optional, non-mandatory
+    const [lockerKeys, setLockerKeys] = useState<Record<string, string>>({});
 
     useEffect(() => {
         fetchUsers();
@@ -38,11 +40,12 @@ export default function CheckInModal({ userType, onClose, onSuccess }: CheckInMo
 
     const handleCheckIn = async (userId: string) => {
         setCheckingIn(true);
+        const lockerKey = lockerKeys[userId]?.trim() || undefined;
         try {
             const res = await fetch('/api/attendance', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, userType })
+                body: JSON.stringify({ userId, userType, lockerKey })
             });
 
             const data = await res.json();
@@ -117,21 +120,38 @@ export default function CheckInModal({ userType, onClose, onSuccess }: CheckInMo
                                 {filteredUsers.map((user: any) => (
                                     <div
                                         key={user._id}
-                                        className="flex items-center justify-between rounded-lg border border-slate-800 p-4 hover:bg-slate-800/50 transition-colors"
+                                        className="flex flex-col gap-3 rounded-lg border border-slate-800 p-4 hover:bg-slate-800/50 transition-colors sm:flex-row sm:items-center sm:justify-between"
                                     >
-                                        <div>
+                                        {/* Member info */}
+                                        <div className="min-w-0 flex-1">
                                             <p className="font-medium text-slate-100">{user.name}</p>
                                             <p className="text-sm text-slate-400">
                                                 {user.email || user.phone || 'No contact info'}
                                             </p>
                                         </div>
-                                        <button
-                                            onClick={() => handleCheckIn(user._id)}
-                                            disabled={checkingIn}
-                                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 hover:shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-50"
-                                        >
-                                            {checkingIn ? 'Checking In...' : 'Check In'}
-                                        </button>
+
+                                        {/* Locker key + check-in */}
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <input
+                                                type="text"
+                                                placeholder="Locker key (optional)"
+                                                value={lockerKeys[user._id] || ''}
+                                                onChange={(e) =>
+                                                    setLockerKeys((prev) => ({
+                                                        ...prev,
+                                                        [user._id]: e.target.value
+                                                    }))
+                                                }
+                                                className="w-36 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                            />
+                                            <button
+                                                onClick={() => handleCheckIn(user._id)}
+                                                disabled={checkingIn}
+                                                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 hover:shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-50"
+                                            >
+                                                {checkingIn ? 'Checking In...' : 'Check In'}
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

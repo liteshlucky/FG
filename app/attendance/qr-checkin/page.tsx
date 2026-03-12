@@ -13,6 +13,7 @@ export default function QRCheckInPage() {
     const [showCamera, setShowCamera] = useState(false);
     const [pendingAction, setPendingAction] = useState<'checkin' | 'checkout' | null>(null);
     const [uploading, setUploading] = useState(false);
+    const [lockerKey, setLockerKey] = useState(''); // Optional locker key — captured at check-in
 
     const lookupUser = async () => {
         if (!identifier.trim()) {
@@ -88,7 +89,9 @@ export default function QRCheckInPage() {
                     userId: user.userId,
                     userType: user.userType,
                     action: pendingAction,
-                    photoUrl: uploadData.data.url
+                    photoUrl: uploadData.data.url,
+                    // Only send lockerKey for check-in, and only if provided
+                    ...(pendingAction === 'checkin' && lockerKey.trim() ? { lockerKey: lockerKey.trim() } : {})
                 })
             });
 
@@ -273,6 +276,22 @@ export default function QRCheckInPage() {
 
                             {/* Action Buttons */}
                             <div className="space-y-3">
+                                {/* Locker Key input — shown only when check-in is possible */}
+                                {!user.membershipExpired && !user.isCheckedIn && !user.hasCheckedInToday && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Locker Key <span className="text-gray-400 font-normal">(optional)</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={lockerKey}
+                                            onChange={(e) => setLockerKey(e.target.value)}
+                                            placeholder="e.g. A-12"
+                                            className="w-full rounded-lg border-2 border-gray-300 text-black px-4 py-3 text-lg focus:border-blue-500 focus:outline-none"
+                                        />
+                                    </div>
+                                )}
+
                                 {user.membershipExpired ? (
                                     <button
                                         disabled

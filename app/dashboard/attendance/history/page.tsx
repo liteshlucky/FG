@@ -105,7 +105,7 @@ export default function AttendanceHistoryPage() {
     };
 
     const exportToCSV = () => {
-        const headers = ['Date', 'Name', 'Type', 'Check-In', 'Check-Out', 'Duration', 'Status'];
+        const headers = ['Date', 'Name', 'Type', 'Check-In', 'Check-Out', 'Duration', 'Locker Key', 'Status'];
         const rows = attendanceData.map((a: any) => [
             formatDate(a.checkInTime),
             a.userId?.name || 'Unknown',
@@ -113,6 +113,7 @@ export default function AttendanceHistoryPage() {
             formatTime(a.checkInTime),
             formatTime(a.checkOutTime),
             formatDuration(a.duration),
+            a.lockerKey || '-',
             a.status
         ]);
 
@@ -283,6 +284,9 @@ export default function AttendanceHistoryPage() {
                                         Duration
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
+                                        Locker Key
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
                                         Photos
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
@@ -323,6 +327,15 @@ export default function AttendanceHistoryPage() {
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-100">
                                             {formatDuration(attendance.duration)}
+                                        </td>
+                                        <td className="whitespace-nowrap px-6 py-4 text-sm">
+                                            {attendance.lockerKey ? (
+                                                <span className="inline-flex items-center rounded-md bg-amber-900/30 border border-amber-700/50 px-2 py-1 text-xs font-semibold text-amber-300">
+                                                    🔑 {attendance.lockerKey}
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-500 text-xs">—</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex space-x-2">

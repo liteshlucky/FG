@@ -49,6 +49,10 @@ const attendanceSchema = new mongoose.Schema({
     notes: {
         type: String,
         default: ''
+    },
+    lockerKey: {
+        type: String,
+        default: null  // Optional — captured at check-in if provided
     }
 }, {
     timestamps: true

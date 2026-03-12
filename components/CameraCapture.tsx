@@ -182,7 +182,7 @@ export default function CameraCapture({ onCapture, onCancel, title = "Take a Sel
                 </div>
 
                 {/* Camera / Preview Area */}
-                <div className="relative overflow-hidden rounded-lg bg-gray-900 min-h-[200px] flex items-center justify-center">
+                <div className="relative overflow-hidden rounded-lg bg-gray-900 min-h-[200px] max-h-[60vh] flex items-center justify-center">
 
                     {/* Error state */}
                     {error && (
@@ -236,7 +236,7 @@ export default function CameraCapture({ onCapture, onCancel, title = "Take a Sel
                         playsInline   // Required on iOS: prevents fullscreen takeover
                         muted         // Required for autoplay policy on mobile
                         className={[
-                            'w-full h-auto transform scale-x-[-1]', // Mirror for natural selfie feel
+                            'w-full max-h-[60vh] object-contain transform scale-x-[-1]', // Mirror for natural selfie feel
                             capturedImage || error ? 'hidden' : '',  // Hide when captured/error
                         ].join(' ')}
                     />

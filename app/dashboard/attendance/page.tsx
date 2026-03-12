@@ -206,6 +206,9 @@ export default function AttendancePage() {
                                         Duration
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
+                                        Locker Key
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
                                         Contact
                                     </th>
                                 </tr>
@@ -223,6 +226,15 @@ export default function AttendancePage() {
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-100 font-medium">
                                             {formatDuration(attendance.currentDuration)}
+                                        </td>
+                                        <td className="whitespace-nowrap px-6 py-4 text-sm">
+                                            {attendance.lockerKey ? (
+                                                <span className="inline-flex items-center rounded-md bg-amber-900/30 border border-amber-700/50 px-2 py-1 text-xs font-semibold text-amber-300">
+                                                    🔑 {attendance.lockerKey}
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-500">—</span>
+                                            )}
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-400">
                                             {attendance.userId?.phone || '-'}

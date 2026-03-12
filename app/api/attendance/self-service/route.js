@@ -11,7 +11,7 @@ export async function POST(request) {
 
     try {
         const body = await request.json();
-        const { userId, userType, action, photoUrl } = body; // action: 'checkin' or 'checkout', photoUrl: Cloudinary URL
+        const { userId, userType, action, photoUrl, lockerKey } = body; // action: 'checkin' or 'checkout', photoUrl: Cloudinary URL
 
         if (!userId || !userType || !action) {
             return NextResponse.json(
@@ -92,7 +92,8 @@ export async function POST(request) {
                     userType,
                     checkInTime: new Date(),
                     status: 'checked-in',
-                    checkInPhoto: photoUrl
+                    checkInPhoto: photoUrl,
+                    ...(lockerKey ? { lockerKey } : {})  // Optional locker key
                 });
 
                 console.log('✅ Attendance created:', attendance._id, 'Photo:', attendance.checkInPhoto);
