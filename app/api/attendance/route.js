@@ -150,7 +150,7 @@ export async function POST(request) {
 
     try {
         const body = await request.json();
-        const { userId, userType } = body;
+        const { userId, userType, lockerKey } = body;
 
         if (!userId || !userType) {
             return NextResponse.json(
@@ -193,7 +193,8 @@ export async function POST(request) {
             userId,
             userType,
             checkInTime: new Date(),
-            status: 'checked-in'
+            status: 'checked-in',
+            ...(lockerKey ? { lockerKey } : {})  // Save lockerKey only if provided
         });
 
         const populatedAttendance = await Attendance.findById(attendance._id)

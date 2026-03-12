@@ -65,7 +65,7 @@ export async function GET(request) {
                 [members, totalMembers] = await Promise.all([
                     Attendance.find(query)
                         .populate('userId', 'name email phone')
-                        .select('userId userType checkInTime checkOutTime duration status date checkInPhoto checkOutPhoto')
+                        .select('userId userType checkInTime checkOutTime duration status date checkInPhoto checkOutPhoto lockerKey')
                         .sort({ checkInTime: -1 })
                         .skip(fetchSkip)
                         .limit(fetchLimit)

@@ -476,6 +476,7 @@ export default function MemberDetailPage() {
                 <AIAnalysis
                     memberId={params.id as string}
                     initialData={member.aiAnalysis}
+                    memberInfo={member}
                     onGenerate={fetchMemberDetails}
                 />
             </div>
