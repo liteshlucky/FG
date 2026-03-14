@@ -3,6 +3,7 @@ import Payment from '@/models/Payment';
 import Member from '@/models/Member';
 import Settings from '@/models/Settings';
 import Notification from '@/models/Notification';
+import { sendEmailAlert } from '@/lib/email';
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
@@ -151,6 +152,20 @@ export async function POST(request) {
                     type: 'success',
                     link: `/dashboard/members/${member._id}`
                 });
+
+                // 2. Send Email Alert in real-time if recipients are configured
+                if (settings.notificationEmails && settings.notificationEmails.length > 0) {
+                    const htmlContent = `
+                        <h2>Payment Received</h2>
+                        <p><strong>Amount:</strong> ₹${payment.amount}</p>
+                        <p><strong>Method:</strong> ${payment.paymentMethod}</p>
+                        <p><strong>Member:</strong> ${member.name} (${member.memberId})</p>
+                        <p><strong>Receipt:</strong> ${payment.receiptNumber}</p>
+                        <br/>
+                        <p><a href="${process.env.NEXTAUTH_URL}/dashboard/members/${member._id}">View Member Profile</a></p>
+                    `;
+                    await sendEmailAlert(settings.notificationEmails, `💰 Payment of ₹${payment.amount} from ${member.name}`, htmlContent);
+                }
             }
         } catch (notifErr) {
             console.error('Failed to create payment notification:', notifErr);
