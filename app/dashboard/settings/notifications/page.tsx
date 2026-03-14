@@ -17,6 +17,7 @@ export default function NotificationsSettingsPage() {
         paymentReceived: true,
         absenteeAlert: true,
         birthdays: true,
+        newMember: true,
     });
 
     useEffect(() => {
@@ -193,6 +194,12 @@ export default function NotificationsSettingsPage() {
                             description="Real-time notification when a payment is logged"
                             checked={preferences.paymentReceived}
                             onChange={() => togglePreference('paymentReceived')}
+                        />
+                        <ToggleItem 
+                            label="New Member Registered"
+                            description="Real-time notification when a new member is added"
+                            checked={preferences.newMember}
+                            onChange={() => togglePreference('newMember')}
                         />
                         <ToggleItem 
                             label="Absentee Alerts"

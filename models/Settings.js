@@ -17,6 +17,7 @@ const SettingsSchema = new mongoose.Schema({
         paymentReceived: { type: Boolean, default: true },
         absenteeAlert: { type: Boolean, default: true },
         birthdays: { type: Boolean, default: true },
+        newMember: { type: Boolean, default: true },
     }
 }, { timestamps: true });
 
