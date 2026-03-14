@@ -1,6 +1,8 @@
 import dbConnect from '@/lib/db';
 import Payment from '@/models/Payment';
 import Member from '@/models/Member';
+import Settings from '@/models/Settings';
+import Notification from '@/models/Notification';
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
@@ -138,6 +140,22 @@ export async function POST(request) {
         );
 
         await member.save();
+
+        // 6. Trigger Notification if enabled
+        try {
+            const settings = await Settings.findOne({ singletonKey: 'GLOBAL_SETTINGS' });
+            if (settings?.preferences?.paymentReceived) {
+                await Notification.create({
+                    title: 'Payment Received',
+                    message: `₹${payment.amount} received from ${member.name} (${member.memberId}).`,
+                    type: 'success',
+                    link: `/dashboard/members/${member._id}`
+                });
+            }
+        } catch (notifErr) {
+            console.error('Failed to create payment notification:', notifErr);
+            // Don't fail the payment process if notification fails
+        }
 
         return NextResponse.json({ success: true, data: payment }, { status: 201 });
     } catch (error) {

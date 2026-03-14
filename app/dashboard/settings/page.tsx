@@ -64,8 +64,6 @@ export default function SettingsPage() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-slate-100">Settings</h1>
-
             <div className="bg-slate-900 border border-slate-800 shadow-sm sm:rounded-xl">
                 <div className="px-4 py-5 sm:p-6">
                     <h3 className="text-lg font-medium leading-6 text-slate-100">Data Management</h3>
