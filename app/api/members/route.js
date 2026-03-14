@@ -4,6 +4,9 @@ import MemberListView from '@/models/MemberListView';
 import Plan from '@/models/Plan';
 import PTplan from '@/models/PTplan';
 import Discount from '@/models/Discount';
+import Settings from '@/models/Settings';
+import Notification from '@/models/Notification';
+import { sendEmailAlert } from '@/lib/email';
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
@@ -155,6 +158,40 @@ export async function POST(request) {
         body.memberId = String(counter.seq);
 
         const member = await Member.create(body);
+
+        // Trigger Notification if enabled
+        try {
+            const settings = await Settings.findOne({ singletonKey: 'GLOBAL_SETTINGS' });
+            if (settings?.preferences?.newMember) {
+                const title = 'New Member Registered';
+                const message = `${member.name} has joined as a new member (${member.memberId}).`;
+                
+                // 1. Create In-App Notification
+                await Notification.create({
+                    title,
+                    message,
+                    type: 'info',
+                    link: `/dashboard/members/${member._id}`
+                });
+
+                // 2. Send Email Alert in real-time if recipients are configured
+                if (settings.notificationEmails && settings.notificationEmails.length > 0) {
+                    const htmlContent = `
+                        <h2>New Member Joined</h2>
+                        <p><strong>Name:</strong> ${member.name}</p>
+                        <p><strong>Member ID:</strong> ${member.memberId}</p>
+                        <p><strong>Phone:</strong> ${member.phone}</p>
+                        <p><strong>Email:</strong> ${member.email}</p>
+                        <br/>
+                        <p><a href="${process.env.NEXTAUTH_URL}/dashboard/members/${member._id}">View Profile</a></p>
+                    `;
+                    await sendEmailAlert(settings.notificationEmails, `🆕 ${member.name} joined Fitness Garage`, htmlContent);
+                }
+            }
+        } catch (notifErr) {
+            console.error('Failed to trigger new member notification:', notifErr);
+        }
+
         return NextResponse.json({ success: true, data: member }, { status: 201 });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });

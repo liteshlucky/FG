@@ -59,7 +59,7 @@ export async function DELETE(request, { params }) {
     await dbConnect();
     const { id } = await params;
     try {
-        const deletedMember = await Member.deleteOne({ _id: id });
+        const deletedMember = await Member.findByIdAndDelete(id);
         if (!deletedMember) {
             return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
         }

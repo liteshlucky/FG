@@ -277,26 +277,24 @@ MemberSchema.post('updateOne', async function () {
 });
 
 // After delete operations
-MemberSchema.post('findOneAndDelete', async function (doc) {
-    if (doc) {
-        try {
+MemberSchema.post(['findOneAndDelete', 'deleteOne'], async function (doc, next) {
+    try {
+        // If doc is provided (findByIdAndDelete/findOneAndDelete)
+        if (doc && doc._id) {
             await MemberListView.findByIdAndDelete(doc._id);
-            console.log(`✓ Deleted MemberListView for member: ${doc.memberId}`);
-        } catch (error) {
-            console.error('Failed to delete from MemberListView:', error);
+            console.log(`✓ Deleted MemberListView for member: ${doc.memberId || doc._id}`);
+        } else {
+            // Handle cases where doc is not provided (e.g., deleteOne query)
+            const query = this.getQuery ? this.getQuery() : null;
+            if (query && query._id) {
+                await MemberListView.findByIdAndDelete(query._id);
+                console.log(`✓ Deleted MemberListView via query: ${query._id}`);
+            }
         }
+    } catch (error) {
+        console.error('Failed to delete from MemberListView middleware:', error);
     }
-});
-
-MemberSchema.post('deleteOne', async function (doc) {
-    if (doc) {
-        try {
-            await MemberListView.findByIdAndDelete(doc._id);
-            console.log(`✓ Deleted MemberListView for member: ${doc.memberId}`);
-        } catch (error) {
-            console.error('Failed to delete from MemberListView:', error);
-        }
-    }
+    if (next) next();
 });
 
 export default mongoose.models.Member || mongoose.model('Member', MemberSchema);
