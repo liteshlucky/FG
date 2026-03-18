@@ -3,6 +3,8 @@ import Payment from '@/models/Payment';
 import Member from '@/models/Member';
 import { NextResponse } from 'next/server';
 
+
+export const dynamic = 'force-dynamic';
 export async function GET(request, { params }) {
     await dbConnect();
     const { id } = await params;

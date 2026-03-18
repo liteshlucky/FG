@@ -6,6 +6,8 @@ import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getWeatherForMonth, analyzeWeatherImpact } from '@/lib/weather';
 
+
+export const dynamic = 'force-dynamic';
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export async function GET(request) {

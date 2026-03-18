@@ -5,6 +5,8 @@ import Trainer from '@/models/Trainer';
 import TrainerAttendance from '@/models/TrainerAttendance';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 // GET: Fetch today's attendance or filter by query params
 export async function GET(request) {
     await dbConnect();

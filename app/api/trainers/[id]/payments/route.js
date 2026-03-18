@@ -2,6 +2,8 @@ import dbConnect from '@/lib/db';
 import TrainerPayment from '@/models/TrainerPayment';
 import { NextResponse } from 'next/server';
 
+
+export const dynamic = 'force-dynamic';
 export async function GET(request, { params }) {
     await dbConnect();
     try {

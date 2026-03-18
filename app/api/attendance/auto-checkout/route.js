@@ -3,6 +3,8 @@ import Attendance from '@/models/Attendance';
 import TrainerAttendance from '@/models/TrainerAttendance';
 import { NextResponse } from 'next/server';
 
+
+export const dynamic = 'force-dynamic';
 // POST: Auto-checkout users at end of day
 export async function POST(request) {
     await dbConnect();

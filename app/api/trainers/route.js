@@ -18,6 +18,8 @@ export async function GET(request) {
 
 import Counter from '@/models/Counter';
 
+
+export const dynamic = 'force-dynamic';
 // ... imports
 
 export async function POST(request) {
