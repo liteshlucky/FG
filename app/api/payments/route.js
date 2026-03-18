@@ -95,11 +95,6 @@ export async function POST(request) {
                     member.membershipEndDate = endDate;
 
                     // Reset Payment Tracking for new cycle
-                    // If it's a renewal, we might want to reset totalPaid to just this payment?
-                    // OR do we keep cumulative? 
-                    // Usually for renewals, we reset 'totalPaid' for the *current* membership cycle.
-                    // But our 'totalPaid' field on Member is simple. 
-                    // Let's assume 'totalPaid' tracks payments towards *current* plan.
                     member.totalPaid = 0; // Will be added to below
 
                     // Allow overriding plan price if provided (custom discount/deal)
@@ -113,6 +108,21 @@ export async function POST(request) {
             }
 
             member.status = 'Active';
+        }
+
+        // Logic for PT Plan
+        if (body.planType === 'pt_plan') {
+            if (body.planId) {
+                member.ptPlanId = body.planId;
+            }
+            if (body.trainerId) {
+                member.trainerId = body.trainerId;
+            }
+        }
+
+        // Update Discount globally
+        if (body.discountId !== undefined) {
+            member.discountId = body.discountId || null;
         }
 
         // 3. Create Payment Record

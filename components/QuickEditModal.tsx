@@ -23,6 +23,8 @@ export default function QuickEditModal({ isOpen, onClose, onSave, section, initi
                     name: initialData.name,
                     email: initialData.email,
                     phone: initialData.phone,
+                    dateOfBirth: initialData.dateOfBirth ? new Date(initialData.dateOfBirth).toISOString().split('T')[0] : '',
+                    emergencyContact: initialData.emergencyContact,
                     age: initialData.age,
                     gender: initialData.gender,
                     status: initialData.status,
@@ -135,6 +137,29 @@ export default function QuickEditModal({ isOpen, onClose, onSave, section, initi
                                         onChange={handleChange}
                                         className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
                                     />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-300">Date of Birth</label>
+                                        <input
+                                            type="date"
+                                            name="dateOfBirth"
+                                            value={formData.dateOfBirth || ''}
+                                            onChange={handleChange}
+                                            className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-300">Emergency Contact</label>
+                                        <input
+                                            type="text"
+                                            name="emergencyContact"
+                                            value={formData.emergencyContact || ''}
+                                            onChange={handleChange}
+                                            placeholder="Name & Phone"
+                                            className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
+                                        />
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>

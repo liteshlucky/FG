@@ -12,6 +12,8 @@ interface PaymentFormProps {
 export default function PaymentForm({ member, onClose, onSuccess }: PaymentFormProps) {
     const [plans, setPlans] = useState([]);
     const [ptPlans, setPTPlans] = useState([]);
+    const [trainers, setTrainers] = useState([]);
+    const [discounts, setDiscounts] = useState([]);
     const [formData, setFormData] = useState({
         amount: '',
         paymentMode: 'cash',
@@ -26,6 +28,8 @@ export default function PaymentForm({ member, onClose, onSuccess }: PaymentFormP
         paymentType: 'due_clear', // 'part_payment' or 'due_clear'
         fullAmount: '',
         activateMembership: false,
+        trainerId: member.trainerId?._id || member.trainerId || '',
+        discountId: member.discountId?._id || member.discountId || '',
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -33,6 +37,8 @@ export default function PaymentForm({ member, onClose, onSuccess }: PaymentFormP
     useEffect(() => {
         fetchPlans();
         fetchPTPlans();
+        fetchTrainers();
+        fetchDiscounts();
     }, []);
 
     const fetchPlans = async () => {
@@ -56,6 +62,26 @@ export default function PaymentForm({ member, onClose, onSuccess }: PaymentFormP
             }
         } catch (error) {
             console.error('Failed to fetch PT plans', error);
+        }
+    };
+
+    const fetchTrainers = async () => {
+        try {
+            const res = await fetch('/api/trainers');
+            const data = await res.json();
+            if (data.success) setTrainers(data.data);
+        } catch (error) {
+            console.error('Failed to fetch trainers', error);
+        }
+    };
+
+    const fetchDiscounts = async () => {
+        try {
+            const res = await fetch('/api/discounts');
+            const data = await res.json();
+            if (data.success) setDiscounts(data.data);
+        } catch (error) {
+            console.error('Failed to fetch discounts', error);
         }
     };
 
@@ -149,7 +175,7 @@ export default function PaymentForm({ member, onClose, onSuccess }: PaymentFormP
                         </div>
 
                         {/* Package Selection */}
-                        <div className="sm:col-span-2 lg:col-span-3">
+                        <div className="sm:col-span-2 lg:col-span-1">
                             <label className="block text-sm font-medium text-slate-400">
                                 Select Package *
                             </label>
@@ -175,9 +201,68 @@ export default function PaymentForm({ member, onClose, onSuccess }: PaymentFormP
                             </select>
                         </div>
 
+                        {/* Trainer Selection */}
+                        {formData.planType === 'pt_plan' && (
+                        <div className="sm:col-span-2 lg:col-span-1">
+                            <label className="block text-sm font-medium text-slate-400">
+                                Assigned Trainer
+                            </label>
+                            <select
+                                value={formData.trainerId}
+                                onChange={(e) => setFormData({ ...formData, trainerId: e.target.value })}
+                                className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            >
+                                <option value="">Select a trainer</option>
+                                {trainers.map((trainer: any) => (
+                                    <option key={trainer._id} value={trainer._id}>
+                                        {trainer.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        )}
+
+                        {/* Discount Selection */}
+                        <div className="sm:col-span-2 lg:col-span-1">
+                            <label className="block text-sm font-medium text-slate-400">
+                                Discount / Coupon
+                            </label>
+                            <select
+                                value={formData.discountId}
+                                onChange={(e) => setFormData({ ...formData, discountId: e.target.value })}
+                                className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            >
+                                <option value="">No Discount</option>
+                                {discounts.map((discount: any) => (
+                                    <option key={discount._id} value={discount._id}>
+                                        {discount.code} - {discount.description}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Membership Start Date - ALWAYS VISIBLE FOR MEMBERSHIPS (moved out of isRenewal block) */}
+                        {formData.planType === 'membership' && (
+                        <div className="sm:col-span-2 lg:col-span-1">
+                            <label className="block text-sm font-medium text-gray-700">
+                                Membership Start Date *
+                            </label>
+                            <input
+                                type="date"
+                                required
+                                value={formData.renewalStartDate}
+                                onChange={(e) => setFormData({ ...formData, renewalStartDate: e.target.value })}
+                                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">
+                                The date when the membership plan starts
+                            </p>
+                        </div>
+                        )}
+
                         {/* Renewal Option - Only for Membership */}
                         {formData.planType === 'membership' && (
-                            <div className="sm:col-span-2 lg:col-span-3">
+                            <div className="sm:col-span-2 lg:col-span-2">
                                 <label className="flex items-center space-x-2">
                                     <input
                                         type="checkbox"
@@ -217,22 +302,6 @@ export default function PaymentForm({ member, onClose, onSuccess }: PaymentFormP
                                     </select>
                                     <p className="mt-1 text-xs text-gray-500">
                                         Choose the same plan or select a different one for renewal
-                                    </p>
-                                </div>
-
-                                <div className="lg:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700">
-                                        Membership Start Date *
-                                    </label>
-                                    <input
-                                        type="date"
-                                        required
-                                        value={formData.renewalStartDate}
-                                        onChange={(e) => setFormData({ ...formData, renewalStartDate: e.target.value })}
-                                        className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                    />
-                                    <p className="mt-1 text-xs text-gray-500">
-                                        The date when the renewed membership will start
                                     </p>
                                 </div>
                             </>
