@@ -4,6 +4,8 @@ import Member from '../../../../../models/Member';
 import Payment from '../../../../../models/Payment';
 import { NextResponse } from 'next/server';
 
+
+export const dynamic = 'force-dynamic';
 export async function GET(req, { params }) {
     const { id } = await params;
     await dbConnect();

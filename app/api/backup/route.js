@@ -7,6 +7,8 @@ import PTplan from '@/models/PTplan';
 import Discount from '@/models/Discount';
 import { NextResponse } from 'next/server';
 
+
+export const dynamic = 'force-dynamic';
 export async function GET() {
     await dbConnect();
     try {

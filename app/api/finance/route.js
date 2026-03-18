@@ -4,6 +4,8 @@ import TrainerPayment from '@/models/TrainerPayment';
 import Transaction from '@/models/Transaction';
 import { NextResponse } from 'next/server';
 
+
+export const dynamic = 'force-dynamic';
 export async function GET(request) {
     await dbConnect();
     const { searchParams } = new URL(request.url);

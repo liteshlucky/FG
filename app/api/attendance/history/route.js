@@ -3,6 +3,8 @@ import Attendance from '@/models/Attendance';
 import TrainerAttendance from '@/models/TrainerAttendance';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 // GET: Fetch attendance history with filters and pagination
 export async function GET(request) {
     await dbConnect();

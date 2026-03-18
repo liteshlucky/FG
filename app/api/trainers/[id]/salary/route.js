@@ -4,6 +4,8 @@ import Member from '@/models/Member';
 import PTplan from '@/models/PTplan';
 import { NextResponse } from 'next/server';
 
+
+export const dynamic = 'force-dynamic';
 export async function GET(request) {
     // Extract trainer ID from the request URL
     const pathname = request.nextUrl?.pathname || new URL(request.url).pathname;

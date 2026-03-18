@@ -6,6 +6,8 @@ import Notification from '@/models/Notification';
 import { sendEmailAlert } from '@/lib/email';
 import { NextResponse } from 'next/server';
 
+
+export const dynamic = 'force-dynamic';
 export async function GET(request) {
     await dbConnect();
     try {
