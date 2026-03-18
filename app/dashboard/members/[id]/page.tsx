@@ -181,6 +181,16 @@ export default function MemberDetailPage() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
+                                <p className="text-sm text-slate-400">Date of Birth</p>
+                                <p className="text-sm font-medium text-slate-100">{member.dateOfBirth ? formatDate(member.dateOfBirth) : '-'}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-slate-400">Emergency Contact</p>
+                                <p className="text-sm font-medium text-slate-100">{member.emergencyContact || '-'}</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
                                 <p className="text-sm text-slate-400">Age</p>
                                 <p className="text-sm font-medium text-slate-100">{member.age || '-'}</p>
                             </div>

@@ -13,6 +13,8 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
         name: '',
         email: '',
         phone: '',
+        dateOfBirth: '',
+        emergencyContact: '',
         age: '',
         gender: '',
         bodyMeasurements: {
@@ -49,6 +51,8 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                 name: initialData.name || '',
                 email: initialData.email || '',
                 phone: initialData.phone || '',
+                dateOfBirth: initialData.dateOfBirth ? new Date(initialData.dateOfBirth).toISOString().split('T')[0] : '',
+                emergencyContact: initialData.emergencyContact || '',
                 age: initialData.age || '',
                 gender: initialData.gender || '',
                 bodyMeasurements: {
@@ -254,7 +258,6 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                     <input
                         type="email"
                         name="email"
-                        required
                         value={formData.email}
                         onChange={handleChange}
                         className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
@@ -268,6 +271,29 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                         name="phone"
                         required
                         value={formData.phone}
+                        onChange={handleChange}
+                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-slate-400">Date of Birth</label>
+                    <input
+                        type="date"
+                        name="dateOfBirth"
+                        value={formData.dateOfBirth}
+                        onChange={handleChange}
+                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-slate-400">Emergency Contact</label>
+                    <input
+                        type="text"
+                        name="emergencyContact"
+                        placeholder="Name & Phone"
+                        value={formData.emergencyContact}
                         onChange={handleChange}
                         className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                     />
@@ -382,87 +408,7 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                     />
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-slate-400">Membership Plan</label>
-                    <select
-                        name="planId"
-                        value={formData.planId}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
-                    >
-                        <option value="">Select a Plan</option>
-                        {plans.map((plan: any) => (
-                            <option key={plan._id} value={plan._id}>
-                                {plan.name} - ₹{plan.price}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-slate-400">Discount / Coupon</label>
-                    <select
-                        name="discountId"
-                        value={formData.discountId}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
-                    >
-                        <option value="">No Discount</option>
-                        {discounts.map((discount: any) => (
-                            <option key={discount._id} value={discount._id}>
-                                {discount.code} - {discount.description} ({discount.type === 'percentage' ? `${discount.value}%` : `₹${discount.value}`})
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-slate-400">PT Plan (Optional)</label>
-                    <select
-                        name="ptPlanId"
-                        value={formData.ptPlanId}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
-                    >
-                        <option value="">No PT Plan</option>
-                        {ptPlans.map((ptPlan: any) => (
-                            <option key={ptPlan._id} value={ptPlan._id}>
-                                {ptPlan.name} - ₹{ptPlan.price} ({ptPlan.sessions} sessions)
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-slate-400">Assigned Trainer (Optional)</label>
-                    <select
-                        name="trainerId"
-                        value={formData.trainerId}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
-                    >
-                        <option value="">No Trainer Assigned</option>
-                        {trainers.map((trainer: any) => (
-                            <option key={trainer._id} value={trainer._id}>
-                                {trainer.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-slate-400">Status</label>
-                    <select
-                        name="status"
-                        value={formData.status}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
-                    >
-                        <option value="Active">Active</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Expired">Expired</option>
-                    </select>
-                </div>
+                {/* Removed Plan, Discount, PT Plan, Trainer, and Status dropdowns */}
             </div>
 
             <div className="flex justify-end">
