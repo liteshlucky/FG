@@ -55,6 +55,19 @@ export default function QuickEditModal({ isOpen, onClose, onSave, section, initi
                     [field]: value
                 }
             }));
+        } else if (name === 'dateOfBirth') {
+            let calculatedAge = '';
+            if (value) {
+                const dob = new Date(value);
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const m = today.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                    age--;
+                }
+                calculatedAge = age.toString();
+            }
+            setFormData((prev: any) => ({ ...prev, [name]: value, age: calculatedAge }));
         } else if (name === 'dietaryPreferences') {
             const checked = (e.target as HTMLInputElement).checked;
             setFormData((prev: any) => {
@@ -161,30 +174,18 @@ export default function QuickEditModal({ isOpen, onClose, onSave, section, initi
                                         />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-300">Age</label>
-                                        <input
-                                            type="number"
-                                            name="age"
-                                            value={formData.age || ''}
-                                            onChange={handleChange}
-                                            className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-300">Gender</label>
-                                        <select
-                                            name="gender"
-                                            value={formData.gender || ''}
-                                            onChange={handleChange}
-                                            className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
-                                        >
-                                            <option value="Male">Male</option>
-                                            <option value="Female">Female</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                    </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300">Gender</label>
+                                    <select
+                                        name="gender"
+                                        value={formData.gender || ''}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
+                                    >
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
                                 </div>
                             </>
                         )}

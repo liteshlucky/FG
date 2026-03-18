@@ -43,8 +43,30 @@ export async function GET(request) {
                 const tenDaysFromNow = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000);
                 query.membershipEndDate = { $gte: now, $lte: tenDaysFromNow };
                 query.status = 'Active';
+            } else if (status.startsWith('expiring_')) {
+                const [_, year, month] = status.split('_');
+                const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+                const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59, 999);
+                if (!query.membershipEndDate) query.membershipEndDate = {};
+                query.membershipEndDate.$gte = startDate;
+                query.membershipEndDate.$lte = endDate;
             } else {
                 query.status = status;
+            }
+        }
+
+        const expiryStart = searchParams.get('expiryStart');
+        const expiryEnd = searchParams.get('expiryEnd');
+        
+        if (expiryStart || expiryEnd) {
+            if (!query.membershipEndDate) query.membershipEndDate = {};
+            if (expiryStart) {
+                query.membershipEndDate.$gte = new Date(expiryStart);
+            }
+            if (expiryEnd) {
+                const endD = new Date(expiryEnd);
+                endD.setHours(23, 59, 59, 999);
+                query.membershipEndDate.$lte = endD;
             }
         }
 
@@ -136,6 +158,8 @@ export async function GET(request) {
 
 import Counter from '@/models/Counter';
 
+
+export const dynamic = 'force-dynamic';
 // ... imports
 
 export async function POST(request) {

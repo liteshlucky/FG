@@ -4,6 +4,8 @@ import Member from '../../../../../models/Member';
 import Payment from '../../../../../models/Payment';
 import { NextResponse } from 'next/server';
 
+
+export const dynamic = 'force-dynamic';
 // Helper to calculate salary for a given month/year
 async function calculateSalary(trainer, month, year) {
     // Base salary pro-rated

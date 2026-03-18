@@ -116,7 +116,20 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
 
-        if (name === 'dietaryPreferences') {
+        if (name === 'dateOfBirth') {
+            let calculatedAge = '';
+            if (value) {
+                const dob = new Date(value);
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const m = today.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                    age--;
+                }
+                calculatedAge = age.toString();
+            }
+            setFormData((prev) => ({ ...prev, [name]: value, age: calculatedAge }));
+        } else if (name === 'dietaryPreferences') {
             const checked = (e.target as HTMLInputElement).checked;
             setFormData(prev => {
                 const current = Array.isArray(prev.dietaryPreferences) ? prev.dietaryPreferences : [];
@@ -299,16 +312,7 @@ export default function MemberForm({ initialData = null, isEdit = false }: { ini
                     />
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-slate-400">Age</label>
-                    <input
-                        type="number"
-                        name="age"
-                        value={formData.age}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 placeholder-slate-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
-                    />
-                </div>
+                {/* Age is automatically calculated on backend or derived from DOB */}
 
                 <div>
                     <label className="block text-sm font-medium text-slate-400">Gender</label>

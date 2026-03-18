@@ -2,6 +2,8 @@ import dbConnect from '@/lib/db';
 import TrainerAttendance from '@/models/TrainerAttendance';
 import { NextResponse } from 'next/server';
 
+
+export const dynamic = 'force-dynamic';
 export async function POST(request, { params }) {
     console.log('Attendance POST params:', params);
     await dbConnect();

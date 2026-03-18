@@ -4,6 +4,8 @@ import Trainer from '@/models/Trainer';
 import PTplan from '@/models/PTplan';
 import { NextResponse } from 'next/server';
 
+
+export const dynamic = 'force-dynamic';
 export async function GET() {
     await dbConnect();
     try {

@@ -8,6 +8,7 @@ const TrainerAttendanceSchema = new mongoose.Schema({
     status: { type: String, enum: ['present', 'absent', 'week_off'], default: 'present' },
     checkInPhoto: { type: String },
     checkOutPhoto: { type: String },
+    autoCheckedOut: { type: Boolean, default: false },
 }, { timestamps: true });
 
 module.exports = mongoose.models.TrainerAttendance || mongoose.model('TrainerAttendance', TrainerAttendanceSchema);

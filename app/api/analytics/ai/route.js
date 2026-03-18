@@ -7,6 +7,8 @@ import AnalyticsCache from '@/models/AnalyticsCache';
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+
+export const dynamic = 'force-dynamic';
 // Initialize Gemini AI
 const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 

@@ -186,7 +186,7 @@ export default function TrainerDetailPage() {
                     {payments.length > 0 ? (
                         payments.map((p: any, idx) => (
                             <tr key={idx} className="border-t">
-                                <td className="px-4 py-2 text-sm">{new Date(p.paymentDate).toLocaleDateString()}</td>
+                                <td className="px-4 py-2 text-sm">{new Date(p.paymentDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                                 <td className="px-4 py-2 text-sm">{p.month} {p.year}</td>
                                 <td className="px-4 py-2 text-sm">{p.baseSalary}</td>
                                 <td className="px-4 py-2 text-sm">{p.commissionAmount}</td>
@@ -223,7 +223,7 @@ export default function TrainerDetailPage() {
             <tbody className="bg-slate-800 text-slate-100">
                 {ptHistory.map((p, idx) => (
                     <tr key={idx} className="border-t">
-                        <td className="px-4 py-2 text-sm">{new Date(p.date).toLocaleDateString()}</td>
+                        <td className="px-4 py-2 text-sm">{new Date(p.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                         <td className="px-4 py-2 text-sm">{p.memberId}</td>
                         <td className="px-4 py-2 text-sm">{p.amount}</td>
                     </tr>
@@ -287,15 +287,22 @@ export default function TrainerDetailPage() {
                             {attendanceHistory.map((record) => (
                                 <tr key={record._id} className="hover:bg-slate-700/50 transition-colors">
                                     <td className="px-4 py-3 text-sm text-slate-300">
-                                        {new Date(record.checkInTime).toLocaleDateString()}
+                                        {new Date(record.checkInTime).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                                     </td>
                                     <td className="px-4 py-3 text-sm text-slate-300">
                                         {new Date(record.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </td>
                                     <td className="px-4 py-3 text-sm text-slate-300">
-                                        {record.checkOutTime
-                                            ? new Date(record.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                            : '-'}
+                                        <div className="flex items-center space-x-2">
+                                            <span>
+                                                {record.checkOutTime
+                                                    ? new Date(record.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                                    : '-'}
+                                            </span>
+                                            {record.autoCheckedOut && (
+                                                <span className="h-2 w-2 rounded-full bg-red-500" title="Auto-checked out at midnight"></span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-4 py-3 text-sm text-slate-300 font-medium">
                                         {record.duration ? `${Math.floor(record.duration / 60)}h ${record.duration % 60}m` : '-'}
