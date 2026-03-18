@@ -22,6 +22,9 @@ export default function MembersPage() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
+    const [expiryStart, setExpiryStart] = useState('');
+    const [expiryEnd, setExpiryEnd] = useState('');
+    const [expiryMonths, setExpiryMonths] = useState<{label: string, value: string}[]>([]);
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'memberId', direction: 'desc' });
 
     // Pagination states
@@ -40,10 +43,24 @@ export default function MembersPage() {
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
+    // Generate upcoming expiry months
+    useEffect(() => {
+        const months = [];
+        for (let i = 0; i < 6; i++) {
+            const d = new Date();
+            d.setMonth(d.getMonth() + i);
+            const monthName = d.toLocaleString('en-US', { month: 'short' });
+            const year = d.getFullYear();
+            const monthValue = (d.getMonth() + 1).toString().padStart(2, '0');
+            months.push({ label: `Expiring in ${monthName} ${year}`, value: `expiring_${year}_${monthValue}` });
+        }
+        setExpiryMonths(months);
+    }, []);
+
     // Fetch members when filters/sort/page changes
     useEffect(() => {
         fetchMembers();
-    }, [debouncedSearchQuery, statusFilter, paymentStatusFilter, typeFilter, sortConfig, currentPage]);
+    }, [debouncedSearchQuery, statusFilter, paymentStatusFilter, typeFilter, sortConfig, currentPage, expiryStart, expiryEnd]);
 
     const fetchMembers = async () => {
         setLoading(true);
@@ -59,6 +76,9 @@ export default function MembersPage() {
                 paymentStatus: paymentStatusFilter,
                 type: typeFilter
             });
+
+            if (expiryStart) params.append('expiryStart', expiryStart);
+            if (expiryEnd) params.append('expiryEnd', expiryEnd);
 
             const res = await fetch(`/api/members?${params}`);
             const data = await res.json();
@@ -337,6 +357,9 @@ export default function MembersPage() {
                         <option value="Inactive">Inactive</option>
                         <option value="Expired">Expired</option>
                         <option value="Expiring Soon">Expiring Soon (≤10 days)</option>
+                        {expiryMonths.map(m => (
+                            <option key={m.value} value={m.value}>{m.label}</option>
+                        ))}
                     </select>
                 </div>
 
@@ -365,6 +388,24 @@ export default function MembersPage() {
                         <option value="pt">PT Members</option>
                         <option value="non-pt">Non-PT Members</option>
                     </select>
+                </div>
+
+                {/* Custom Expiry Date Range */}
+                <div className="flex items-center gap-2 sm:ml-auto">
+                    <span className="text-sm font-medium text-slate-400">Expiry:</span>
+                    <input
+                        type="date"
+                        value={expiryStart}
+                        onChange={(e) => setExpiryStart(e.target.value)}
+                        className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-xs"
+                    />
+                    <span className="text-slate-500">-</span>
+                    <input
+                        type="date"
+                        value={expiryEnd}
+                        onChange={(e) => setExpiryEnd(e.target.value)}
+                        className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-xs"
+                    />
                 </div>
 
                 {/* Sort Order Removed */}

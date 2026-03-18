@@ -53,6 +53,10 @@ const attendanceSchema = new mongoose.Schema({
     lockerKey: {
         type: String,
         default: null  // Optional — captured at check-in if provided
+    },
+    autoCheckedOut: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true

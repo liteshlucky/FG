@@ -99,7 +99,7 @@ export default function ExpensesPage() {
     const dailyData = (() => {
         const days: any = {};
         transactions.forEach((t: any) => {
-            const date = new Date(t.date).toLocaleDateString();
+            const date = new Date(t.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
             days[date] = (days[date] || 0) + t.amount;
         });
         return Object.keys(days).map(date => ({ date, amount: days[date] }));
@@ -140,7 +140,7 @@ export default function ExpensesPage() {
                         </div>
                     </div>
                     <div className="mt-4 text-xs text-slate-500">
-                        For period {new Date(filters.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} - {new Date(filters.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        For period {new Date(filters.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} - {new Date(filters.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     </div>
                 </div>
 
@@ -223,7 +223,7 @@ export default function ExpensesPage() {
                                 filteredTransactions.map((t: any) => (
                                     <tr key={t._id} className="hover:bg-slate-800/50 transition-colors">
                                         <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-100">
-                                            {new Date(t.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                            {new Date(t.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                                         </td>
                                         <td className="px-6 py-4 text-sm font-medium text-slate-100">
                                             {t.title}

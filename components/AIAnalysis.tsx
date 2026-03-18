@@ -79,7 +79,7 @@ function buildDietPrintHTML(dietPlan: any, member?: any): string {
 <body>
   ${buildMemberHeader(member)}
   <h1>🥗 Diet Plan</h1>
-  <p class="sub">Generated on ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+  <p class="sub">Generated on ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
 
   <div class="macros">
     <div class="macro-card"><div class="macro-label">Daily Calories</div><div class="macro-value cal">${dietPlan.calories || 'N/A'}</div></div>
@@ -162,7 +162,7 @@ function buildWorkoutPrintHTML(workoutPlan: any, member?: any): string {
 <body>
   ${buildMemberHeader(member)}
   <h1>🏋️ Workout Plan</h1>
-  <p class="sub">Generated on ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+  <p class="sub">Generated on ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
 
   ${dayBlocks}
 
@@ -290,12 +290,12 @@ export default function AIAnalysis({ memberId, initialData, memberInfo, onGenera
                     <h3 className="text-lg font-medium text-slate-100">AI-Generated Plan</h3>
                     {activeTab === 'diet' && aiData?.dietPlan?.generatedAt && (
                         <p className="text-sm text-slate-400">
-                            Diet generated on {new Date(aiData.dietPlan.generatedAt).toLocaleDateString()}
+                            Diet generated on {new Date(aiData.dietPlan.generatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                         </p>
                     )}
                     {activeTab === 'workout' && aiData?.workoutPlan?.generatedAt && (
                         <p className="text-sm text-slate-400">
-                            Workout generated on {new Date(aiData.workoutPlan.generatedAt).toLocaleDateString()}
+                            Workout generated on {new Date(aiData.workoutPlan.generatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                         </p>
                     )}
                 </div>
