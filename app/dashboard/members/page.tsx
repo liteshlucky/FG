@@ -18,6 +18,7 @@ export default function MembersPage() {
 
     // Search and filter states
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
@@ -28,10 +29,21 @@ export default function MembersPage() {
     const [totalPages, setTotalPages] = useState(1);
     const [totalMembers, setTotalMembers] = useState(0);
 
+    // Debounce search query
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+            if (searchQuery !== debouncedSearchQuery) {
+                setCurrentPage(1); // Reset page on new search
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     // Fetch members when filters/sort/page changes
     useEffect(() => {
         fetchMembers();
-    }, [searchQuery, statusFilter, paymentStatusFilter, typeFilter, sortConfig, currentPage]);
+    }, [debouncedSearchQuery, statusFilter, paymentStatusFilter, typeFilter, sortConfig, currentPage]);
 
     const fetchMembers = async () => {
         setLoading(true);
@@ -42,7 +54,7 @@ export default function MembersPage() {
                 limit: '50',
                 sortBy: sortConfig.key,
                 sortOrder: sortConfig.direction,
-                search: searchQuery,
+                search: debouncedSearchQuery,
                 status: statusFilter,
                 paymentStatus: paymentStatusFilter,
                 type: typeFilter

@@ -8,8 +8,6 @@ const MemberSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required: [true, 'Please provide an email'],
-        unique: true,
     },
     phone: {
         type: String,
@@ -52,6 +50,12 @@ const MemberSchema = new mongoose.Schema({
     memberId: {
         type: String,
         unique: true,
+    },
+    dateOfBirth: {
+        type: Date,
+    },
+    emergencyContact: {
+        type: String,
     },
     age: {
         type: Number,
