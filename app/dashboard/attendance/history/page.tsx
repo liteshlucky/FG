@@ -97,10 +97,10 @@ export default function AttendanceHistoryPage() {
     };
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
+        return new Date(dateString).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
         });
     };
 
@@ -323,7 +323,12 @@ export default function AttendanceHistoryPage() {
                                             {formatTime(attendance.checkInTime)}
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-400">
-                                            {formatTime(attendance.checkOutTime)}
+                                            <div className="flex items-center space-x-2">
+                                                <span>{formatTime(attendance.checkOutTime)}</span>
+                                                {attendance.autoCheckedOut && (
+                                                    <span className="h-2 w-2 rounded-full bg-red-500" title="Auto-checked out at midnight"></span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-100">
                                             {formatDuration(attendance.duration)}

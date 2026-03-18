@@ -82,7 +82,7 @@ export default function FinancePage() {
     const exportToCSV = () => {
         const headers = ['Date', 'Title', 'Category', 'Type', 'Amount', 'Mode'];
         const rows = filteredTransactions.map((t: any) => [
-            new Date(t.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+            new Date(t.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
             t.title,
             t.category || '-',
             t.type,
@@ -111,7 +111,7 @@ export default function FinancePage() {
                 <div>
                     <h1 className="text-2xl font-bold text-slate-100">Finance Dashboard</h1>
                     <p className="mt-1 text-sm text-slate-400">
-                        Overview from {new Date(filters.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} to {new Date(filters.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        Overview from {new Date(filters.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} to {new Date(filters.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     </p>
                 </div>
                 <div className="flex space-x-3">
@@ -220,7 +220,7 @@ export default function FinancePage() {
                                 filteredTransactions.map((t: any) => (
                                     <tr key={t._id} className="hover:bg-slate-700/50">
                                         <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-300">
-                                            {new Date(t.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                            {new Date(t.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                                         </td>
                                         <td className="px-6 py-4 text-sm font-medium text-slate-100">
                                             {t.title}

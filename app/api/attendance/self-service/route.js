@@ -3,6 +3,7 @@ import Attendance from '@/models/Attendance';
 import TrainerAttendance from '@/models/TrainerAttendance';
 import Member from '@/models/Member';
 import Trainer from '@/models/Trainer';
+import Notification from '@/models/Notification';
 import { NextResponse } from 'next/server';
 
 // POST: Self-service check-in or check-out
@@ -150,32 +151,40 @@ export async function POST(request) {
             const today = new Date();
             const dayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-            // Determine check-in/out logic for TrainerAttendance
-            let record = await TrainerAttendance.findOne({ trainerId: userId, date: dayStart });
-
             if (action === 'checkin') {
-                // If record exists and has checkIn, fail (already in)
-                if (record && record.checkIn) {
+                // Check if they have an active open check-in
+                const openRecord = await TrainerAttendance.findOne({ 
+                    trainerId: userId, 
+                    date: dayStart, 
+                    $or: [{ checkOut: { $exists: false } }, { checkOut: null }]
+                });
+
+                if (openRecord && openRecord.checkIn) {
                     return NextResponse.json(
-                        { success: false, error: `${user.name} is already checked in for today.` },
+                        { success: false, error: `${user.name} is already checked in.` },
                         { status: 400 }
                     );
                 }
 
-                if (!record) {
-                    record = await TrainerAttendance.create({
-                        trainerId: userId,
-                        date: dayStart,
-                        checkIn: new Date(),
-                        checkInPhoto: photoUrl,
-                        status: 'present'
+                // Create a new record for every check-in!
+                const record = await TrainerAttendance.create({
+                    trainerId: userId,
+                    date: dayStart,
+                    checkIn: new Date(),
+                    checkInPhoto: photoUrl,
+                    status: 'present'
+                });
+
+                // Create a dashboard notification
+                try {
+                    await Notification.create({
+                        title: 'Trainer Check-In',
+                        message: `Coach ${user.name} checked in at ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}.`,
+                        type: 'info',
+                        link: `/dashboard/staff/${userId}`
                     });
-                } else {
-                    // This case shouldn't strictly happen if we check validity well, but if record exists without checkIn (maybe created by admin as absent/leave?)
-                    record.checkIn = new Date();
-                    record.checkInPhoto = photoUrl;
-                    record.status = 'present'; // Override typical status if they show up
-                    await record.save();
+                } catch (notifErr) {
+                    console.error('Failed to create notification', notifErr);
                 }
 
                 return NextResponse.json({
@@ -188,35 +197,47 @@ export async function POST(request) {
                 });
 
             } else if (action === 'checkout') {
-                if (!record || !record.checkIn) {
+                // Find the currently open record 
+                const openRecord = await TrainerAttendance.findOne({
+                    trainerId: userId,
+                    date: dayStart,
+                    $or: [{ checkOut: { $exists: false } }, { checkOut: null }]
+                });
+
+                if (!openRecord || !openRecord.checkIn) {
                     return NextResponse.json(
-                        { success: false, error: `${user.name} is not checked in for today.` },
+                        { success: false, error: `${user.name} is not checked in right now.` },
                         { status: 400 }
                     );
                 }
 
-                if (record.checkOut) {
-                    return NextResponse.json(
-                        { success: false, error: `${user.name} has already checked out.` },
-                        { status: 400 }
-                    );
-                }
+                openRecord.checkOut = new Date();
+                openRecord.checkOutPhoto = photoUrl;
+                await openRecord.save();
 
-                record.checkOut = new Date();
-                record.checkOutPhoto = photoUrl;
-                await record.save();
-
-                const durationMs = record.checkOut - record.checkIn;
+                const durationMs = openRecord.checkOut - openRecord.checkIn;
                 const totalMinutes = Math.round(durationMs / (1000 * 60));
                 const hours = Math.floor(totalMinutes / 60);
                 const minutes = totalMinutes % 60;
+
+                // Create a dashboard notification
+                try {
+                    await Notification.create({
+                        title: 'Trainer Check-Out',
+                        message: `Coach ${user.name} checked out. Duration: ${hours}h ${minutes}m.`,
+                        type: 'info',
+                        link: `/dashboard/staff/${userId}`
+                    });
+                } catch (notifErr) {
+                    console.error('Failed to create notification', notifErr);
+                }
 
                 return NextResponse.json({
                     success: true,
                     message: `Goodbye Coach ${user.name}! You have been checked out. Time spent: ${hours}h ${minutes}m`,
                     data: {
-                        attendanceId: record._id,
-                        checkOutTime: record.checkOut,
+                        attendanceId: openRecord._id,
+                        checkOutTime: openRecord.checkOut,
                         duration: totalMinutes
                     }
                 });

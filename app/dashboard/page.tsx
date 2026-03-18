@@ -2,6 +2,7 @@ import dbConnect from '@/lib/db';
 import Member from '@/models/Member';
 import MemberListView from '@/models/MemberListView';
 import Trainer from '@/models/Trainer';
+import Attendance from '@/models/Attendance';
 import '@/models/Plan';
 import Link from 'next/link';
 import {
@@ -57,13 +58,15 @@ async function getComprehensiveStats() {
         inactivePT,
         noMembership,
         pendingClients,
+        todaysDues,
         expiringToday,
         expiring1to3,
         expiring4to8,
         expiring9to15,
         expiringThisMonth,
         expiredUnder30,
-        totalTrainers
+        totalTrainers,
+        todaysPresentIds
     ] = await Promise.all([
         // Basic counts
         MemberListView.countDocuments({}),
@@ -87,8 +90,14 @@ async function getComprehensiveStats() {
         }),
 
         // Other statuses
-        MemberListView.countDocuments({ planId: { $exists: false } }),
+        MemberListView.countDocuments({ $or: [{ planId: { $exists: false } }, { planId: null }] }),
         MemberListView.countDocuments({ status: 'Pending' }),
+        
+        // Today's Dues (Expiring today & unpaid/partial)
+        MemberListView.countDocuments({
+            membershipEndDate: { $gte: startOfToday, $lt: endOfToday },
+            paymentStatus: { $in: ['partial', 'unpaid'] }
+        }),
 
         // Expiry checks - using efficient range queries on indexed Date fields
         MemberListView.countDocuments({
@@ -111,8 +120,17 @@ async function getComprehensiveStats() {
         }),
 
         // Trainer count
-        Trainer.countDocuments({})
+        Trainer.countDocuments({}),
+
+        // Today's attendance
+        Attendance.distinct('userId', {
+            date: { $gte: startOfToday, $lt: endOfToday },
+            userType: 'Member'
+        })
     ]);
+
+    const todaysPresent = Array.isArray(todaysPresentIds) ? todaysPresentIds.length : 0;
+    const todaysAbsent = Math.max(0, activeClients - todaysPresent);
 
     return {
         totalClients,
@@ -121,7 +139,7 @@ async function getComprehensiveStats() {
         newClientsThisMonth,
         renewedThisMonth,
         totalDues,
-        todaysDues: 0,
+        todaysDues,
         totalOverdue,
         totalBirthday: 0,
         todaysBirthday: 0,
@@ -130,8 +148,8 @@ async function getComprehensiveStats() {
         todaysFollowUp: 0,
         activePT,
         inactivePT,
-        todaysPresent: 0,
-        todaysAbsent: 0,
+        todaysPresent,
+        todaysAbsent,
         noMembership,
         disabledClients: 0,
         pendingClients,
@@ -298,8 +316,8 @@ export default async function DashboardPage() {
                                 <StatusBadge label="Renewed" value={stats.renewedThisMonth} color="bg-emerald-500/10 text-emerald-400" />
                                 <StatusBadge label="No Plan" value={stats.noMembership} color="bg-rose-500/10 text-rose-400" />
                                 <StatusBadge label="Pending" value={stats.pendingClients} color="bg-amber-500/10 text-amber-400" />
-                                <StatusBadge label="Active PT" value={stats.activePT} color="bg-blue-500/10 text-blue-400" />
-                                <StatusBadge label="Inactive PT" value={stats.inactivePT} color="bg-gray-700 text-gray-400" />
+                                <StatusBadge label="PT Members" value={stats.activePT} color="bg-blue-500/10 text-blue-400" />
+                                <StatusBadge label="Non-PT" value={stats.inactivePT} color="bg-gray-700 text-gray-400" />
                             </div>
                         </div>
                     </div>

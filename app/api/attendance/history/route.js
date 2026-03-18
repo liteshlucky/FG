@@ -65,7 +65,7 @@ export async function GET(request) {
                 [members, totalMembers] = await Promise.all([
                     Attendance.find(query)
                         .populate('userId', 'name email phone')
-                        .select('userId userType checkInTime checkOutTime duration status date checkInPhoto checkOutPhoto lockerKey')
+                        .select('userId userType checkInTime checkOutTime duration status date checkInPhoto checkOutPhoto lockerKey autoCheckedOut')
                         .sort({ checkInTime: -1 })
                         .skip(fetchSkip)
                         .limit(fetchLimit)
@@ -105,7 +105,8 @@ export async function GET(request) {
                         status: record.checkOut ? 'checked-out' : 'checked-in',
                         date: record.date,
                         checkInPhoto: record.checkInPhoto,
-                        checkOutPhoto: record.checkOutPhoto
+                        checkOutPhoto: record.checkOutPhoto,
+                        autoCheckedOut: record.autoCheckedOut
                     };
                 });
             })() : Promise.resolve()
@@ -154,12 +155,29 @@ export async function GET(request) {
                     }
                 ]);
             } else if (shouldFetchTrainers && userType === 'Trainer') {
-                // Trainer stats approximation (duration isn't stored, need to calc or use runtime?)
-                // Since TrainerAttendance doesn't store 'duration' explicitly in DB (based on schema), this agg might fail or return 0.
-                // We'd need to calculate it. For MVP, let's skip complex Agg for trainers or rely on client side if needed.
-                // Or: assume we added duration? No, we didn't add duration field to TrainerAttendance.
-                // Let's compute approx stats from the fetched records if meaningful, or just return 0s for now to avoid crashes.
-                stats.totalVisits = totalTrainers;
+                // Trainer stats approximation from dynamically calculated duration
+                aggregateStats = await TrainerAttendance.aggregate([
+                    { $match: trainerQuery },
+                    {
+                        $project: {
+                            duration: {
+                                $cond: [
+                                    { $and: [{ $ifNull: ["$checkOut", false] }, { $ifNull: ["$checkIn", false] }] },
+                                    { $divide: [{ $subtract: ["$checkOut", "$checkIn"] }, 60000] },
+                                    0
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            totalVisits: { $sum: 1 },
+                            totalDuration: { $sum: "$duration" },
+                            avgDuration: { $avg: "$duration" }
+                        }
+                    }
+                ]);
             }
 
             if (aggregateStats.length > 0) {
