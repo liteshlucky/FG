@@ -40,7 +40,7 @@ export async function PUT(request, { params }) {
         const newAmount = parseFloat(body.amount);
         const diff = newAmount - oldAmount;
 
-        // 3. Update Payment
+        // 3. Update Payment record
         const updatedPayment = await Payment.findByIdAndUpdate(
             id,
             {
@@ -51,27 +51,50 @@ export async function PUT(request, { params }) {
                     paymentCategory: body.paymentCategory,
                     notes: body.notes,
                     transactionId: body.transactionId,
-                    // Allow updating planId if needed, but be careful
-                    planId: body.planId || payment.planId
+                    planId: body.planId || payment.planId,
+                    planType: body.planType || payment.planType,
                 }
             },
             { new: true }
         );
 
         // 4. Update Member totalPaid if amount changed
-        if (diff !== 0) {
-            const member = await Member.findById(payment.memberId);
-            if (member) {
+        const member = await Member.findById(payment.memberId);
+        if (member) {
+            if (diff !== 0) {
                 member.totalPaid = (member.totalPaid || 0) + diff;
 
-                // Recalculate status logic (simplified)
+                // Recalculate status
                 const due = (member.totalPlanPrice || 0) - member.totalPaid;
                 if (member.totalPlanPrice > 0) {
                     member.paymentStatus = due <= 0 ? 'paid' : (member.totalPaid > 0 ? 'partial' : 'unpaid');
                 }
-
-                await member.save();
             }
+
+            // 5. Optionally update the member's active plan and membership dates
+            if (body.updateMemberPlan && body.planId && body.planType === 'membership') {
+                // Import Plan model inline to avoid circular imports at the top
+                const Plan = (await import('@/models/Plan')).default;
+                const plan = await Plan.findById(body.planId).lean();
+
+                if (plan) {
+                    const startDate = new Date(body.membershipStartDate || body.paymentDate || new Date());
+                    const endDate = new Date(startDate);
+                    endDate.setMonth(endDate.getMonth() + (plan.duration || 1));
+
+                    member.planId = body.planId;
+                    member.membershipStartDate = startDate;
+                    member.membershipEndDate = endDate;
+                    member.totalPlanPrice = plan.price;
+                    member.status = 'Active';
+
+                    // Recalculate payment status with new plan price
+                    const due = plan.price - (member.totalPaid || 0);
+                    member.paymentStatus = due <= 0 ? 'paid' : (member.totalPaid > 0 ? 'partial' : 'unpaid');
+                }
+            }
+
+            await member.save();
         }
 
         return NextResponse.json({ success: true, data: updatedPayment });
