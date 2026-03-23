@@ -5,27 +5,40 @@ import Payment from '@/models/Payment';
 import Plan from '@/models/Plan';
 import PTplan from '@/models/PTplan';
 import Discount from '@/models/Discount';
+import Attendance from '@/models/Attendance';
+import TrainerAttendance from '@/models/TrainerAttendance';
+import TrainerPayment from '@/models/TrainerPayment';
+import Transaction from '@/models/Transaction';
+import User from '@/models/User';
 import { NextResponse } from 'next/server';
 
-
 export const dynamic = 'force-dynamic';
+
 export async function GET() {
     await dbConnect();
     try {
-        const members = await Member.find({});
-        const trainers = await Trainer.find({});
-        const payments = await Payment.find({});
-        const plans = await Plan.find({});
-        const ptPlans = await PTplan.find({});
-        const discounts = await Discount.find({});
+        const [
+            members, trainers, payments, plans, ptPlans,
+            discounts, attendance, trainerAttendance,
+            trainerPayments, transactions, users,
+        ] = await Promise.all([
+            Member.find({}),
+            Trainer.find({}),
+            Payment.find({}),
+            Plan.find({}),
+            PTplan.find({}),
+            Discount.find({}),
+            Attendance.find({}),
+            TrainerAttendance.find({}),
+            TrainerPayment.find({}),
+            Transaction.find({}),
+            User.find({}, { password: 0 }), // exclude password hashes
+        ]);
 
         const data = {
-            members,
-            trainers,
-            payments,
-            plans,
-            ptPlans,
-            discounts,
+            members, trainers, payments, plans, ptPlans,
+            discounts, attendance, trainerAttendance,
+            trainerPayments, transactions, users,
             timestamp: new Date().toISOString(),
         };
 
