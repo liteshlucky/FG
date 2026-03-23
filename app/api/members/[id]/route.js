@@ -45,6 +45,11 @@ export async function PUT(request, { params }) {
         if (body.planId === '') body.planId = null;
         if (body.ptPlanId === '') body.ptPlanId = null;
         if (body.trainerId === '') body.trainerId = null;
+
+        // Remove empty strings for optional enums
+        if (body.gender === '') delete body.gender;
+        if (body.status === '') delete body.status;
+        if (body.paymentStatus === '') delete body.paymentStatus;
         const member = await Member.findByIdAndUpdate(id, body, {
             new: true,
             runValidators: true,
@@ -54,6 +59,11 @@ export async function PUT(request, { params }) {
         }
         return NextResponse.json({ success: true, data: member });
     } catch (error) {
+        // Format Mongoose Validation Errors nicely
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(err => err.message);
+            return NextResponse.json({ success: false, error: messages.join(', ') }, { status: 400 });
+        }
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }
 }

@@ -19,7 +19,10 @@ const MemberSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Active', 'Expired', 'Pending'],
+        enum: {
+            values: ['Active', 'Expired', 'Pending'],
+            message: 'Please select a valid status'
+        },
         default: 'Active',
     },
     planId: {
@@ -44,7 +47,10 @@ const MemberSchema = new mongoose.Schema({
     },
     paymentStatus: {
         type: String,
-        enum: ['paid', 'partial', 'unpaid'],
+        enum: {
+            values: ['paid', 'partial', 'unpaid'],
+            message: 'Please select a valid payment status'
+        },
         default: 'unpaid',
     },
     memberId: {
@@ -62,7 +68,10 @@ const MemberSchema = new mongoose.Schema({
     },
     gender: {
         type: String,
-        enum: ['Male', 'Female', 'Other'],
+        enum: {
+            values: ['Male', 'Female', 'Other'],
+            message: 'Please select a valid gender'
+        },
     },
     bodyMeasurements: {
         height: Number, // cm
