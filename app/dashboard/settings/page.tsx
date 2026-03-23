@@ -6,13 +6,29 @@ import {
     ShieldCheck, Clock, Mail, RefreshCw, Loader2,
 } from 'lucide-react';
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface StatusMsg {
+    type: 'success' | 'error';
+    text: string;
+}
+
+interface BackupLog {
+    _id: string;
+    runAt: string;
+    status: 'success' | 'failed';
+    error?: string | null;
+    sizeBytes: number;
+    sentTo?: string | null;
+}
+
 // ─── Backup History Card ──────────────────────────────────────────────────────
 
 function BackupHistoryCard() {
-    const [logs, setLogs] = useState([]);
+    const [logs, setLogs] = useState<BackupLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [running, setRunning] = useState(false);
-    const [runMsg, setRunMsg] = useState(null);
+    const [runMsg, setRunMsg] = useState<StatusMsg | null>(null);
 
     const fetchLogs = useCallback(async () => {
         try {
@@ -34,18 +50,19 @@ function BackupHistoryCard() {
             const data = await res.json();
             if (data.success) {
                 setRunMsg({ type: 'success', text: `Backup sent! (${(data.sizeBytes / 1024).toFixed(1)} KB)` });
-                fetchLogs(); // refresh history
+                fetchLogs();
             } else {
                 setRunMsg({ type: 'error', text: 'Backup failed: ' + data.error });
             }
-        } catch (e) {
-            setRunMsg({ type: 'error', text: 'Backup failed: ' + e.message });
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : 'Unknown error';
+            setRunMsg({ type: 'error', text: 'Backup failed: ' + msg });
         } finally {
             setRunning(false);
         }
     };
 
-    const formatDate = (iso) => {
+    const formatDate = (iso: string) => {
         const d = new Date(iso);
         return d.toLocaleString('en-IN', {
             day: '2-digit', month: 'short', year: 'numeric',
@@ -53,7 +70,7 @@ function BackupHistoryCard() {
         });
     };
 
-    const formatSize = (bytes) => {
+    const formatSize = (bytes: number) => {
         if (!bytes) return '—';
         if (bytes < 1024) return `${bytes} B`;
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -135,7 +152,7 @@ function BackupHistoryCard() {
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="border-b border-slate-800 bg-slate-800/50">
-                                        <th className="px-4 py-2.5 text-left text-xs font-medium text-slate-400">Date & Time</th>
+                                        <th className="px-4 py-2.5 text-left text-xs font-medium text-slate-400">Date &amp; Time</th>
                                         <th className="px-4 py-2.5 text-left text-xs font-medium text-slate-400">Status</th>
                                         <th className="px-4 py-2.5 text-left text-xs font-medium text-slate-400">Size</th>
                                         <th className="px-4 py-2.5 text-left text-xs font-medium text-slate-400">Sent To</th>
@@ -154,7 +171,7 @@ function BackupHistoryCard() {
                                                         <CheckCircle className="h-3 w-3" /> Success
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-xs font-medium text-rose-400 border border-rose-500/20" title={log.error}>
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-xs font-medium text-rose-400 border border-rose-500/20" title={log.error ?? undefined}>
                                                         <AlertCircle className="h-3 w-3" /> Failed
                                                     </span>
                                                 )}
@@ -177,7 +194,7 @@ function BackupHistoryCard() {
 
 export default function SettingsPage() {
     const [importing, setImporting] = useState(false);
-    const [message, setMessage] = useState(null);
+    const [message, setMessage] = useState<StatusMsg | null>(null);
 
     const handleExport = async () => {
         try {
@@ -196,12 +213,13 @@ export default function SettingsPage() {
             } else {
                 setMessage({ type: 'error', text: 'Export failed: ' + data.error });
             }
-        } catch (error) {
-            setMessage({ type: 'error', text: 'Export failed: ' + error.message });
+        } catch (error: unknown) {
+            const msg = error instanceof Error ? error.message : 'Unknown error';
+            setMessage({ type: 'error', text: 'Export failed: ' + msg });
         }
     };
 
-    const handleImport = async (e) => {
+    const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -211,7 +229,9 @@ export default function SettingsPage() {
         const reader = new FileReader();
         reader.onload = async (event) => {
             try {
-                const json = JSON.parse(event.target?.result);
+                const raw = event.target?.result;
+                if (typeof raw !== 'string') throw new Error('Failed to read file');
+                const json = JSON.parse(raw);
                 const res = await fetch('/api/backup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -223,8 +243,9 @@ export default function SettingsPage() {
                 } else {
                     setMessage({ type: 'error', text: 'Import failed: ' + data.error });
                 }
-            } catch (error) {
-                setMessage({ type: 'error', text: 'Import failed: ' + error.message });
+            } catch (error: unknown) {
+                const msg = error instanceof Error ? error.message : 'Unknown error';
+                setMessage({ type: 'error', text: 'Import failed: ' + msg });
             } finally {
                 setImporting(false);
                 e.target.value = '';
