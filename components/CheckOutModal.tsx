@@ -17,7 +17,9 @@ export default function CheckOutModal({ userType, checkedInUsers, onClose, onSuc
         setCheckingOut(true);
         try {
             const res = await fetch(`/api/attendance/${attendanceId}/checkout`, {
-                method: 'PUT'
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userType })
             });
 
             const data = await res.json();
