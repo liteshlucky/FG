@@ -14,9 +14,16 @@ const navigation = [
     { name: 'Staff', href: '/dashboard/staff', icon: Users },
     { name: 'Plans', href: '/dashboard/plans', icon: CreditCard },
     { name: 'PT Plans', href: '/dashboard/pt-plans', icon: Dumbbell },
-    { name: 'Finance', href: '/dashboard/finance', icon: DollarSign },
     { 
-        name: 'Attendance', 
+        name: 'Finance', 
+        icon: DollarSign,
+        subItems: [
+            { name: 'Transactions', href: '/dashboard/finance' },
+            { name: 'Reports', href: '/dashboard/finance/reports' },
+        ]
+    },
+    { 
+        name: 'Attendance',  
         icon: ClipboardCheck,
         subItems: [
             { name: 'Management', href: '/dashboard/attendance' },
@@ -34,7 +41,8 @@ const navigation = [
     export default function Sidebar() {
     const pathname = usePathname();
     const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
-        'Attendance': pathname?.startsWith('/dashboard/attendance')
+        'Attendance': pathname?.startsWith('/dashboard/attendance'),
+        'Finance': pathname?.startsWith('/dashboard/finance')
     });
 
     const toggleMenu = (name: string) => {
