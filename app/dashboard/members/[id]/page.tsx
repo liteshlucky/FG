@@ -8,7 +8,6 @@ import Avatar from '@/components/Avatar';
 import AIAnalysis from '@/components/AIAnalysis';
 
 import QuickEditModal from '@/components/QuickEditModal';
-import EditPaymentModal from '@/components/EditPaymentModal';
 
 export default function MemberDetailPage() {
     const params = useParams();
@@ -627,7 +626,8 @@ export default function MemberDetailPage() {
             )}
 
             {editingPayment && (
-                <EditPaymentModal
+                <PaymentForm
+                    member={member}
                     payment={editingPayment}
                     onClose={() => setEditingPayment(null)}
                     onSuccess={() => {
