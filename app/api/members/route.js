@@ -172,6 +172,11 @@ export async function POST(request) {
         if (body.ptPlanId === '') body.ptPlanId = null;
         if (body.planId === '') body.planId = null;
         if (body.trainerId === '') body.trainerId = null;
+        
+        // Remove empty strings for optional enums
+        if (body.gender === '') delete body.gender;
+        if (body.status === '') delete body.status;
+        if (body.paymentStatus === '') delete body.paymentStatus;
 
         // Auto-generate memberId
         const counter = await Counter.findByIdAndUpdate(
@@ -181,7 +186,17 @@ export async function POST(request) {
         );
         body.memberId = String(counter.seq);
 
-        const member = await Member.create(body);
+        let member;
+        try {
+            member = await Member.create(body);
+        } catch (createError) {
+            // Revert the counter increment if saving fails (e.g. validation error)
+            await Counter.findByIdAndUpdate(
+                { _id: 'memberId' },
+                { $inc: { seq: -1 } }
+            );
+            throw createError;
+        }
 
         // Trigger Notification if enabled
         try {
@@ -218,6 +233,11 @@ export async function POST(request) {
 
         return NextResponse.json({ success: true, data: member }, { status: 201 });
     } catch (error) {
+        // Format Mongoose Validation Errors nicely
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(err => err.message);
+            return NextResponse.json({ success: false, error: messages.join(', ') }, { status: 400 });
+        }
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }
 }
