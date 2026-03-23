@@ -2,6 +2,8 @@ import dbConnect from '@/lib/db';
 import Payment from '@/models/Payment';
 import TrainerPayment from '@/models/TrainerPayment';
 import Transaction from '@/models/Transaction';
+import Member from '@/models/Member';
+import Trainer from '@/models/Trainer';
 import { NextResponse } from 'next/server';
 
 
@@ -14,17 +16,25 @@ export async function GET(request) {
     const type = searchParams.get('type'); // 'income', 'expense', or null for all
 
     try {
-        const query = {};
+        let parsedStartDate, parsedEndDate;
         if (startDate && endDate) {
-            query.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+            parsedStartDate = new Date(startDate);
+            parsedEndDate = new Date(endDate);
+            // Ensure the end date covers the entire day up to the last millisecond
+            parsedEndDate.setUTCHours(23, 59, 59, 999);
+        }
+
+        const query = {};
+        if (parsedStartDate && parsedEndDate) {
+            query.date = { $gte: parsedStartDate, $lte: parsedEndDate };
         }
 
         // Fetch Member Payments (Income)
         let memberPayments = [];
         if (!type || type === 'income') {
             const paymentQuery = {};
-            if (startDate && endDate) {
-                paymentQuery.paymentDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
+            if (parsedStartDate && parsedEndDate) {
+                paymentQuery.paymentDate = { $gte: parsedStartDate, $lte: parsedEndDate };
             }
             memberPayments = await Payment.find(paymentQuery).populate('memberId', 'name').lean();
         }
@@ -33,8 +43,8 @@ export async function GET(request) {
         let trainerPayments = [];
         if (!type || type === 'expense') {
             const trainerQuery = {};
-            if (startDate && endDate) {
-                trainerQuery.paymentDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
+            if (parsedStartDate && parsedEndDate) {
+                trainerQuery.paymentDate = { $gte: parsedStartDate, $lte: parsedEndDate };
             }
             trainerPayments = await TrainerPayment.find(trainerQuery).populate('trainerId', 'name').lean();
         }
@@ -42,8 +52,8 @@ export async function GET(request) {
         // Fetch Custom Transactions (Income/Expense)
         let transactions = [];
         const transactionQuery = {};
-        if (startDate && endDate) {
-            transactionQuery.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+        if (parsedStartDate && parsedEndDate) {
+            transactionQuery.date = { $gte: parsedStartDate, $lte: parsedEndDate };
         }
         if (type) {
             transactionQuery.type = type;

@@ -12,17 +12,69 @@ export default function FinancePage() {
     const [filters, setFilters] = useState({
         search: '',
         type: '', // 'income', 'expense'
+        dateRange: 'this_month',
         startDate: '',
         endDate: '',
     });
 
     useEffect(() => {
         // Set default date range to current month
-        const now = new Date();
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-        setFilters(prev => ({ ...prev, startDate: firstDay, endDate: lastDay }));
+        handleDateRangeChange('this_month');
     }, []);
+
+    const formatDateLocal = (d: Date) => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const handleDateRangeChange = (range: string) => {
+        const now = new Date();
+        let start = '', end = '';
+
+        switch (range) {
+            case 'today':
+                start = formatDateLocal(now);
+                end = formatDateLocal(now);
+                break;
+            case 'yesterday':
+                const yesterday = new Date(now);
+                yesterday.setDate(now.getDate() - 1);
+                start = formatDateLocal(yesterday);
+                end = formatDateLocal(yesterday);
+                break;
+            case 'this_week':
+                const startOfWeek = new Date(now);
+                startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday as start
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                start = formatDateLocal(startOfWeek);
+                end = formatDateLocal(endOfWeek);
+                break;
+            case 'last_week':
+                const startOfLastWeek = new Date(now);
+                startOfLastWeek.setDate(now.getDate() - now.getDay() - 7);
+                const endOfLastWeek = new Date(startOfLastWeek);
+                endOfLastWeek.setDate(startOfLastWeek.getDate() + 6);
+                start = formatDateLocal(startOfLastWeek);
+                end = formatDateLocal(endOfLastWeek);
+                break;
+            case 'this_month':
+                start = formatDateLocal(new Date(now.getFullYear(), now.getMonth(), 1));
+                end = formatDateLocal(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+                break;
+            case 'last_month':
+                start = formatDateLocal(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+                end = formatDateLocal(new Date(now.getFullYear(), now.getMonth(), 0));
+                break;
+            case 'custom':
+                setFilters(prev => ({ ...prev, dateRange: range }));
+                return;
+        }
+        
+        setFilters(prev => ({ ...prev, dateRange: range, startDate: start, endDate: end }));
+    };
 
     useEffect(() => {
         if (filters.startDate && filters.endDate) {
@@ -159,7 +211,7 @@ export default function FinancePage() {
 
             {/* Filters */}
             <div className="rounded-lg bg-slate-800 p-4 shadow border border-slate-700">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                         <input
@@ -179,17 +231,32 @@ export default function FinancePage() {
                         <option value="income">Income Only</option>
                         <option value="expense">Expense Only</option>
                     </select>
+                    <select
+                        value={filters.dateRange}
+                        onChange={(e) => handleDateRangeChange(e.target.value)}
+                        className="rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                    >
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="this_week">This Week</option>
+                        <option value="last_week">Last Week</option>
+                        <option value="this_month">This Month</option>
+                        <option value="last_month">Last Month</option>
+                        <option value="custom">Custom</option>
+                    </select>
                     <input
                         type="date"
                         value={filters.startDate}
-                        onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+                        onChange={(e) => setFilters({ ...filters, startDate: e.target.value, dateRange: 'custom' })}
                         className="rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                        disabled={filters.dateRange !== 'custom'}
                     />
                     <input
                         type="date"
                         value={filters.endDate}
-                        onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+                        onChange={(e) => setFilters({ ...filters, endDate: e.target.value, dateRange: 'custom' })}
                         className="rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                        disabled={filters.dateRange !== 'custom'}
                     />
                 </div>
             </div>

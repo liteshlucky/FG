@@ -4,6 +4,8 @@ import TrainerAttendance from '@/models/TrainerAttendance';
 import Member from '@/models/Member';
 import Trainer from '@/models/Trainer';
 import Notification from '@/models/Notification';
+import Settings from '@/models/Settings';
+import { sendEmailAlert } from '@/lib/email';
 import { NextResponse } from 'next/server';
 
 // POST: Self-service check-in or check-out
@@ -177,14 +179,28 @@ export async function POST(request) {
 
                 // Create a dashboard notification
                 try {
+                    const message = `Coach ${user.name} checked in at ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}.`;
                     await Notification.create({
                         title: 'Trainer Check-In',
-                        message: `Coach ${user.name} checked in at ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}.`,
+                        message: message,
                         type: 'info',
                         link: `/dashboard/staff/${userId}`
                     });
+
+                    // Send Email Alert
+                    const settings = await Settings.findOne({ singletonKey: 'GLOBAL_SETTINGS' });
+                    if (settings && settings.notificationEmails && settings.notificationEmails.length > 0) {
+                        const htmlContent = `
+                            <h2>Trainer Check-In</h2>
+                            <p><strong>Coach:</strong> ${user.name}</p>
+                            <p><strong>Time:</strong> ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+                            <br/>
+                            <p><a href="${process.env.NEXTAUTH_URL}/dashboard/staff/${userId}">View Profile</a></p>
+                        `;
+                        await sendEmailAlert(settings.notificationEmails, `✅ ${user.name} checked in`, htmlContent);
+                    }
                 } catch (notifErr) {
-                    console.error('Failed to create notification', notifErr);
+                    console.error('Failed to create notification/email', notifErr);
                 }
 
                 return NextResponse.json({
@@ -222,14 +238,29 @@ export async function POST(request) {
 
                 // Create a dashboard notification
                 try {
+                    const message = `Coach ${user.name} checked out. Duration: ${hours}h ${minutes}m.`;
                     await Notification.create({
                         title: 'Trainer Check-Out',
-                        message: `Coach ${user.name} checked out. Duration: ${hours}h ${minutes}m.`,
+                        message: message,
                         type: 'info',
                         link: `/dashboard/staff/${userId}`
                     });
+
+                    // Send Email Alert
+                    const settings = await Settings.findOne({ singletonKey: 'GLOBAL_SETTINGS' });
+                    if (settings && settings.notificationEmails && settings.notificationEmails.length > 0) {
+                        const htmlContent = `
+                            <h2>Trainer Check-Out</h2>
+                            <p><strong>Coach:</strong> ${user.name}</p>
+                            <p><strong>Duration:</strong> ${hours}h ${minutes}m</p>
+                            <p><strong>Time:</strong> ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+                            <br/>
+                            <p><a href="${process.env.NEXTAUTH_URL}/dashboard/staff/${userId}">View Profile</a></p>
+                        `;
+                        await sendEmailAlert(settings.notificationEmails, `👋 ${user.name} checked out`, htmlContent);
+                    }
                 } catch (notifErr) {
-                    console.error('Failed to create notification', notifErr);
+                    console.error('Failed to create notification/email', notifErr);
                 }
 
                 return NextResponse.json({
