@@ -1,5 +1,6 @@
 import dbConnect from '@/lib/db';
 import Attendance from '@/models/Attendance';
+import TrainerAttendance from '@/models/TrainerAttendance';
 import { NextResponse } from 'next/server';
 
 // PUT: Check out user
@@ -8,8 +9,42 @@ export async function PUT(request, { params }) {
 
     try {
         const { id } = await params;
+        const body = await request.json().catch(() => ({}));
+        const userType = body.userType || 'Member'; // default to Member
 
-        // Find the attendance record
+        if (userType === 'Trainer') {
+            const attendance = await TrainerAttendance.findById(id);
+
+            if (!attendance) {
+                return NextResponse.json(
+                    { success: false, error: 'Trainer attendance record not found' },
+                    { status: 404 }
+                );
+            }
+
+            if (attendance.checkOut) {
+                return NextResponse.json(
+                    { success: false, error: 'Trainer is already checked out' },
+                    { status: 400 }
+                );
+            }
+
+            // Update check-out time and status
+            attendance.checkOut = new Date();
+            await attendance.save();
+
+            const populatedAttendance = await TrainerAttendance.findById(attendance._id)
+                .populate('trainerId', 'name email phone')
+                .lean();
+
+            return NextResponse.json({
+                success: true,
+                data: populatedAttendance,
+                message: 'Checked out successfully'
+            });
+        }
+
+        // Default Member handling
         const attendance = await Attendance.findById(id);
 
         if (!attendance) {

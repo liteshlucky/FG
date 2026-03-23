@@ -92,6 +92,12 @@ export default function AttendancePage() {
                     >
                         View History
                     </a>
+                    <a
+                        href="/dashboard/attendance/reports"
+                        className="rounded-lg bg-pink-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-pink-500/20 hover:bg-pink-500 hover:shadow-pink-500/30 transition-all hover:scale-105 active:scale-95"
+                    >
+                        View Reports
+                    </a>
                     <button
                         onClick={() => setShowCheckInModal(true)}
                         className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 hover:shadow-blue-500/30 transition-all hover:scale-105 active:scale-95"

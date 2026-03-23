@@ -27,12 +27,20 @@ export async function GET(request) {
             if (date) {
                 const targetDate = new Date(date);
                 targetDate.setHours(0, 0, 0, 0);
-                trainerQuery.date = targetDate;
+                const nextDay = new Date(targetDate);
+                nextDay.setDate(nextDay.getDate() + 1);
+                trainerQuery.checkIn = { $gte: targetDate, $lt: nextDay };
             } else {
                 // Default to today
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                trainerQuery.date = today;
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                // Also loosely check 'date' just in case
+                trainerQuery.$or = [
+                    { checkIn: { $gte: today, $lt: tomorrow } },
+                    { date: { $gte: today, $lt: tomorrow } }
+                ];
             }
 
             if (status === 'checked-in') {
@@ -180,34 +188,79 @@ export async function POST(request) {
             );
         }
 
-        // Check if user is already checked in
-        const isCheckedIn = await Attendance.isUserCheckedIn(userId);
+        // ============================================
+        // MEMBER CHECK-IN
+        // ============================================
+        if (userType === 'Member') {
+            // Check if user is already checked in
+            const isCheckedIn = await Attendance.isUserCheckedIn(userId);
 
-        if (isCheckedIn) {
-            return NextResponse.json(
-                { success: false, error: `${user.name} is already checked in` },
-                { status: 400 }
-            );
+            if (isCheckedIn) {
+                return NextResponse.json(
+                    { success: false, error: `${user.name} is already checked in` },
+                    { status: 400 }
+                );
+            }
+
+            // Create attendance record
+            const attendance = await Attendance.create({
+                userId,
+                userType: 'Member',
+                checkInTime: new Date(),
+                status: 'checked-in',
+                ...(lockerKey ? { lockerKey } : {})  // Save lockerKey only if provided
+            });
+
+            const populatedAttendance = await Attendance.findById(attendance._id)
+                .populate('userId', 'name email phone')
+                .lean();
+
+            return NextResponse.json({
+                success: true,
+                data: populatedAttendance,
+                message: `${user.name} checked in successfully`
+            });
         }
+        
+        // ============================================
+        // TRAINER CHECK-IN
+        // ============================================
+        else if (userType === 'Trainer') {
+            const today = new Date();
+            const dayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-        // Create attendance record
-        const attendance = await Attendance.create({
-            userId,
-            userType,
-            checkInTime: new Date(),
-            status: 'checked-in',
-            ...(lockerKey ? { lockerKey } : {})  // Save lockerKey only if provided
-        });
+            // Check if they have an active open check-in
+            const openRecord = await TrainerAttendance.findOne({ 
+                trainerId: userId, 
+                date: dayStart, 
+                $or: [{ checkOut: { $exists: false } }, { checkOut: null }]
+            });
 
-        const populatedAttendance = await Attendance.findById(attendance._id)
-            .populate('userId', 'name email phone')
-            .lean();
+            if (openRecord && openRecord.checkIn) {
+                return NextResponse.json(
+                    { success: false, error: `${user.name} is already checked in.` },
+                    { status: 400 }
+                );
+            }
 
-        return NextResponse.json({
-            success: true,
-            data: populatedAttendance,
-            message: `${user.name} checked in successfully`
-        });
+            // Create a new TrainerAttendance record
+            const record = await TrainerAttendance.create({
+                trainerId: userId,
+                date: dayStart,
+                checkIn: new Date(),
+                status: 'present'
+            });
+
+            const populatedRecord = await TrainerAttendance.findById(record._id)
+                .populate('trainerId', 'name email phone')
+                .lean();
+
+            return NextResponse.json({
+                success: true,
+                data: populatedRecord,
+                message: `${user.name} checked in successfully`
+            });
+        }
 
     } catch (error) {
         console.error('Attendance POST Error:', error);
