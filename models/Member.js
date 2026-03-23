@@ -68,6 +68,7 @@ const MemberSchema = new mongoose.Schema({
     },
     gender: {
         type: String,
+        required: [true, 'Please select a gender'],
         enum: {
             values: ['Male', 'Female', 'Other'],
             message: 'Please select a valid gender'
