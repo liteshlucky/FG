@@ -1,5 +1,6 @@
 import dbConnect from '@/lib/db';
 import Member from '@/models/Member';
+import Counter from '@/models/Counter';
 import { NextResponse } from 'next/server';
 
 
@@ -65,6 +66,27 @@ export async function DELETE(request, { params }) {
         if (!deletedMember) {
             return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
         }
+
+        // Logic to recycle memberId if the *last* member was deleted
+        if (deletedMember.memberId) {
+            // Extract the numeric part of the deleted member's ID
+            const numericPart = deletedMember.memberId.replace(/^\D+/g, '');
+            const deletedIdVal = parseInt(numericPart);
+
+            if (!isNaN(deletedIdVal)) {
+                // Find the current counter
+                const counter = await Counter.findById('memberId');
+                if (counter && counter.seq === deletedIdVal) {
+                    // This was the very last member added. We can safely decrement the counter.
+                    await Counter.findByIdAndUpdate(
+                        { _id: 'memberId' },
+                        { $inc: { seq: -1 } }
+                    );
+                    console.log(`Recycled memberId: Decremented counter from ${counter.seq} to ${counter.seq - 1}`);
+                }
+            }
+        }
+
         return NextResponse.json({ success: true, data: {} });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });
