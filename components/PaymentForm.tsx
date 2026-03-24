@@ -20,6 +20,7 @@ export default function PaymentForm({ member, payment: existingPayment, onClose,
     const [loading, setLoading] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState('');
+    const [clearLinkedPlan, setClearLinkedPlan] = useState(false);
 
     // ── Due amount calculation ────────────────────────────────────────────────
     const membershipBalance = member.currentBalance ?? Math.max(
@@ -45,30 +46,32 @@ export default function PaymentForm({ member, payment: existingPayment, onClose,
 
     // ── Initial form state — pre-fill from existing payment in edit mode ──────
     const [formData, setFormData] = useState({
-        amount:            isEditMode ? String(existingPayment.amount || '')                    : '',
-        paymentMode:       isEditMode ? (existingPayment.paymentMode || 'cash')                 : 'cash',
-        paymentDate:       isEditMode
-                           ? (existingPayment.paymentDate ? new Date(existingPayment.paymentDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0])
-                           : new Date().toISOString().split('T')[0],
-        transactionId:     isEditMode ? (existingPayment.transactionId || '')                   : '',
-        notes:             isEditMode ? (existingPayment.notes || '')                           : '',
-        planType:          initialPlanType,
-        planId:            isEditMode ? (existingPayment.planId?._id || existingPayment.planId || '') : (member.planId?._id || member.planId || ''),
-        isRenewal:         false,
-        renewalStartDate:  new Date().toISOString().split('T')[0],
-        renewalPlanId:     member.planId?._id || member.planId || '',
-        paymentType:       'full_payment',
-        fullAmount:        '',
-        activateMembership:false,
-        trainerId:         isEditMode ? (existingPayment.trainerId?._id || existingPayment.trainerId || '') : (member.trainerId?._id || member.trainerId || ''),
-        discountId:        isEditMode ? (existingPayment.discountId?._id || existingPayment.discountId || '') : (member.discountId?._id || member.discountId || ''),
-        paymentCategory:   isEditMode ? (existingPayment.paymentCategory || 'Plan')            : (initialHasDue ? 'Due Amount' : 'Plan'),
+        amount: isEditMode ? String(existingPayment.amount || '') : '',
+        paymentMode: isEditMode ? (existingPayment.paymentMode || 'cash') : 'cash',
+        paymentDate: isEditMode
+            ? (existingPayment.paymentDate ? new Date(existingPayment.paymentDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0])
+            : new Date().toISOString().split('T')[0],
+        transactionId: isEditMode ? (existingPayment.transactionId || '') : '',
+        notes: isEditMode ? (existingPayment.notes || '') : '',
+        planType: initialPlanType,
+        planId: isEditMode ? (existingPayment.planId?._id || existingPayment.planId || '') : (member.planId?._id || member.planId || ''),
+        isRenewal: false,
+        renewalStartDate: new Date().toISOString().split('T')[0],
+        ptStartDate: new Date().toISOString().split('T')[0],
+        ptEndDate: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0],
+        renewalPlanId: member.planId?._id || member.planId || '',
+        paymentType: 'full_payment',
+        fullAmount: '',
+        activateMembership: false,
+        trainerId: isEditMode ? (existingPayment.trainerId?._id || existingPayment.trainerId || '') : (member.trainerId?._id || member.trainerId || ''),
+        discountId: isEditMode ? (existingPayment.discountId?._id || existingPayment.discountId || '') : (member.discountId?._id || member.discountId || ''),
+        paymentCategory: isEditMode ? (existingPayment.paymentCategory || 'Plan') : (initialHasDue ? 'Due Amount' : 'Plan'),
     });
 
     // ── Reactive Balance based on selected planType ─────────────────────────
     let newPlanPrice = 0;
     let isNewPlanSelected = false;
-    
+
     if (!isEditMode) {
         if (formData.planType === 'membership') {
             const selectedPlan = plans.find((p: any) => p._id === formData.renewalPlanId || p._id === formData.planId);
@@ -105,31 +108,31 @@ export default function PaymentForm({ member, payment: existingPayment, onClose,
     }, []);
 
     const fetchPlans = async () => {
-        try { const res = await fetch('/api/plans'); const d = await res.json(); if (d.success) setPlans(d.data); } catch {}
+        try { const res = await fetch('/api/plans'); const d = await res.json(); if (d.success) setPlans(d.data); } catch { }
     };
     const fetchPTPlans = async () => {
-        try { const res = await fetch('/api/pt-plans'); const d = await res.json(); if (d.success) setPTPlans(d.data); } catch {}
+        try { const res = await fetch('/api/pt-plans'); const d = await res.json(); if (d.success) setPTPlans(d.data); } catch { }
     };
     const fetchTrainers = async () => {
-        try { const res = await fetch('/api/trainers'); const d = await res.json(); if (d.success) setTrainers(d.data); } catch {}
+        try { const res = await fetch('/api/trainers'); const d = await res.json(); if (d.success) setTrainers(d.data); } catch { }
     };
     const fetchDiscounts = async () => {
-        try { const res = await fetch('/api/discounts'); const d = await res.json(); if (d.success) setDiscounts(d.data); } catch {}
+        try { const res = await fetch('/api/discounts'); const d = await res.json(); if (d.success) setDiscounts(d.data); } catch { }
     };
 
     const handlePlanTypeChange = (type: string) => {
         const newPlanId = type === 'membership'
             ? (member.planId?._id || member.planId || '')
             : (member.ptPlanId?._id || member.ptPlanId || '');
-            
+
         const newBalance = (type === 'pt_plan' || type === 'PTplan') ? ptBalance : membershipBalance;
         const newHasDue = !isEditMode && newBalance > 0;
 
-        setFormData({ 
-            ...formData, 
-            planType: type, 
-            planId: newPlanId, 
-            renewalPlanId: newPlanId, 
+        setFormData({
+            ...formData,
+            planType: type,
+            planId: newPlanId,
+            renewalPlanId: newPlanId,
             isRenewal: false,
             amount: '', // Reset amount on change
             paymentCategory: (existingPtBalance > 0 || existingMembershipBalance > 0) ? 'Due Amount' : 'Plan'
@@ -139,8 +142,8 @@ export default function PaymentForm({ member, payment: existingPayment, onClose,
     // ── Due preset buttons (create mode only) ─────────────────────────────────
     const applyPresets = (preset: 'full' | 'half' | 'custom', totalAmt: number) => {
         let amt = '';
-        if (preset === 'full')  amt = String(totalAmt);
-        if (preset === 'half')  amt = String(Math.ceil(totalAmt / 2));
+        if (preset === 'full') amt = String(totalAmt);
+        if (preset === 'half') amt = String(Math.ceil(totalAmt / 2));
         setFormData(prev => ({ ...prev, amount: amt, paymentCategory: hasExistingDue ? 'Due Amount' : 'Plan' }));
     };
 
@@ -150,7 +153,7 @@ export default function PaymentForm({ member, payment: existingPayment, onClose,
         setLoading(true);
         setError('');
         try {
-            const url    = isEditMode ? `/api/payments/${existingPayment._id}` : '/api/payments';
+            const url = isEditMode ? `/api/payments/${existingPayment._id}` : '/api/payments';
             const method = isEditMode ? 'PUT' : 'POST';
 
             const res = await fetch(url, {
@@ -182,6 +185,20 @@ export default function PaymentForm({ member, payment: existingPayment, onClose,
             const res = await fetch(`/api/payments/${existingPayment._id}`, { method: 'DELETE' });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Failed to delete payment');
+
+            // Clear the linked plan from member if requested
+            if (clearLinkedPlan) {
+                const isPT = existingPayment.planType === 'pt_plan' || existingPayment.planType === 'PTplan';
+                const clearPayload = isPT
+                    ? { ptPlanId: null, ptStartDate: null, ptEndDate: null, trainerId: null }
+                    : { planId: null, membershipStartDate: null, membershipEndDate: null };
+                await fetch(`/api/members/${member._id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(clearPayload),
+                });
+            }
+
             onSuccess();
             onClose();
         } catch (err: any) {
@@ -364,6 +381,24 @@ export default function PaymentForm({ member, payment: existingPayment, onClose,
                             </div>
                         )}
 
+                        {/* PT Start & End Date — create mode, PT plan only */}
+                        {!isEditMode && formData.planType === 'pt_plan' && (
+                            <>
+                                <div className="sm:col-span-2 lg:col-span-1">
+                                    <label className="block text-sm font-medium text-slate-400">PT Start Date *</label>
+                                    <input type="date" required value={formData.ptStartDate}
+                                        onChange={(e) => setFormData({ ...formData, ptStartDate: e.target.value })}
+                                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                                </div>
+                                <div className="sm:col-span-2 lg:col-span-1">
+                                    <label className="block text-sm font-medium text-slate-400">PT End Date *</label>
+                                    <input type="date" required value={formData.ptEndDate}
+                                        onChange={(e) => setFormData({ ...formData, ptEndDate: e.target.value })}
+                                        className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                                </div>
+                            </>
+                        )}
+
                         {/* Renew Membership — create mode only */}
                         {!isEditMode && formData.planType === 'membership' && (
                             <div className="sm:col-span-2 lg:col-span-2">
@@ -510,11 +545,22 @@ export default function PaymentForm({ member, payment: existingPayment, onClose,
                     <div className="flex items-center justify-between pt-6 border-t border-slate-800 mt-6">
                         {/* Delete button — edit mode only */}
                         {isEditMode ? (
-                            <button type="button" onClick={handleDelete} disabled={deleting}
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-400 hover:bg-rose-500/20 transition-all disabled:opacity-50">
-                                <Trash2 className="h-4 w-4" />
-                                {deleting ? 'Deleting...' : 'Delete Payment'}
-                            </button>
+                            <div className="flex flex-col gap-2">
+                                <button type="button" onClick={handleDelete} disabled={deleting}
+                                    className="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-400 hover:bg-rose-500/20 transition-all disabled:opacity-50">
+                                    <Trash2 className="h-4 w-4" />
+                                    {deleting ? 'Deleting...' : 'Delete Payment'}
+                                </button>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={clearLinkedPlan}
+                                        onChange={(e) => setClearLinkedPlan(e.target.checked)}
+                                        className="h-3.5 w-3.5 rounded border-slate-600 text-rose-600 focus:ring-rose-500"
+                                    />
+                                    <span className="text-xs text-slate-500">Also remove linked plan from member</span>
+                                </label>
+                            </div>
                         ) : <div />}
 
                         <div className="flex space-x-3">

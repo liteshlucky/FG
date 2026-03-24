@@ -18,7 +18,7 @@ export default function MemberDetailPage() {
     const [showPaymentForm, setShowPaymentForm] = useState(false);
     const [editingPayment, setEditingPayment] = useState<any>(null);
     const [activeTab, setActiveTab] = useState<'all' | 'membership' | 'pt'>('all');
-    const [editingSection, setEditingSection] = useState<'personal' | 'physical' | 'health' | null>(null);
+    const [editingSection, setEditingSection] = useState<'personal' | 'physical' | 'health' | 'membership' | 'pt' | null>(null);
 
     useEffect(() => {
         if (params.id) {
@@ -75,6 +75,23 @@ export default function MemberDetailPage() {
         } catch (error) {
             console.error('Failed to update member', error);
             alert('Failed to update member');
+        }
+    };
+
+    const handleClearPlan = async (type: 'membership' | 'pt') => {
+        const clearPayload = type === 'pt'
+            ? { ptPlanId: null, ptStartDate: null, ptEndDate: null, trainerId: null }
+            : { planId: null, membershipStartDate: null, membershipEndDate: null };
+        const res = await fetch(`/api/members/${params.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(clearPayload),
+        });
+        const data = await res.json();
+        if (data.success) {
+            setMember(data.data);
+        } else {
+            throw new Error('Failed to clear plan');
         }
     };
 
@@ -301,14 +318,27 @@ export default function MemberDetailPage() {
                         isOpen={!!editingSection}
                         onClose={() => setEditingSection(null)}
                         onSave={handleQuickEditSave}
+                        onClearPlan={
+                            editingSection === 'membership' ? () => handleClearPlan('membership') :
+                            editingSection === 'pt' ? () => handleClearPlan('pt') :
+                            undefined
+                        }
                         section={editingSection}
                         initialData={member}
                     />
                 )}
 
                 {/* Membership Details */}
-                <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
-                    <h2 className="text-lg font-medium text-slate-100">Membership Details</h2>
+                <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700 relative group">
+                    <div className="flex justify-between items-start">
+                        <h2 className="text-lg font-medium text-slate-100">Membership Details</h2>
+                        <button
+                            onClick={() => setEditingSection('membership')}
+                            className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <Edit className="h-4 w-4" />
+                        </button>
+                    </div>
                     <div className="mt-4 space-y-3">
                         <div>
                             <p className="text-sm text-slate-400">Plan</p>
@@ -316,14 +346,6 @@ export default function MemberDetailPage() {
                                 {member.planId?.name || 'No Plan'} {member.planId && `(₹${member.planId.price})`}
                             </p>
                         </div>
-                        {member.ptPlanId && (
-                            <div>
-                                <p className="text-sm text-slate-400">PT Plan</p>
-                                <p className="text-sm font-medium text-slate-100">
-                                    {member.ptPlanId.name} (₹{member.ptPlanId.price})
-                                </p>
-                            </div>
-                        )}
                         {member.discountId && (
                             <div>
                                 <p className="text-sm text-slate-400">Discount</p>
@@ -334,24 +356,20 @@ export default function MemberDetailPage() {
                                 </p>
                             </div>
                         )}
-                        {member.membershipStartDate && (
-                            <div>
-                                <p className="text-sm text-slate-400">Membership Start Date</p>
-                                <p className="text-sm font-medium text-slate-100">
-                                    {formatDate(member.membershipStartDate)}
-                                </p>
-                            </div>
-                        )}
-                        {member.membershipEndDate && (
-                            <div>
-                                <p className="text-sm text-slate-400">
-                                    {member.status === 'Expired' ? 'Expired On' : 'Membership End Date'}
-                                </p>
-                                <p className="text-sm font-medium text-slate-100">
-                                    {formatDate(member.membershipEndDate)}
-                                </p>
-                            </div>
-                        )}
+                        <div>
+                            <p className="text-sm text-slate-400">Membership Start Date</p>
+                            <p className="text-sm font-medium text-slate-100">
+                                {member.membershipStartDate ? formatDate(member.membershipStartDate) : 'Not set'}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-slate-400">
+                                {member.status === 'Expired' ? 'Expired On' : 'Membership End Date'}
+                            </p>
+                            <p className="text-sm font-medium text-slate-100">
+                                {member.membershipEndDate ? formatDate(member.membershipEndDate) : 'Not set'}
+                            </p>
+                        </div>
                         {member.membershipEndDate && member.status !== 'Expired' && (
                             <div>
                                 <p className="text-sm text-slate-400">Days Remaining</p>
@@ -384,6 +402,74 @@ export default function MemberDetailPage() {
                                     'bg-red-100 text-red-800'
                                 }`}>
                                 {member.paymentStatus?.toUpperCase() || 'UNPAID'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* PT Details */}
+                <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700 relative group">
+                    <div className="flex justify-between items-start">
+                        <h2 className="text-lg font-medium text-slate-100">PT Details</h2>
+                        <button
+                            onClick={() => setEditingSection('pt')}
+                            className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <Edit className="h-4 w-4" />
+                        </button>
+                    </div>
+                    <div className="mt-4 space-y-3">
+                        <div>
+                            <p className="text-sm text-slate-400">PT Plan</p>
+                            <p className="text-sm font-medium text-slate-100">
+                                {member.ptPlanId ? `${member.ptPlanId.name} (₹${member.ptPlanId.price})` : 'No PT Plan'}
+                            </p>
+                        </div>
+                        {member.trainerId && (
+                            <div>
+                                <p className="text-sm text-slate-400">Assigned Trainer</p>
+                                <p className="text-sm font-medium text-slate-100">
+                                    {member.trainerId.name}
+                                </p>
+                            </div>
+                        )}
+                        <div>
+                            <p className="text-sm text-slate-400">PT Start Date</p>
+                            <p className="text-sm font-medium text-slate-100">
+                                {member.ptStartDate ? formatDate(member.ptStartDate) : 'Not set'}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-slate-400">PT End Date</p>
+                            <p className="text-sm font-medium text-slate-100">
+                                {member.ptEndDate ? formatDate(member.ptEndDate) : 'Not set'}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-slate-400">Days Remaining</p>
+                            <p className={`text-sm font-semibold ${(() => {
+                                if (!member.ptEndDate) return 'text-slate-500';
+                                const daysRemaining = Math.ceil((new Date(member.ptEndDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                                if (daysRemaining < 0) return 'text-slate-500';
+                                if (daysRemaining <= 7) return 'text-orange-500';
+                                if (daysRemaining <= 30) return 'text-yellow-500';
+                                return 'text-green-500';
+                            })()}`}>
+                                {(() => {
+                                    if (!member.ptEndDate) return 'N/A';
+                                    const daysRemaining = Math.ceil((new Date(member.ptEndDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                                    if (daysRemaining < 0) return 'Expired';
+                                    return `${daysRemaining} days`;
+                                })()}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-slate-400">PT Payment Status</p>
+                            <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${member.ptPaymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
+                                member.ptPaymentStatus === 'partial' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-red-100 text-red-800'
+                                }`}>
+                                {member.ptPaymentStatus?.toUpperCase() || 'UNPAID'}
                             </span>
                         </div>
                     </div>
@@ -534,9 +620,9 @@ export default function MemberDetailPage() {
                         <tbody className="divide-y divide-slate-700 bg-slate-800">
                             {(() => {
                                 const filteredPayments = payments.filter((payment: any) => {
-                                    const category = (payment.paymentCategory || payment.planType || '').toLowerCase();
-                                    const isMembership = category === 'plan' || category === 'membership';
-                                    const isPT = category === 'trainer' || category === 'pt' || category === 'pt plan';
+                                    const planType = (payment.planType || '').toLowerCase();
+                                    const isMembership = planType === 'plan' || planType === 'membership';
+                                    const isPT = planType === 'ptplan' || planType === 'pt_plan';
 
                                     if (activeTab === 'membership' && !isMembership) return false;
                                     if (activeTab === 'pt' && !isPT) return false;
@@ -554,12 +640,12 @@ export default function MemberDetailPage() {
                                 }
 
                                 return filteredPayments.map((payment: any) => {
-                                    const category = (payment.paymentCategory || payment.planType || '').toLowerCase();
-                                    const isMembership = category === 'plan' || category === 'membership';
+                                    const planType = (payment.planType || '').toLowerCase();
+                                    const isMembership = planType === 'plan' || planType === 'membership';
+                                    const isPT = planType === 'ptplan' || planType === 'pt_plan';
                                     const label = isMembership ? 'Membership' :
-                                        category === 'trainer' ? 'PT Plan' :
-                                            category === 'admission fee' ? 'Admission' :
-                                                'Other';
+                                        isPT ? 'PT Plan' :
+                                            (payment.paymentCategory || 'Other');
 
                                     return (
                                         <tr key={payment._id}>

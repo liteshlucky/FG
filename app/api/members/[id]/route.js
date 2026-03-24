@@ -9,7 +9,7 @@ export async function GET(request, { params }) {
     await dbConnect();
     const { id } = await params;
     try {
-        const member = await Member.findById(id).populate('planId').populate('discountId').populate('ptPlanId');
+        const member = await Member.findById(id).populate('planId').populate('discountId').populate('ptPlanId').populate('trainerId');
         if (!member) {
             return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
         }

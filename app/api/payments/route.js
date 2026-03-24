@@ -125,6 +125,12 @@ export async function POST(request) {
             if (body.trainerId) {
                 member.trainerId = body.trainerId;
             }
+            if (body.ptStartDate) {
+                member.ptStartDate = new Date(body.ptStartDate);
+            }
+            if (body.ptEndDate) {
+                member.ptEndDate = new Date(body.ptEndDate);
+            }
         }
 
         // Update Discount globally
@@ -162,7 +168,7 @@ export async function POST(request) {
         member.lastPaymentDate = payment.paymentDate;
         member.lastPaymentAmount = payment.amount;
 
-        await member.save();
+        await member.save({ validateModifiedOnly: true });
 
         // 6. Trigger Notification if enabled
         try {

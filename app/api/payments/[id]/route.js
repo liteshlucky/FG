@@ -30,7 +30,7 @@ async function recalculateMemberBalance(memberId) {
         member.paymentStatus = totalPaid > 0 ? 'paid' : 'unpaid';
     }
 
-    await member.save();
+    await member.save({ validateModifiedOnly: true });
     return member;
 }
 
@@ -78,6 +78,38 @@ export async function PUT(request, { params }) {
             },
             { new: true }
         );
+
+        // Update member active plan if requested
+        if (body.updateMemberPlan) {
+            const member = await Member.findById(payment.memberId);
+            if (member) {
+                if (body.planType === 'membership' && body.planId) {
+                    const Plan = (await import('@/models/Plan')).default;
+                    const plan = await Plan.findById(body.planId);
+                    if (plan) {
+                        member.planId = plan._id;
+                        member.totalPlanPrice = plan.price;
+                        if (body.membershipStartDate) {
+                            member.membershipStartDate = new Date(body.membershipStartDate);
+                            const endDate = new Date(member.membershipStartDate);
+                            endDate.setMonth(endDate.getMonth() + plan.duration);
+                            member.membershipEndDate = endDate;
+                        }
+                    }
+                } else if ((body.planType === 'pt_plan' || body.planType === 'PTplan') && body.planId) {
+                    const PTplan = (await import('@/models/PTplan')).default;
+                    const ptPlan = await PTplan.findById(body.planId);
+                    if (ptPlan) {
+                        member.ptPlanId = ptPlan._id;
+                        member.ptTotalPlanPrice = ptPlan.price;
+                        if (body.ptStartDate) member.ptStartDate = new Date(body.ptStartDate);
+                        if (body.ptEndDate) member.ptEndDate = new Date(body.ptEndDate);
+                    }
+                }
+                // Only validate fields we modified
+                await member.save({ validateModifiedOnly: true });
+            }
+        }
 
         // Always recalculate from DB — never rely on arithmetic
         await recalculateMemberBalance(payment.memberId);
