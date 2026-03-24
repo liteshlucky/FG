@@ -7,13 +7,26 @@ interface QuickEditModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (data: any) => Promise<void>;
-    section: 'personal' | 'physical' | 'health';
+    onClearPlan?: () => Promise<void>; // Optional: clear plan data from member
+    section: 'personal' | 'physical' | 'health' | 'membership' | 'pt';
     initialData: any;
 }
 
-export default function QuickEditModal({ isOpen, onClose, onSave, section, initialData }: QuickEditModalProps) {
+export default function QuickEditModal({ isOpen, onClose, onSave, onClearPlan, section, initialData }: QuickEditModalProps) {
     const [formData, setFormData] = useState<any>({});
     const [loading, setLoading] = useState(false);
+    const [clearing, setClearing] = useState(false);
+    const [plans, setPlans] = useState<any[]>([]);
+    const [ptPlans, setPTPlans] = useState<any[]>([]);
+    const [trainers, setTrainers] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (section === 'membership') fetch('/api/plans').then(r => r.json()).then(d => { if (d.success) setPlans(d.data); });
+        if (section === 'pt') {
+            fetch('/api/pt-plans').then(r => r.json()).then(d => { if (d.success) setPTPlans(d.data); });
+            fetch('/api/trainers').then(r => r.json()).then(d => { if (d.success) setTrainers(d.data); });
+        }
+    }, [section]);
 
     useEffect(() => {
         if (initialData) {
@@ -39,6 +52,19 @@ export default function QuickEditModal({ isOpen, onClose, onSave, section, initi
                     goals: initialData.goals,
                     dietaryPreferences: initialData.dietaryPreferences || [],
                     allergies: initialData.allergies,
+                });
+            } else if (section === 'membership') {
+                setFormData({
+                    planId: initialData.planId?._id || initialData.planId || '',
+                    membershipStartDate: initialData.membershipStartDate ? new Date(initialData.membershipStartDate).toISOString().split('T')[0] : '',
+                    membershipEndDate: initialData.membershipEndDate ? new Date(initialData.membershipEndDate).toISOString().split('T')[0] : '',
+                });
+            } else if (section === 'pt') {
+                setFormData({
+                    ptPlanId: initialData.ptPlanId?._id || initialData.ptPlanId || '',
+                    trainerId: initialData.trainerId?._id || initialData.trainerId || '',
+                    ptStartDate: initialData.ptStartDate ? new Date(initialData.ptStartDate).toISOString().split('T')[0] : '',
+                    ptEndDate: initialData.ptEndDate ? new Date(initialData.ptEndDate).toISOString().split('T')[0] : '',
                 });
             }
         }
@@ -96,6 +122,21 @@ export default function QuickEditModal({ isOpen, onClose, onSave, section, initi
         }
     };
 
+    const handleClearPlan = async () => {
+        if (!onClearPlan) return;
+        const label = section === 'pt' ? 'PT plan and trainer' : 'membership plan';
+        if (!confirm(`This will remove the ${label} from this member. Continue?`)) return;
+        setClearing(true);
+        try {
+            await onClearPlan();
+            onClose();
+        } catch (error) {
+            console.error('Failed to clear plan', error);
+        } finally {
+            setClearing(false);
+        }
+    };
+
     if (!isOpen) return null;
 
     const getTitle = () => {
@@ -103,6 +144,8 @@ export default function QuickEditModal({ isOpen, onClose, onSave, section, initi
             case 'personal': return 'Edit Personal Information';
             case 'physical': return 'Edit Physical Details';
             case 'health': return 'Edit Health & Goals';
+            case 'membership': return 'Edit Membership Dates';
+            case 'pt': return 'Edit PT Dates';
             default: return 'Edit';
         }
     };
@@ -262,23 +305,129 @@ export default function QuickEditModal({ isOpen, onClose, onSave, section, initi
                                 </div>
                             </>
                         )}
+
+                        {section === 'membership' && (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300">Membership Plan</label>
+                                    <select
+                                        name="planId"
+                                        value={formData.planId || ''}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
+                                    >
+                                        <option value="">— No change —</option>
+                                        {plans.map((p: any) => (
+                                            <option key={p._id} value={p._id}>{p.name} — ₹{p.price} ({p.duration} months)</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300">Membership Start Date</label>
+                                    <input
+                                        type="date"
+                                        name="membershipStartDate"
+                                        value={formData.membershipStartDate || ''}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300">Membership End Date</label>
+                                    <input
+                                        type="date"
+                                        name="membershipEndDate"
+                                        value={formData.membershipEndDate || ''}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {section === 'pt' && (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300">PT Plan</label>
+                                    <select
+                                        name="ptPlanId"
+                                        value={formData.ptPlanId || ''}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
+                                    >
+                                        <option value="">— No change —</option>
+                                        {ptPlans.map((p: any) => (
+                                            <option key={p._id} value={p._id}>{p.name} — ₹{p.price} ({p.sessions} sessions)</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300">Trainer</label>
+                                    <select
+                                        name="trainerId"
+                                        value={formData.trainerId || ''}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
+                                    >
+                                        <option value="">— No change —</option>
+                                        {trainers.map((t: any) => (
+                                            <option key={t._id} value={t._id}>{t.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300">PT Start Date</label>
+                                    <input
+                                        type="date"
+                                        name="ptStartDate"
+                                        value={formData.ptStartDate || ''}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300">PT End Date</label>
+                                    <input
+                                        type="date"
+                                        name="ptEndDate"
+                                        value={formData.ptEndDate || ''}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="mt-6 flex justify-end gap-3">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="rounded-md border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
-                        >
-                            {loading ? 'Saving...' : 'Save Changes'}
-                        </button>
+                    <div className="mt-6 flex justify-between items-center gap-3">
+                        {/* Clear Plan — only for membership/pt sections */}
+                        {(section === 'membership' || section === 'pt') && onClearPlan ? (
+                            <button
+                                type="button"
+                                onClick={handleClearPlan}
+                                disabled={clearing}
+                                className="rounded-md border border-rose-600/30 bg-rose-600/10 px-3 py-2 text-sm font-medium text-rose-400 hover:bg-rose-600/20 disabled:opacity-50"
+                            >
+                                {clearing ? 'Clearing...' : section === 'pt' ? 'Clear PT Plan' : 'Clear Membership'}
+                            </button>
+                        ) : <div />}
+
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="rounded-md border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                            >
+                                {loading ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

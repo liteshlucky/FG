@@ -23,10 +23,16 @@ export default function EditPaymentModal({ payment, member, onClose, onSuccess }
         notes: payment.notes || '',
         // Plan assignment fields
         planId: payment.planId?._id || payment.planId || '',
-        planType: payment.planType === 'pt_plan' || payment.planType === 'PTplan' ? 'pt_plan' : 'membership',
+        planType: payment.planType === 'pt_plan' || payment.planType === 'PTplan' || (payment.planId && payment.planId.sessions !== undefined) ? 'pt_plan' : 'membership',
         membershipStartDate: payment.membershipStartDate
             ? new Date(payment.membershipStartDate).toISOString().split('T')[0]
             : (payment.paymentDate ? new Date(payment.paymentDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
+        ptStartDate: payment.ptStartDate
+            ? new Date(payment.ptStartDate).toISOString().split('T')[0]
+            : (payment.paymentDate ? new Date(payment.paymentDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
+        ptEndDate: payment.ptEndDate
+            ? new Date(payment.ptEndDate).toISOString().split('T')[0]
+            : (payment.paymentDate ? new Date(new Date(payment.paymentDate).setDate(new Date(payment.paymentDate).getDate() + 30)).toISOString().split('T')[0] : new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0]),
         updateMemberPlan: false, // Whether to also update the member's active plan & dates
     });
 
@@ -162,6 +168,30 @@ export default function EditPaymentModal({ payment, member, onClose, onSuccess }
                                 />
                                 <p className="mt-1 text-xs text-slate-500">The plan end date will be recalculated from this date based on the selected plan duration.</p>
                             </div>
+                        )}
+
+                        {/* PT Start & End Date */}
+                        {!isMembershipType && (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-400 mb-1">PT Start Date</label>
+                                    <input
+                                        type="date"
+                                        value={formData.ptStartDate}
+                                        onChange={(e) => setFormData({ ...formData, ptStartDate: e.target.value })}
+                                        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 focus:border-blue-500 focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-400 mb-1">PT End Date</label>
+                                    <input
+                                        type="date"
+                                        value={formData.ptEndDate}
+                                        onChange={(e) => setFormData({ ...formData, ptEndDate: e.target.value })}
+                                        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 focus:border-blue-500 focus:outline-none"
+                                    />
+                                </div>
+                            </>
                         )}
 
                         {/* Update member's active plan checkbox */}

@@ -173,6 +173,12 @@ const MemberSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+    ptStartDate: {
+        type: Date,
+    },
+    ptEndDate: {
+        type: Date,
+    },
     ptPaymentStatus: {
         type: String,
         enum: {
