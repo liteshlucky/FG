@@ -18,36 +18,59 @@ export async function POST() {
         const results = [];
 
         for (const member of members) {
-            // Aggregate all payments for this member
-            const agg = await Payment.aggregate([
-                { $match: { memberId: member._id } },
+            // Aggregate all payments for this member (Membership)
+            const membershipAgg = await Payment.aggregate([
+                { $match: { memberId: member._id, planType: { $nin: ['PTplan', 'pt_plan'] } } },
                 { $group: { _id: null, total: { $sum: '$amount' } } }
             ]);
 
-            const totalPaid = agg[0]?.total || 0;
+            // Aggregate all payments for this member (PT)
+            const ptAgg = await Payment.aggregate([
+                { $match: { memberId: member._id, planType: { $in: ['PTplan', 'pt_plan'] } } },
+                { $group: { _id: null, total: { $sum: '$amount' } } }
+            ]);
+
+            const totalPaid = membershipAgg[0]?.total || 0;
+            const ptTotalPaid = ptAgg[0]?.total || 0;
+
             const planTotal = (member.totalPlanPrice || 0) + (member.admissionFeeAmount || 0);
+            const ptPlanTotal = member.ptTotalPlanPrice || 0;
 
             const oldPaid = member.totalPaid;
+            const oldPtPaid = member.ptTotalPaid || 0;
 
             const newStatus =
                 planTotal > 0
                     ? totalPaid >= planTotal ? 'paid' : totalPaid > 0 ? 'partial' : 'unpaid'
                     : totalPaid > 0 ? 'paid' : 'unpaid';
+                    
+            const newPtStatus =
+                ptPlanTotal > 0
+                    ? ptTotalPaid >= ptPlanTotal ? 'paid' : ptTotalPaid > 0 ? 'partial' : 'unpaid'
+                    : ptTotalPaid > 0 ? 'paid' : 'unpaid';
 
             // Use updateOne to bypass Mongoose validation (e.g. required gender)
             await Member.updateOne(
                 { _id: member._id },
-                { $set: { totalPaid, paymentStatus: newStatus } }
+                { $set: { 
+                    totalPaid, 
+                    paymentStatus: newStatus,
+                    ptTotalPaid,
+                    ptPaymentStatus: newPtStatus
+                } }
             );
 
             // Only report members that changed
-            if (oldPaid !== totalPaid) {
+            if (oldPaid !== totalPaid || oldPtPaid !== ptTotalPaid) {
                 results.push({
                     memberId: member.memberId,
                     name: member.name,
                     before: oldPaid,
                     after: totalPaid,
+                    ptBefore: oldPtPaid,
+                    ptAfter: ptTotalPaid,
                     paymentStatus: newStatus,
+                    ptPaymentStatus: newPtStatus,
                 });
             }
         }
