@@ -37,6 +37,11 @@ const MemberListViewSchema = new mongoose.Schema({
         enum: ['paid', 'partial', 'unpaid'],
         default: 'unpaid'
     },
+    ptPaymentStatus: {
+        type: String,
+        enum: ['paid', 'partial', 'unpaid'],
+        default: 'unpaid'
+    },
     // Denormalized plan data (from Plan collection)
     planName: {
         type: String,

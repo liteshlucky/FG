@@ -164,16 +164,39 @@ const MemberSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+    // PT Payment tracking
+    ptTotalPlanPrice: {
+        type: Number,
+        default: 0,
+    },
+    ptTotalPaid: {
+        type: Number,
+        default: 0,
+    },
+    ptPaymentStatus: {
+        type: String,
+        enum: {
+            values: ['paid', 'partial', 'unpaid'],
+            message: 'Please select a valid PT payment status'
+        },
+        default: 'unpaid',
+    },
 }, { timestamps: true });
 
 // ============================================
 // VIRTUALS
 // ============================================
 
-// Virtual: Current balance (CALCULATED, not stored)
+// Virtual: Current balance (CALCULATED, not stored) - Membership only
 MemberSchema.virtual('currentBalance').get(function () {
     const totalDue = (this.totalPlanPrice || 0) + (this.admissionFeeAmount || 0);
     return Math.max(0, totalDue - (this.totalPaid || 0));
+});
+
+// Virtual: Current PT balance
+MemberSchema.virtual('currentPTBalance').get(function () {
+    const ptTotalDue = this.ptTotalPlanPrice || 0;
+    return Math.max(0, ptTotalDue - (this.ptTotalPaid || 0));
 });
 
 // Virtual: Payment completion percentage
@@ -239,6 +262,7 @@ async function syncToListView(member) {
             phone: member.phone,
             status: member.status,
             paymentStatus: member.paymentStatus,
+            ptPaymentStatus: member.ptPaymentStatus,
             planName: member.planId?.name || 'No Plan',
             planDuration: member.planId?.duration,
             planId: member.planId?._id || member.planId,

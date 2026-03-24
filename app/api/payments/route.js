@@ -113,8 +113,13 @@ export async function POST(request) {
         }
 
         // Logic for PT Plan
-        if (body.planType === 'pt_plan') {
+        if (body.planType === 'pt_plan' || body.planType === 'PTplan') {
             if (body.planId) {
+                const PTplan = (await import('@/models/PTplan')).default;
+                const ptPlan = await PTplan.findById(body.planId);
+                if (ptPlan) {
+                    member.ptTotalPlanPrice = ptPlan.price;
+                }
                 member.ptPlanId = body.planId;
             }
             if (body.trainerId) {
@@ -131,26 +136,31 @@ export async function POST(request) {
         const payment = await Payment.create(paymentData);
 
         // 4. Update Member Totals
-        // Add this payment to member's total
-        member.totalPaid = (member.totalPaid || 0) + payment.amount;
+        // 4. Update Member Totals
+        if (body.planType === 'pt_plan' || body.planType === 'PTplan') {
+            member.ptTotalPaid = (member.ptTotalPaid || 0) + payment.amount;
+            member.ptPaymentStatus = calculatePaymentStatus(
+                member.ptTotalPlanPrice || 0,
+                member.ptTotalPaid,
+                0
+            );
+        } else {
+            member.totalPaid = (member.totalPaid || 0) + payment.amount;
+            
+            if (body.admissionFee && body.admissionFee > 0) {
+                member.admissionFeeAmount = body.admissionFee;
+            }
 
-        // Update last payment info
-        member.lastPaymentDate = payment.paymentDate;
-        member.lastPaymentAmount = payment.amount;
-
-        // Handle Admission Fee
-        if (body.admissionFee && body.admissionFee > 0) {
-            member.admissionFeeAmount = body.admissionFee;
-            // If this payment covers admission, mark as paid? 
-            // Simplified: We assume totalPaid covers everything.
+            member.paymentStatus = calculatePaymentStatus(
+                member.totalPlanPrice || 0,
+                member.totalPaid,
+                member.admissionFeeAmount || 0
+            );
         }
 
-        // 5. Update Payment Status (paid/partial/unpaid)
-        member.paymentStatus = calculatePaymentStatus(
-            member.totalPlanPrice || 0,
-            member.totalPaid,
-            member.admissionFeeAmount || 0
-        );
+        // Update last payment info globally
+        member.lastPaymentDate = payment.paymentDate;
+        member.lastPaymentAmount = payment.amount;
 
         await member.save();
 
