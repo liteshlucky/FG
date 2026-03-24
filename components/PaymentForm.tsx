@@ -13,20 +13,35 @@ interface PaymentFormProps {
 export default function PaymentForm({ member, payment: existingPayment, onClose, onSuccess }: PaymentFormProps) {
     const isEditMode = !!existingPayment;
 
-    const [plans, setPlans] = useState([]);
-    const [ptPlans, setPTPlans] = useState([]);
-    const [trainers, setTrainers] = useState([]);
-    const [discounts, setDiscounts] = useState([]);
+    const [plans, setPlans] = useState<any[]>([]);
+    const [ptPlans, setPTPlans] = useState<any[]>([]);
+    const [trainers, setTrainers] = useState<any[]>([]);
+    const [discounts, setDiscounts] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState('');
 
     // ── Due amount calculation ────────────────────────────────────────────────
-    const currentBalance = member.currentBalance ?? Math.max(
+    const membershipBalance = member.currentBalance ?? Math.max(
         0,
         (member.totalPlanPrice || 0) + (member.admissionFeeAmount || 0) - (member.totalPaid || 0)
     );
-    const hasDue = !isEditMode && currentBalance > 0;  // only show due banner in create mode
+    const ptBalance = member.currentPTBalance ?? Math.max(
+        0,
+        (member.ptTotalPlanPrice || 0) - (member.ptTotalPaid || 0)
+    );
+
+    const existingMembershipBalance = member.currentBalance ?? Math.max(
+        0,
+        (member.totalPlanPrice || 0) + (member.admissionFeeAmount || 0) - (member.totalPaid || 0)
+    );
+    const existingPtBalance = member.currentPTBalance ?? Math.max(
+        0,
+        (member.ptTotalPlanPrice || 0) - (member.ptTotalPaid || 0)
+    );
+    const initialPlanType = isEditMode ? (existingPayment.planType || 'membership') : 'membership';
+    const existingBalance = (initialPlanType === 'pt_plan' || initialPlanType === 'PTplan') ? existingPtBalance : existingMembershipBalance;
+    const initialHasDue = !isEditMode && existingBalance > 0;
 
     // ── Initial form state — pre-fill from existing payment in edit mode ──────
     const [formData, setFormData] = useState({
@@ -37,18 +52,50 @@ export default function PaymentForm({ member, payment: existingPayment, onClose,
                            : new Date().toISOString().split('T')[0],
         transactionId:     isEditMode ? (existingPayment.transactionId || '')                   : '',
         notes:             isEditMode ? (existingPayment.notes || '')                           : '',
-        planType:          isEditMode ? (existingPayment.planType || 'membership')              : 'membership',
+        planType:          initialPlanType,
         planId:            isEditMode ? (existingPayment.planId?._id || existingPayment.planId || '') : (member.planId?._id || member.planId || ''),
         isRenewal:         false,
         renewalStartDate:  new Date().toISOString().split('T')[0],
         renewalPlanId:     member.planId?._id || member.planId || '',
-        paymentType:       'due_clear',
+        paymentType:       'full_payment',
         fullAmount:        '',
         activateMembership:false,
         trainerId:         isEditMode ? (existingPayment.trainerId?._id || existingPayment.trainerId || '') : (member.trainerId?._id || member.trainerId || ''),
         discountId:        isEditMode ? (existingPayment.discountId?._id || existingPayment.discountId || '') : (member.discountId?._id || member.discountId || ''),
-        paymentCategory:   isEditMode ? (existingPayment.paymentCategory || 'Plan')            : (hasDue ? 'Due Amount' : 'Plan'),
+        paymentCategory:   isEditMode ? (existingPayment.paymentCategory || 'Plan')            : (initialHasDue ? 'Due Amount' : 'Plan'),
     });
+
+    // ── Reactive Balance based on selected planType ─────────────────────────
+    let newPlanPrice = 0;
+    let isNewPlanSelected = false;
+    
+    if (!isEditMode) {
+        if (formData.planType === 'membership') {
+            const selectedPlan = plans.find((p: any) => p._id === formData.renewalPlanId || p._id === formData.planId);
+            if (selectedPlan) {
+                const isNewAssignment = !member.planId;
+                const isDifferentPlan = member.planId?._id !== selectedPlan._id && member.planId !== selectedPlan._id;
+                if (isNewAssignment || isDifferentPlan || formData.isRenewal) {
+                    newPlanPrice = selectedPlan.price;
+                    isNewPlanSelected = true;
+                }
+            }
+        } else if (formData.planType === 'pt_plan' || formData.planType === 'PTplan') {
+            const selectedPtPlan = ptPlans.find((p: any) => p._id === formData.planId);
+            if (selectedPtPlan) {
+                const isNewAssignment = !member.ptPlanId;
+                const isDifferentPlan = member.ptPlanId?._id !== selectedPtPlan._id && member.ptPlanId !== selectedPtPlan._id;
+                if (isNewAssignment || isDifferentPlan) {
+                    newPlanPrice = selectedPtPlan.price;
+                    isNewPlanSelected = true;
+                }
+            }
+        }
+    }
+
+    // `existingBalance` is the true past mathematical due amount regardless of form UI assignments
+    const currentExistingBalance = (formData.planType === 'pt_plan' || formData.planType === 'PTplan') ? existingPtBalance : existingMembershipBalance;
+    const hasExistingDue = !isEditMode && currentExistingBalance > 0;
 
     useEffect(() => {
         fetchPlans();
@@ -74,15 +121,27 @@ export default function PaymentForm({ member, payment: existingPayment, onClose,
         const newPlanId = type === 'membership'
             ? (member.planId?._id || member.planId || '')
             : (member.ptPlanId?._id || member.ptPlanId || '');
-        setFormData({ ...formData, planType: type, planId: newPlanId, renewalPlanId: newPlanId, isRenewal: false });
+            
+        const newBalance = (type === 'pt_plan' || type === 'PTplan') ? ptBalance : membershipBalance;
+        const newHasDue = !isEditMode && newBalance > 0;
+
+        setFormData({ 
+            ...formData, 
+            planType: type, 
+            planId: newPlanId, 
+            renewalPlanId: newPlanId, 
+            isRenewal: false,
+            amount: '', // Reset amount on change
+            paymentCategory: (existingPtBalance > 0 || existingMembershipBalance > 0) ? 'Due Amount' : 'Plan'
+        });
     };
 
     // ── Due preset buttons (create mode only) ─────────────────────────────────
-    const applyDuePreset = (preset: 'full' | 'half' | 'custom') => {
+    const applyPresets = (preset: 'full' | 'half' | 'custom', totalAmt: number) => {
         let amt = '';
-        if (preset === 'full')  amt = String(currentBalance);
-        if (preset === 'half')  amt = String(Math.ceil(currentBalance / 2));
-        setFormData(prev => ({ ...prev, amount: amt, paymentCategory: 'Due Amount' }));
+        if (preset === 'full')  amt = String(totalAmt);
+        if (preset === 'half')  amt = String(Math.ceil(totalAmt / 2));
+        setFormData(prev => ({ ...prev, amount: amt, paymentCategory: hasExistingDue ? 'Due Amount' : 'Plan' }));
     };
 
     // ── Submit (create or update) ─────────────────────────────────────────────
@@ -155,43 +214,70 @@ export default function PaymentForm({ member, payment: existingPayment, onClose,
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 px-3 py-1 text-sm font-semibold text-amber-400">
                             Editing Existing Record
                         </span>
-                    ) : hasDue ? (
+                    ) : hasExistingDue ? (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 border border-rose-500/30 px-3 py-1 text-sm font-semibold text-rose-400">
                             <IndianRupee className="h-3.5 w-3.5" />
-                            Due: ₹{currentBalance.toLocaleString('en-IN')}
+                            Prev Due: ₹{currentExistingBalance.toLocaleString('en-IN')}
+                        </span>
+                    ) : isNewPlanSelected ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 px-3 py-1 text-sm font-semibold text-blue-400">
+                            New Plan Added
                         </span>
                     ) : (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 text-sm font-semibold text-emerald-400">
                             <CheckCircle2 className="h-3.5 w-3.5" />
-                            Fully Paid
+                            No Previous Dues
                         </span>
                     )}
                 </div>
 
-                {/* Due Alert Banner — create mode only */}
-                {hasDue && (
+                {/* Outstanding Due Banner */}
+                {hasExistingDue && !isNewPlanSelected && (
                     <div className="mb-5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
                         <div className="flex items-start gap-3">
                             <AlertTriangle className="h-5 w-5 text-amber-400 mt-0.5 shrink-0" />
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-semibold text-amber-300">
-                                    Outstanding Balance: ₹{currentBalance.toLocaleString('en-IN')}
+                                    Outstanding Balance: ₹{currentExistingBalance.toLocaleString('en-IN')}
                                 </p>
                                 <p className="mt-1 text-xs text-amber-400/70">
-                                    Select an amount to collect or enter a custom value below.
+                                    Member has an outstanding balance from a previous part payment.
                                 </p>
                                 <div className="mt-3 flex flex-wrap gap-2">
-                                    <button type="button" onClick={() => applyDuePreset('full')}
-                                        className={`rounded-lg px-4 py-1.5 text-sm font-medium border transition-all ${formData.amount === String(currentBalance) ? 'bg-amber-500 border-amber-400 text-slate-900' : 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'}`}>
-                                        Pay Full Due — ₹{currentBalance.toLocaleString('en-IN')}
+                                    <button type="button" onClick={() => applyPresets('full', currentExistingBalance)}
+                                        className={`rounded-lg px-4 py-1.5 text-sm font-medium border transition-all ${formData.amount === String(currentExistingBalance) ? 'bg-amber-500 border-amber-400 text-slate-900' : 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'}`}>
+                                        Pay Full Due — ₹{currentExistingBalance.toLocaleString('en-IN')}
                                     </button>
-                                    <button type="button" onClick={() => applyDuePreset('half')}
-                                        className={`rounded-lg px-4 py-1.5 text-sm font-medium border transition-all ${formData.amount === String(Math.ceil(currentBalance / 2)) ? 'bg-amber-500 border-amber-400 text-slate-900' : 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'}`}>
-                                        50% — ₹{Math.ceil(currentBalance / 2).toLocaleString('en-IN')}
+                                    <button type="button" onClick={() => applyPresets('half', currentExistingBalance)}
+                                        className={`rounded-lg px-4 py-1.5 text-sm font-medium border transition-all ${formData.amount === String(Math.ceil(currentExistingBalance / 2)) ? 'bg-amber-500 border-amber-400 text-slate-900' : 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'}`}>
+                                        50% — ₹{Math.ceil(currentExistingBalance / 2).toLocaleString('en-IN')}
                                     </button>
-                                    <button type="button" onClick={() => applyDuePreset('custom')}
-                                        className="rounded-lg px-4 py-1.5 text-sm font-medium border border-slate-600 bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">
-                                        Custom Amount
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* New Plan Selection Banner */}
+                {isNewPlanSelected && (
+                    <div className="mb-5 rounded-xl border border-blue-500/30 bg-blue-500/10 p-4">
+                        <div className="flex items-start gap-3">
+                            <IndianRupee className="h-5 w-5 text-blue-400 mt-0.5 shrink-0" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-blue-300">
+                                    New Plan Total: ₹{newPlanPrice.toLocaleString('en-IN')}
+                                </p>
+                                <p className="mt-1 text-xs text-blue-400/70">
+                                    Select an amount to collect for this new plan assignment.
+                                </p>
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    <button type="button" onClick={() => applyPresets('full', newPlanPrice)}
+                                        className={`rounded-lg px-4 py-1.5 text-sm font-medium border transition-all ${formData.amount === String(newPlanPrice) ? 'bg-blue-500 border-blue-400 text-slate-900' : 'bg-blue-500/10 border-blue-500/30 text-blue-300 hover:bg-blue-500/20'}`}>
+                                        Pay Full Price — ₹{newPlanPrice.toLocaleString('en-IN')}
+                                    </button>
+                                    <button type="button" onClick={() => applyPresets('half', newPlanPrice)}
+                                        className={`rounded-lg px-4 py-1.5 text-sm font-medium border transition-all ${formData.amount === String(Math.ceil(newPlanPrice / 2)) ? 'bg-blue-500 border-blue-400 text-slate-900' : 'bg-blue-500/10 border-blue-500/30 text-blue-300 hover:bg-blue-500/20'}`}>
+                                        Part Payment: 50% — ₹{Math.ceil(newPlanPrice / 2).toLocaleString('en-IN')}
                                     </button>
                                 </div>
                             </div>
@@ -309,7 +395,7 @@ export default function PaymentForm({ member, payment: existingPayment, onClose,
                                 <label className="block text-sm font-medium text-slate-400">Payment Type *</label>
                                 <select required value={formData.paymentType} onChange={(e) => setFormData({ ...formData, paymentType: e.target.value })}
                                     className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-slate-100 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-                                    <option value="due_clear">Due Clear (Full Payment)</option>
+                                    <option value="full_payment">Full Payment</option>
                                     <option value="part_payment">Part Payment</option>
                                 </select>
                             </div>
@@ -336,15 +422,22 @@ export default function PaymentForm({ member, payment: existingPayment, onClose,
                                     <IndianRupee className="h-4 w-4" />
                                 </span>
                                 <input type="number" required min="0" step="0.01" value={formData.amount}
-                                    onChange={(e) => setFormData({ ...formData, amount: e.target.value, paymentCategory: hasDue ? 'Due Amount' : formData.paymentCategory })}
-                                    placeholder={hasDue ? `Outstanding: ₹${currentBalance.toLocaleString('en-IN')}` : '0'}
-                                    className={`block w-full rounded-lg border pl-9 pr-4 py-2 text-slate-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${formData.amount && hasDue ? 'border-amber-500/50 bg-amber-500/5' : 'border-slate-700 bg-slate-950'}`} />
+                                    onChange={(e) => setFormData({ ...formData, amount: e.target.value, paymentCategory: hasExistingDue ? 'Due Amount' : 'Plan' })}
+                                    placeholder={isNewPlanSelected ? `New Price: ₹${newPlanPrice.toLocaleString('en-IN')}` : hasExistingDue ? `Outstanding: ₹${currentExistingBalance.toLocaleString('en-IN')}` : '0'}
+                                    className={`block w-full rounded-lg border pl-9 pr-4 py-2 text-slate-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${formData.amount && (hasExistingDue || isNewPlanSelected) ? 'border-amber-500/50 bg-amber-500/5' : 'border-slate-700 bg-slate-950'}`} />
                             </div>
-                            {hasDue && formData.amount && Number(formData.amount) < currentBalance && (
-                                <p className="mt-1 text-xs text-amber-500/80">Remaining after this payment: ₹{(currentBalance - Number(formData.amount)).toLocaleString('en-IN')}</p>
+                            {/* Calculation helpers */}
+                            {isNewPlanSelected && formData.amount && Number(formData.amount) < newPlanPrice && (
+                                <p className="mt-1 text-xs text-blue-400/80">Will leave an outstanding due of: ₹{(newPlanPrice - Number(formData.amount)).toLocaleString('en-IN')}</p>
                             )}
-                            {hasDue && formData.amount && Number(formData.amount) >= currentBalance && (
+                            {hasExistingDue && !isNewPlanSelected && formData.amount && Number(formData.amount) < currentExistingBalance && (
+                                <p className="mt-1 text-xs text-amber-500/80">Remaining after this payment: ₹{(currentExistingBalance - Number(formData.amount)).toLocaleString('en-IN')}</p>
+                            )}
+                            {hasExistingDue && !isNewPlanSelected && formData.amount && Number(formData.amount) >= currentExistingBalance && (
                                 <p className="mt-1 text-xs text-emerald-400">✓ This will clear all outstanding dues</p>
+                            )}
+                            {isNewPlanSelected && formData.amount && Number(formData.amount) >= newPlanPrice && (
+                                <p className="mt-1 text-xs text-emerald-400">✓ Fully paid for this new plan</p>
                             )}
                         </div>
 

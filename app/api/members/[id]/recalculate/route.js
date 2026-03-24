@@ -20,18 +20,32 @@ export async function POST(request, { params }) {
             return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
         }
 
-        // Sum all non-debit payments for this member
-        const result = await Payment.aggregate([
-            { $match: { memberId: member._id } },
+        // Sum all non-debit payments for this member (Membership)
+        const membershipResult = await Payment.aggregate([
+            { $match: { memberId: member._id, planType: { $nin: ['PTplan', 'pt_plan'] } } },
             { $group: { _id: null, total: { $sum: '$amount' } } }
         ]);
 
-        const totalPaid = result[0]?.total || 0;
+        // Sum all non-debit payments for this member (PT)
+        const ptResult = await Payment.aggregate([
+            { $match: { memberId: member._id, planType: { $in: ['PTplan', 'pt_plan'] } } },
+            { $group: { _id: null, total: { $sum: '$amount' } } }
+        ]);
+
+        const totalPaid = membershipResult[0]?.total || 0;
         const planTotal = (member.totalPlanPrice || 0) + (member.admissionFeeAmount || 0);
+
+        const ptTotalPaid = ptResult[0]?.total || 0;
+        const ptPlanTotal = member.ptTotalPlanPrice || 0;
 
         member.totalPaid = totalPaid;
         member.paymentStatus = totalPaid >= planTotal && planTotal > 0 ? 'paid'
             : totalPaid > 0 ? 'partial'
+            : 'unpaid';
+
+        member.ptTotalPaid = ptTotalPaid;
+        member.ptPaymentStatus = ptTotalPaid >= ptPlanTotal && ptPlanTotal > 0 ? 'paid'
+            : ptTotalPaid > 0 ? 'partial'
             : 'unpaid';
 
         await member.save();
@@ -42,10 +56,15 @@ export async function POST(request, { params }) {
                 memberId:      member.memberId,
                 name:          member.name,
                 totalPaid,
+                ptTotalPaid,
                 totalPlanPrice: planTotal,
+                ptTotalPlanPrice: ptPlanTotal,
                 balance:       planTotal - totalPaid,
+                ptBalance:     ptPlanTotal - ptTotalPaid,
                 paymentStatus: member.paymentStatus,
+                ptPaymentStatus: member.ptPaymentStatus,
             }
+
         });
     } catch (error) {
         console.error('Recalculate error:', error);
