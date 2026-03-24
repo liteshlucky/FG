@@ -179,7 +179,7 @@ export async function POST(request) {
 
                 // Create a dashboard notification
                 try {
-                    const message = `Coach ${user.name} checked in at ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}.`;
+                    const message = `Coach ${user.name} checked in at ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}.`;
                     await Notification.create({
                         title: 'Trainer Check-In',
                         message: message,
@@ -193,7 +193,7 @@ export async function POST(request) {
                         const htmlContent = `
                             <h2>Trainer Check-In</h2>
                             <p><strong>Coach:</strong> ${user.name}</p>
-                            <p><strong>Time:</strong> ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+                            <p><strong>Time:</strong> ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}</p>
                             <br/>
                             <p><a href="${process.env.NEXTAUTH_URL}/dashboard/staff/${userId}">View Profile</a></p>
                         `;
@@ -253,7 +253,7 @@ export async function POST(request) {
                             <h2>Trainer Check-Out</h2>
                             <p><strong>Coach:</strong> ${user.name}</p>
                             <p><strong>Duration:</strong> ${hours}h ${minutes}m</p>
-                            <p><strong>Time:</strong> ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+                            <p><strong>Time:</strong> ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}</p>
                             <br/>
                             <p><a href="${process.env.NEXTAUTH_URL}/dashboard/staff/${userId}">View Profile</a></p>
                         `;
