@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, DollarSign, Edit } from 'lucide-react';
+import { ArrowLeft, DollarSign, Edit, AlertTriangle } from 'lucide-react';
 import PaymentForm from '@/components/PaymentForm';
+import DueClearForm from '@/components/DueClearForm';
 import Avatar from '@/components/Avatar';
 import AIAnalysis from '@/components/AIAnalysis';
 
@@ -16,6 +17,8 @@ export default function MemberDetailPage() {
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showPaymentForm, setShowPaymentForm] = useState(false);
+    const [showDueClearForm, setShowDueClearForm] = useState<{show: boolean, type?: 'membership' | 'pt_plan'}>({ show: false });
+    const [paymentFormType, setPaymentFormType] = useState<'membership' | 'pt_plan' | undefined>();
     const [editingPayment, setEditingPayment] = useState<any>(null);
     const [activeTab, setActiveTab] = useState<'all' | 'membership' | 'pt'>('all');
     const [editingSection, setEditingSection] = useState<'personal' | 'physical' | 'health' | 'membership' | 'pt' | null>(null);
@@ -97,21 +100,16 @@ export default function MemberDetailPage() {
     if (loading) return <div className="p-4">Loading...</div>;
     if (!member) return <div className="p-4">Member not found</div>;
 
-    // Calculate total due
-    let totalDue = 0;
-    if (member.planId) totalDue += member.planId.price || 0;
-    if (member.ptPlanId) totalDue += member.ptPlanId.price || 0;
-
-    // Apply discount
-    if (member.discountId) {
-        if (member.discountId.type === 'percentage') {
-            totalDue -= (totalDue * member.discountId.value) / 100;
-        } else {
-            totalDue -= member.discountId.value;
-        }
-    }
-
-    const balance = totalDue - (member.totalPaid || 0);
+    const membershipBalance = member.currentBalance ?? Math.max(
+        0,
+        (member.totalPlanPrice || 0) + (member.admissionFeeAmount || 0) - (member.totalPaid || 0)
+    );
+    const ptBalance = member.currentPTBalance ?? Math.max(
+        0,
+        (member.ptTotalPlanPrice || 0) - (member.ptTotalPaid || 0)
+    );
+    const totalDue = (member.totalPlanPrice || 0) + (member.admissionFeeAmount || 0) + (member.ptTotalPlanPrice || 0);
+    const balance = membershipBalance + ptBalance;
 
     const formatDate = (dateString: string | Date) => {
         if (!dateString) return '-';
@@ -139,9 +137,34 @@ export default function MemberDetailPage() {
                         <p className="text-sm text-slate-400">Member since {formatDate(member.joinDate)}</p>
                     </div>
                 </div>
-                <div className="flex space-x-3">
+                <div className="flex items-center space-x-3">
+                    {membershipBalance > 0 && (
+                        <button
+                            onClick={() => {
+                                setShowDueClearForm({ show: true, type: 'membership' });
+                            }}
+                            className="flex items-center rounded-md bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-sm font-medium text-amber-500 hover:bg-amber-500/20 transition-colors"
+                        >
+                            <AlertTriangle className="mr-2 h-4 w-4" />
+                            Membership Due: ₹{membershipBalance.toLocaleString()}
+                        </button>
+                    )}
+                    {ptBalance > 0 && (
+                        <button
+                            onClick={() => {
+                                setShowDueClearForm({ show: true, type: 'pt_plan' });
+                            }}
+                            className="flex items-center rounded-md bg-orange-500/10 border border-orange-500/30 px-3 py-2 text-sm font-medium text-orange-500 hover:bg-orange-500/20 transition-colors"
+                        >
+                            <AlertTriangle className="mr-2 h-4 w-4" />
+                            PT Due: ₹{ptBalance.toLocaleString()}
+                        </button>
+                    )}
                     <button
-                        onClick={() => setShowPaymentForm(true)}
+                        onClick={() => {
+                            setPaymentFormType(undefined);
+                            setShowPaymentForm(true);
+                        }}
                         className="flex items-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
                     >
                         <DollarSign className="mr-2 h-4 w-4" />
@@ -479,12 +502,12 @@ export default function MemberDetailPage() {
                     <h2 className="text-lg font-medium text-slate-100">Payment Summary</h2>
                     <div className="mt-4 space-y-3">
                         <div>
-                            <p className="text-sm text-slate-400">Total Due</p>
+                            <p className="text-sm text-slate-400">Total Price</p>
                             <p className="text-lg font-semibold text-slate-100">₹{totalDue.toLocaleString()}</p>
                         </div>
                         <div>
                             <p className="text-sm text-slate-400">Total Paid</p>
-                            <p className="text-lg font-semibold text-green-500">₹{(member.totalPaid || 0).toLocaleString()}</p>
+                            <p className="text-lg font-semibold text-green-500">₹{((member.totalPaid || 0) + (member.ptTotalPaid || 0)).toLocaleString()}</p>
                         </div>
                         <div>
                             <p className="text-sm text-slate-400">Balance</p>
@@ -705,7 +728,20 @@ export default function MemberDetailPage() {
             {showPaymentForm && (
                 <PaymentForm
                     member={member}
-                    onClose={() => setShowPaymentForm(false)}
+                    initialPlanType={paymentFormType}
+                    onClose={() => {
+                        setShowPaymentForm(false);
+                        setPaymentFormType(undefined);
+                    }}
+                    onSuccess={handlePaymentSuccess}
+                />
+            )}
+
+            {showDueClearForm.show && showDueClearForm.type && (
+                <DueClearForm 
+                    member={member}
+                    dueType={showDueClearForm.type}
+                    onClose={() => setShowDueClearForm({ show: false })}
                     onSuccess={handlePaymentSuccess}
                 />
             )}
