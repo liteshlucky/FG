@@ -1,6 +1,8 @@
 import dbConnect from '@/lib/db';
 import Payment from '@/models/Payment';
 import Member from '@/models/Member';
+import Plan from '@/models/Plan';
+import PTplan from '@/models/PTplan';
 import Settings from '@/models/Settings';
 import Notification from '@/models/Notification';
 import { sendEmailAlert } from '@/lib/email';
@@ -178,7 +180,7 @@ export async function POST(request) {
                     title: 'Payment Received',
                     message: `₹${payment.amount} received from ${member.name} (${member.memberId}).`,
                     type: 'success',
-                    link: `/dashboard/members/${member._id}`
+                    link: `/dashboard/members/${member.memberId || member._id}`
                 });
 
                 // 2. Send Email Alert in real-time if recipients are configured
@@ -190,7 +192,7 @@ export async function POST(request) {
                         <p><strong>Member:</strong> ${member.name} (${member.memberId})</p>
                         <p><strong>Receipt:</strong> ${payment.receiptNumber}</p>
                         <br/>
-                        <p><a href="${process.env.NEXTAUTH_URL}/dashboard/members/${member._id}">View Member Profile</a></p>
+                        <p><a href="${process.env.NEXTAUTH_URL}/dashboard/members/${member.memberId || member._id}">View Member Profile</a></p>
                     `;
                     await sendEmailAlert(settings.notificationEmails, `💰 Payment of ₹${payment.amount} from ${member.name}`, htmlContent);
                 }

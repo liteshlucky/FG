@@ -55,7 +55,7 @@ export async function GET(request) {
                         title: 'Membership Expiring Soon',
                         message: msg,
                         type: 'warning',
-                        link: `/dashboard/members/${m._id}`
+                        link: `/dashboard/members/${m.memberId || m._id}`
                     });
                     
                     emailHtmlContent += `<li>${msg}</li>`;
@@ -84,7 +84,7 @@ export async function GET(request) {
                         title: 'Pending Dues Alert',
                         message: msg,
                         type: 'warning',
-                        link: `/dashboard/members/${m._id}`
+                        link: `/dashboard/members/${m.memberId || m._id}`
                     });
                     
                     emailHtmlContent += `<li>${msg} Phone: ${m.phone}</li>`;
@@ -124,7 +124,7 @@ export async function GET(request) {
                         title: 'Absentee Alert',
                         message: msg,
                         type: 'info',
-                        link: `/dashboard/members/${m._id}`
+                        link: `/dashboard/members/${m.memberId || m._id}`
                     });
                     emailHtmlContent += `<li>${msg}</li>`;
                 });

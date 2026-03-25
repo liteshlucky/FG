@@ -482,7 +482,7 @@ export default function MembersPage() {
                                             <Avatar src={member.profilePicture} name={member.name} />
                                         </div>
                                         <div className="ml-4">
-                                            <Link href={`/dashboard/members/${member._id}`} className="text-sm font-medium text-blue-400 hover:text-blue-300">
+                                            <Link href={`/dashboard/members/${member.memberId || member._id}`} className="text-sm font-medium text-blue-400 hover:text-blue-300">
                                                 {member.name}
                                             </Link>
                                             <div className="text-xs">
@@ -535,7 +535,7 @@ export default function MembersPage() {
                                         <DollarSign className="h-4 w-4" />
                                     </button>
                                     <button
-                                        onClick={() => router.push(`/dashboard/members/${member._id}/edit`)}
+                                        onClick={() => router.push(`/dashboard/members/${member.memberId || member._id}/edit`)}
                                         className="mr-4 text-blue-500 hover:text-blue-400 transition-colors"
                                         title="Edit Member"
                                     >
