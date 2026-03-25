@@ -74,41 +74,41 @@ export default function AttendancePage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-100">Attendance Management</h1>
                     <p className="mt-1 text-sm text-slate-400">Track member and trainer check-ins</p>
                 </div>
-                <div className="flex space-x-3">
+                <div className="flex flex-wrap gap-2">
                     <a
                         href="/dashboard/attendance/qr-code"
-                        className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-purple-500/20 hover:bg-purple-500 hover:shadow-purple-500/30 transition-all hover:scale-105 active:scale-95"
+                        className="rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium text-white shadow-lg shadow-purple-500/20 hover:bg-purple-500 hover:shadow-purple-500/30 transition-all hover:scale-105 active:scale-95"
                     >
                         QR Code
                     </a>
                     <a
                         href="/dashboard/attendance/history"
-                        className="rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-slate-500/20 hover:bg-slate-600 hover:shadow-slate-500/30 transition-all hover:scale-105 active:scale-95"
+                        className="rounded-lg bg-slate-700 px-3 py-2 text-sm font-medium text-white shadow-lg shadow-slate-500/20 hover:bg-slate-600 hover:shadow-slate-500/30 transition-all hover:scale-105 active:scale-95"
                     >
-                        View History
+                        History
                     </a>
                     <a
                         href="/dashboard/attendance/reports"
-                        className="rounded-lg bg-pink-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-pink-500/20 hover:bg-pink-500 hover:shadow-pink-500/30 transition-all hover:scale-105 active:scale-95"
+                        className="rounded-lg bg-pink-600 px-3 py-2 text-sm font-medium text-white shadow-lg shadow-pink-500/20 hover:bg-pink-500 hover:shadow-pink-500/30 transition-all hover:scale-105 active:scale-95"
                     >
-                        View Reports
+                        Reports
                     </a>
                     <button
                         onClick={() => setShowCheckInModal(true)}
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 hover:shadow-blue-500/30 transition-all hover:scale-105 active:scale-95"
+                        className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 hover:shadow-blue-500/30 transition-all hover:scale-105 active:scale-95"
                     >
                         + Check In
                     </button>
                     <button
                         onClick={() => setShowCheckOutModal(true)}
-                        className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-500 hover:shadow-emerald-500/30 transition-all hover:scale-105 active:scale-95"
+                        className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-500 hover:shadow-emerald-500/30 transition-all hover:scale-105 active:scale-95"
                     >
-                        Check Out Users
+                        Check Out
                     </button>
                 </div>
             </div>
@@ -185,7 +185,7 @@ export default function AttendancePage() {
             </div>
 
             {/* Currently Checked In */}
-            <div className="rounded-xl bg-slate-900 shadow-sm border border-slate-800 overflow-hidden">
+            <div className="rounded-xl bg-slate-900 shadow-sm border border-slate-800 overflow-x-auto">
                 <div className="px-6 py-4 border-b border-slate-800">
                     <h2 className="text-lg font-semibold text-slate-100">
                         Currently Checked In ({checkedInUsers.length})

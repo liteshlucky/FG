@@ -159,14 +159,14 @@ export default function FinancePage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-100">Finance Dashboard</h1>
                     <p className="mt-1 text-sm text-slate-400">
                         Overview from {new Date(filters.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} to {new Date(filters.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     </p>
                 </div>
-                <div className="flex space-x-3">
+                <div className="flex flex-wrap gap-2">
                     <button
                         onClick={exportToCSV}
                         className="flex items-center rounded-md border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700"
@@ -262,7 +262,7 @@ export default function FinancePage() {
             </div>
 
             {/* Transactions Table */}
-            <div className="overflow-hidden rounded-lg border border-slate-700 bg-slate-800 shadow">
+            <div className="overflow-x-auto rounded-lg border border-slate-700 bg-slate-800 shadow">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-slate-700">
                         <thead className="bg-slate-900">
