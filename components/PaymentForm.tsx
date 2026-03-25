@@ -6,11 +6,12 @@ import { X, AlertTriangle, CheckCircle2, IndianRupee, Trash2 } from 'lucide-reac
 interface PaymentFormProps {
     member: any;
     payment?: any;         // If provided → EDIT mode; otherwise → CREATE mode
+    initialPlanType?: 'membership' | 'pt_plan';
     onClose: () => void;
     onSuccess: () => void;
 }
 
-export default function PaymentForm({ member, payment: existingPayment, onClose, onSuccess }: PaymentFormProps) {
+export default function PaymentForm({ member, payment: existingPayment, initialPlanType: initialPlanTypeProp, onClose, onSuccess }: PaymentFormProps) {
     const isEditMode = !!existingPayment;
 
     const [plans, setPlans] = useState<any[]>([]);
@@ -40,7 +41,7 @@ export default function PaymentForm({ member, payment: existingPayment, onClose,
         0,
         (member.ptTotalPlanPrice || 0) - (member.ptTotalPaid || 0)
     );
-    const initialPlanType = isEditMode ? (existingPayment.planType || 'membership') : 'membership';
+    const initialPlanType = isEditMode ? (existingPayment.planType || 'membership') : (initialPlanTypeProp || 'membership');
     const existingBalance = (initialPlanType === 'pt_plan' || initialPlanType === 'PTplan') ? existingPtBalance : existingMembershipBalance;
     const initialHasDue = !isEditMode && existingBalance > 0;
 
