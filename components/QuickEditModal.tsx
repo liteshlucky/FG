@@ -152,7 +152,7 @@ export default function QuickEditModal({ isOpen, onClose, onSave, onClearPlan, s
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
-            <div className="w-full max-w-lg rounded-lg bg-slate-800 shadow-xl border border-slate-700">
+            <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-lg bg-slate-800 shadow-xl border border-slate-700">
                 <div className="flex items-center justify-between border-b border-slate-700 px-6 py-4">
                     <h3 className="text-lg font-medium text-slate-100">{getTitle()}</h3>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-300">

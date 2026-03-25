@@ -74,7 +74,7 @@ export default function CheckOutModal({ userType, checkedInUsers, onClose, onSuc
                     </div>
 
                     {/* User List */}
-                    <div className="max-h-96 overflow-y-auto">
+                    <div className="max-h-[60vh] overflow-y-auto overflow-x-auto">
                         {checkedInUsers.length === 0 ? (
                             <div className="text-center py-12 text-slate-400">
                                 No {userType.toLowerCase()}s are currently checked in

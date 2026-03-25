@@ -292,25 +292,27 @@ export default function MembersPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <h1 className="text-2xl font-bold text-slate-100">
                     Members
                     <span className="ml-2 text-lg font-normal text-slate-500">
                         ({totalMembers})
                     </span>
                 </h1>
-                <div className="flex space-x-3">
+                <div className="flex flex-wrap gap-2">
                     <button
                         onClick={handleExport}
                         disabled={!members.length}
-                        className="inline-flex items-center rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-50 transition-colors"
+                        className="inline-flex items-center rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-50 transition-colors"
                     >
-                        <Download className="mr-2 h-4 w-4" />
-                        Export CSV
+                        <Download className="mr-1.5 h-4 w-4" />
+                        <span className="hidden sm:inline">Export CSV</span>
+                        <span className="sm:hidden">Export</span>
                     </button>
-                    <label className="inline-flex cursor-pointer items-center rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition-colors">
-                        <Upload className="mr-2 h-4 w-4" />
-                        {importing ? 'Importing...' : 'Import CSV'}
+                    <label className="inline-flex cursor-pointer items-center rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition-colors">
+                        <Upload className="mr-1.5 h-4 w-4" />
+                        <span className="hidden sm:inline">{importing ? 'Importing...' : 'Import CSV'}</span>
+                        <span className="sm:hidden">{importing ? '...' : 'Import'}</span>
                         <input
                             type="file"
                             accept=".csv"
@@ -321,68 +323,60 @@ export default function MembersPage() {
                     </label>
                     <Link
                         href="/dashboard/members/new"
-                        className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all"
+                        className="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-500 shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all"
                     >
-                        <Plus className="mr-2 h-4 w-4" />
+                        <Plus className="mr-1.5 h-4 w-4" />
                         Add Member
                     </Link>
                 </div>
             </div>
 
             {/* Search and Filter Bar */}
-            <div className="flex flex-col gap-4 rounded-xl bg-slate-900 border border-slate-800 p-4 shadow-sm sm:flex-row sm:items-center">
-                {/* Search */}
-                <div className="relative flex-1">
+            <div className="flex flex-col gap-3 rounded-xl bg-slate-900 border border-slate-800 p-4 shadow-sm">
+                {/* Row 1: Search */}
+                <div className="relative">
                     <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
                     <input
                         type="text"
-                        placeholder="Search by name, email, phone, or member ID..."
+                        placeholder="Search by name, email, phone, or ID..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full rounded-lg border border-slate-700 bg-slate-950 py-2 pl-10 pr-4 text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                 </div>
 
-                {/* Status Filter */}
-                <div className="flex items-center gap-2">
-                    <Filter className="h-5 w-5 text-slate-500" />
+                {/* Row 2: Filters */}
+                <div className="flex flex-wrap gap-2 items-center">
+                    <Filter className="h-5 w-5 text-slate-500 flex-shrink-0" />
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        className="flex-1 min-w-[120px] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     >
                         <option value="all">All Status</option>
                         <option value="Active">Active</option>
                         <option value="Pending">Pending</option>
                         <option value="Inactive">Inactive</option>
                         <option value="Expired">Expired</option>
-                        <option value="Expiring Soon">Expiring Soon (≤10 days)</option>
+                        <option value="Expiring Soon">Expiring Soon (≤10d)</option>
                         {expiryMonths.map(m => (
                             <option key={m.value} value={m.value}>{m.label}</option>
                         ))}
                     </select>
-                </div>
-
-                {/* Payment Status Filter */}
-                <div>
                     <select
                         value={paymentStatusFilter}
                         onChange={(e) => setPaymentStatusFilter(e.target.value)}
-                        className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        className="flex-1 min-w-[120px] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     >
                         <option value="all">All Payments</option>
                         <option value="paid">Paid</option>
                         <option value="partial">Partial</option>
                         <option value="unpaid">Unpaid</option>
                     </select>
-                </div>
-
-                {/* Type Filter */}
-                <div>
                     <select
                         value={typeFilter}
                         onChange={(e) => setTypeFilter(e.target.value)}
-                        className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        className="flex-1 min-w-[120px] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     >
                         <option value="all">All Types</option>
                         <option value="pt">PT Members</option>
@@ -390,35 +384,31 @@ export default function MembersPage() {
                     </select>
                 </div>
 
-                {/* Custom Expiry Date Range */}
-                <div className="flex items-center gap-2 sm:ml-auto">
-                    <span className="text-sm font-medium text-slate-400">Expiry:</span>
+                {/* Row 3: Expiry date range + results */}
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-medium text-slate-400 flex-shrink-0">Expiry:</span>
                     <input
                         type="date"
                         value={expiryStart}
                         onChange={(e) => setExpiryStart(e.target.value)}
-                        className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-xs"
+                        className="flex-1 min-w-[130px] rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-xs"
                     />
-                    <span className="text-slate-500">-</span>
+                    <span className="text-slate-500">–</span>
                     <input
                         type="date"
                         value={expiryEnd}
                         onChange={(e) => setExpiryEnd(e.target.value)}
-                        className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-xs"
+                        className="flex-1 min-w-[130px] rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-xs"
                     />
+                    {(searchQuery || statusFilter !== 'all' || paymentStatusFilter !== 'all' || typeFilter !== 'all') && (
+                        <div className="ml-auto text-sm text-slate-400">
+                            {members.length} of {totalMembers}
+                        </div>
+                    )}
                 </div>
-
-                {/* Sort Order Removed */}
-
-                {/* Results Count */}
-                {searchQuery || statusFilter !== 'all' || paymentStatusFilter !== 'all' || typeFilter !== 'all' ? (
-                    <div className="text-sm text-slate-400">
-                        {members.length} of {totalMembers} members
-                    </div>
-                ) : null}
             </div>
 
-            <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-sm">
+            <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-sm overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-800">
                     <thead className="bg-slate-950/50 sticky top-0 z-10">
                         <tr>
@@ -564,6 +554,64 @@ export default function MembersPage() {
                     </tbody>
                 </table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="flex items-center justify-between border-t border-slate-800 bg-slate-900 px-4 py-3 sm:px-6 rounded-xl shadow-sm">
+                    {/* Desktop Pagination */}
+                    <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-sm text-slate-400">
+                                Showing page <span className="font-medium text-slate-200">{currentPage}</span> of{' '}
+                                <span className="font-medium text-slate-200">{totalPages}</span>
+                            </p>
+                        </div>
+                        <div>
+                            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                    className="relative inline-flex items-center rounded-l-md px-3 py-2 text-slate-400 ring-1 ring-inset ring-slate-700 hover:bg-slate-800 hover:text-white focus:z-20 focus:outline-offset-0 disabled:opacity-50 transition-colors"
+                                >
+                                    <span className="sr-only">Previous</span>
+                                    Previous
+                                </button>
+                                <div className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-200 ring-1 ring-inset ring-slate-700 bg-slate-800/50">
+                                    {currentPage} / {totalPages}
+                                </div>
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages}
+                                    className="relative inline-flex items-center rounded-r-md px-3 py-2 text-slate-400 ring-1 ring-inset ring-slate-700 hover:bg-slate-800 hover:text-white focus:z-20 focus:outline-offset-0 disabled:opacity-50 transition-colors"
+                                >
+                                    <span className="sr-only">Next</span>
+                                    Next
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                    {/* Mobile Pagination */}
+                    <div className="flex flex-1 justify-between sm:hidden items-center">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="relative inline-flex items-center rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-50 transition-colors"
+                        >
+                            Previous
+                        </button>
+                        <span className="text-sm font-medium text-slate-400">
+                            {currentPage} / {totalPages}
+                        </span>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="relative ml-3 inline-flex items-center rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-50 transition-colors"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {
                 showPaymentForm && selectedMember && (
