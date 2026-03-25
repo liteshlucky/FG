@@ -70,14 +70,14 @@ export default function StaffPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-100">Staff</h1>
                     <p className="text-sm text-slate-400">Manage your gym staff and trainers</p>
                 </div>
                 <Link
                     href="/dashboard/staff/new"
-                    className="flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all"
+                    className="inline-flex w-fit items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all"
                 >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Staff

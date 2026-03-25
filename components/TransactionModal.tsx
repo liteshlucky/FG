@@ -75,7 +75,7 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, defaultTy
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-            <div className="w-full max-w-md rounded-xl bg-slate-900 border border-slate-800 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl bg-slate-900 border border-slate-800 shadow-2xl animate-in zoom-in-95 duration-200">
                 <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
                     <h3 className="text-lg font-medium text-slate-100">
                         {formData.type === 'income' ? 'Add Income' : 'Add Expense'}
@@ -97,7 +97,7 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, defaultTy
                             placeholder={formData.type === 'expense' ? "e.g., Electricity Bill" : "e.g., Membership Fee"}
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-400">Type</label>
                             <select
@@ -123,7 +123,7 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, defaultTy
                             />
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-400">Category</label>
                             <select

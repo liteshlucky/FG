@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Dumbbell, CreditCard, LogOut, DollarSign, Settings, BarChart3, TrendingUp, ClipboardCheck, ChevronDown, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Users, Dumbbell, CreditCard, LogOut, DollarSign, Settings, BarChart3, TrendingUp, ClipboardCheck, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import clsx from 'clsx';
 
@@ -38,7 +38,12 @@ const navigation = [
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
-    export default function Sidebar() {
+interface SidebarProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
     const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
         'Attendance': pathname?.startsWith('/dashboard/attendance'),
@@ -49,9 +54,14 @@ const navigation = [
         setOpenMenus(prev => ({ ...prev, [name]: !prev[name] }));
     };
 
-    return (
-        <div className="flex h-full w-64 flex-col bg-slate-900 border-r border-slate-800 text-slate-100 shadow-xl z-20">
-            <div className="flex h-16 items-center justify-center border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm p-4">
+    const handleNavClick = () => {
+        // Close sidebar on mobile when navigating
+        onClose();
+    };
+
+    const sidebarContent = (
+        <div className="flex h-full w-64 flex-col bg-slate-900 border-r border-slate-800 text-slate-100 shadow-xl">
+            <div className="flex h-16 items-center justify-between border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm px-4">
                 <div className="relative h-10 w-full max-w-[150px]">
                     <Image
                         src="/logo.png"
@@ -61,6 +71,14 @@ const navigation = [
                         priority
                     />
                 </div>
+                {/* Close button — only visible on mobile */}
+                <button
+                    onClick={onClose}
+                    className="lg:hidden ml-2 rounded-md p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors"
+                    aria-label="Close sidebar"
+                >
+                    <X className="h-5 w-5" />
+                </button>
             </div>
             <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
                 {navigation.map((item) => {
@@ -100,6 +118,7 @@ const navigation = [
                             ) : (
                                 <Link
                                     href={item.href!}
+                                    onClick={handleNavClick}
                                     className={clsx(
                                         isActive
                                             ? 'bg-blue-600/10 text-blue-400 border-l-2 border-blue-500'
@@ -126,6 +145,7 @@ const navigation = [
                                             <Link
                                                 key={subItem.name}
                                                 href={subItem.href}
+                                                onClick={handleNavClick}
                                                 className={clsx(
                                                     isSubActive
                                                         ? 'bg-blue-600/10 text-blue-400 font-semibold'
@@ -156,5 +176,34 @@ const navigation = [
                 </button>
             </div>
         </div>
+    );
+
+    return (
+        <>
+            {/* Desktop sidebar — always visible */}
+            <div className="hidden lg:flex h-full">
+                {sidebarContent}
+            </div>
+
+            {/* Mobile sidebar — slide-in drawer */}
+            {/* Backdrop overlay */}
+            <div
+                className={clsx(
+                    'fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden',
+                    isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                )}
+                onClick={onClose}
+                aria-hidden="true"
+            />
+            {/* Drawer panel */}
+            <div
+                className={clsx(
+                    'fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out lg:hidden',
+                    isOpen ? 'translate-x-0' : '-translate-x-full'
+                )}
+            >
+                {sidebarContent}
+            </div>
+        </>
     );
 }

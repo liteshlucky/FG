@@ -207,14 +207,14 @@ export default async function DashboardPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-900 p-8 font-sans text-gray-100">
+        <div className="min-h-screen bg-gray-900 p-4 sm:p-8 font-sans text-gray-100">
             {/* Header */}
-            <div className="mb-8 flex items-center justify-between">
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-white">Dashboard</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Dashboard</h1>
                     <p className="mt-1 text-gray-400">Welcome back, Litesh Singh</p>
                 </div>
-                <div className="flex space-x-4">
+                <div className="flex flex-wrap gap-3">
                     <button className="flex items-center space-x-2 rounded-xl bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition hover:bg-gray-700 hover:text-white">
                         <Bell className="h-4 w-4" />
                         <span>Notifications</span>

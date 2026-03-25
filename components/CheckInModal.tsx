@@ -108,7 +108,7 @@ export default function CheckInModal({ userType, onClose, onSuccess }: CheckInMo
                     </div>
 
                     {/* User List */}
-                    <div className="max-h-96 overflow-y-auto px-6 py-4">
+                    <div className="max-h-[60vh] overflow-y-auto px-4 sm:px-6 py-4">
                         {loading ? (
                             <div className="text-center py-8 text-slate-400">Loading...</div>
                         ) : filteredUsers.length === 0 ? (
@@ -131,7 +131,7 @@ export default function CheckInModal({ userType, onClose, onSuccess }: CheckInMo
                                         </div>
 
                                         {/* Locker key + check-in */}
-                                        <div className="flex items-center gap-2 shrink-0">
+                                        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0">
                                             <input
                                                 type="text"
                                                 placeholder="Locker key (optional)"
