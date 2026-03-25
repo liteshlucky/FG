@@ -413,7 +413,7 @@ export default function FinanceReportsPage() {
                                                     </td>
                                                     <td className="px-5 py-3 whitespace-nowrap text-right">
                                                         <Link 
-                                                            href={`/dashboard/members/${due._id}`}
+                                                            href={`/dashboard/members/${due.memberId || due._id}`}
                                                             className="text-xs font-medium text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded transition-colors opacity-0 group-hover:opacity-100"
                                                         >
                                                             Collect
