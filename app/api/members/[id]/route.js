@@ -1,6 +1,10 @@
 import dbConnect from '@/lib/db';
 import Member from '@/models/Member';
 import Counter from '@/models/Counter';
+import Plan from '@/models/Plan';
+import PTplan from '@/models/PTplan';
+import Discount from '@/models/Discount';
+import Trainer from '@/models/Trainer';
 import { NextResponse } from 'next/server';
 
 
@@ -9,7 +13,10 @@ export async function GET(request, { params }) {
     await dbConnect();
     const { id } = await params;
     try {
-        const member = await Member.findById(id).populate('planId').populate('discountId').populate('ptPlanId').populate('trainerId');
+        const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+        const query = isObjectId ? { _id: id } : { memberId: id };
+        
+        const member = await Member.findOne(query).populate('planId').populate('discountId').populate('ptPlanId').populate('trainerId');
         if (!member) {
             return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
         }
@@ -50,7 +57,11 @@ export async function PUT(request, { params }) {
         if (body.gender === '') delete body.gender;
         if (body.status === '') delete body.status;
         if (body.paymentStatus === '') delete body.paymentStatus;
-        const member = await Member.findByIdAndUpdate(id, body, {
+        
+        const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+        const query = isObjectId ? { _id: id } : { memberId: id };
+        
+        const member = await Member.findOneAndUpdate(query, body, {
             new: true,
             runValidators: true,
         });
@@ -72,7 +83,10 @@ export async function DELETE(request, { params }) {
     await dbConnect();
     const { id } = await params;
     try {
-        const deletedMember = await Member.findByIdAndDelete(id);
+        const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+        const query = isObjectId ? { _id: id } : { memberId: id };
+        
+        const deletedMember = await Member.findOneAndDelete(query);
         if (!deletedMember) {
             return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
         }

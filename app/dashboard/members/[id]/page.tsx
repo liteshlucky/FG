@@ -23,7 +23,6 @@ export default function MemberDetailPage() {
     useEffect(() => {
         if (params.id) {
             fetchMemberDetails();
-            fetchPayments();
         }
     }, [params.id]);
 
@@ -33,6 +32,7 @@ export default function MemberDetailPage() {
             const data = await res.json();
             if (data.success) {
                 setMember(data.data);
+                fetchPayments(data.data._id);
             }
         } catch (error) {
             console.error('Failed to fetch member', error);
@@ -41,9 +41,9 @@ export default function MemberDetailPage() {
         }
     };
 
-    const fetchPayments = async () => {
+    const fetchPayments = async (internalId: string) => {
         try {
-            const res = await fetch(`/api/payments?memberId=${params.id}`);
+            const res = await fetch(`/api/payments?memberId=${internalId}`);
             const data = await res.json();
             if (data.success) {
                 setPayments(data.data);
@@ -55,12 +55,11 @@ export default function MemberDetailPage() {
 
     const handlePaymentSuccess = () => {
         fetchMemberDetails();
-        fetchPayments();
     };
 
     const handleQuickEditSave = async (updatedData: any) => {
         try {
-            const res = await fetch(`/api/members/${params.id}`, {
+            const res = await fetch(`/api/members/${member._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedData),
@@ -82,7 +81,7 @@ export default function MemberDetailPage() {
         const clearPayload = type === 'pt'
             ? { ptPlanId: null, ptStartDate: null, ptEndDate: null, trainerId: null }
             : { planId: null, membershipStartDate: null, membershipEndDate: null };
-        const res = await fetch(`/api/members/${params.id}`, {
+        const res = await fetch(`/api/members/${member._id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(clearPayload),
@@ -558,7 +557,7 @@ export default function MemberDetailPage() {
             {/* AI Analysis Section */}
             <div className="mt-8">
                 <AIAnalysis
-                    memberId={params.id as string}
+                    memberId={member._id}
                     initialData={member.aiAnalysis}
                     memberInfo={member}
                     onGenerate={fetchMemberDetails}
@@ -717,7 +716,6 @@ export default function MemberDetailPage() {
                     payment={editingPayment}
                     onClose={() => setEditingPayment(null)}
                     onSuccess={() => {
-                        fetchPayments();
                         fetchMemberDetails();
                     }}
                 />

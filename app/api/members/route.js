@@ -210,7 +210,7 @@ export async function POST(request) {
                     title,
                     message,
                     type: 'info',
-                    link: `/dashboard/members/${member._id}`
+                    link: `/dashboard/members/${member.memberId || member._id}`
                 });
 
                 // 2. Send Email Alert in real-time if recipients are configured
@@ -222,7 +222,7 @@ export async function POST(request) {
                         <p><strong>Phone:</strong> ${member.phone}</p>
                         <p><strong>Email:</strong> ${member.email}</p>
                         <br/>
-                        <p><a href="${process.env.NEXTAUTH_URL}/dashboard/members/${member._id}">View Profile</a></p>
+                        <p><a href="${process.env.NEXTAUTH_URL}/dashboard/members/${member.memberId}">View Profile</a></p>
                     `;
                     await sendEmailAlert(settings.notificationEmails, `🆕 ${member.name} joined Fitness Garage`, htmlContent);
                 }
