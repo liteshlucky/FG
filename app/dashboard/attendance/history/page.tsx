@@ -111,7 +111,7 @@ export default function AttendanceHistoryPage() {
             a.userId?.name || 'Unknown',
             a.userType,
             formatTime(a.checkInTime),
-            formatTime(a.checkOutTime),
+            a.autoCheckedOut ? 'Auto' : formatTime(a.checkOutTime),
             formatDuration(a.duration),
             a.lockerKey || '-',
             a.status
@@ -324,9 +324,10 @@ export default function AttendanceHistoryPage() {
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-400">
                                             <div className="flex items-center space-x-2">
-                                                <span>{formatTime(attendance.checkOutTime)}</span>
-                                                {attendance.autoCheckedOut && (
-                                                    <span className="h-2 w-2 rounded-full bg-red-500" title="Auto-checked out at midnight"></span>
+                                                {attendance.autoCheckedOut ? (
+                                                    <span className="text-amber-400 font-medium tracking-wide">Auto</span>
+                                                ) : (
+                                                    <span>{formatTime(attendance.checkOutTime)}</span>
                                                 )}
                                             </div>
                                         </td>
