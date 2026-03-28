@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
     Download, Upload, AlertCircle, CheckCircle,
-    ShieldCheck, Clock, Mail, RefreshCw, Loader2,
+    ShieldCheck, Clock, Mail, RefreshCw, Loader2, MapPin,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -20,6 +20,175 @@ interface BackupLog {
     error?: string | null;
     sizeBytes: number;
     sentTo?: string | null;
+}
+
+// ─── Gym Location Card ────────────────────────────────────────────────────────
+
+function GymLocationCard() {
+    const [lat, setLat] = useState('');
+    const [lng, setLng] = useState('');
+    const [radius, setRadius] = useState('100');
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [detecting, setDetecting] = useState(false);
+    const [msg, setMsg] = useState<StatusMsg | null>(null);
+
+    useEffect(() => {
+        fetch('/api/settings/gym-location')
+            .then(r => r.json())
+            .then(d => {
+                if (d.success && d.data) {
+                    setLat(d.data.lat ?? '');
+                    setLng(d.data.lng ?? '');
+                    setRadius(d.data.radiusMeters ?? 100);
+                }
+            })
+            .catch(() => {})
+            .finally(() => setLoading(false));
+    }, []);
+
+    const useMyLocation = () => {
+        if (!navigator.geolocation) {
+            setMsg({ type: 'error', text: 'Geolocation not supported by this browser.' });
+            return;
+        }
+        setDetecting(true);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                setLat(pos.coords.latitude.toFixed(7));
+                setLng(pos.coords.longitude.toFixed(7));
+                setDetecting(false);
+            },
+            () => {
+                setMsg({ type: 'error', text: 'Could not detect location. Please allow location access.' });
+                setDetecting(false);
+            },
+            { enableHighAccuracy: true, timeout: 8000 }
+        );
+    };
+
+    const handleSave = async () => {
+        setSaving(true);
+        setMsg(null);
+        try {
+            const res = await fetch('/api/settings/gym-location', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    lat: lat ? parseFloat(lat) : null,
+                    lng: lng ? parseFloat(lng) : null,
+                    radiusMeters: parseInt(radius) || 100
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setMsg({ type: 'success', text: 'Gym location saved successfully.' });
+            } else {
+                setMsg({ type: 'error', text: 'Failed to save: ' + data.error });
+            }
+        } catch {
+            setMsg({ type: 'error', text: 'Network error. Please try again.' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="bg-slate-900 border border-slate-800 shadow-sm sm:rounded-xl">
+            <div className="px-4 py-5 sm:p-6">
+                <div className="flex items-center gap-2 mb-1">
+                    <MapPin className="h-5 w-5 text-blue-400" />
+                    <h3 className="text-lg font-medium leading-6 text-slate-100">Gym Location</h3>
+                </div>
+                <p className="text-sm text-slate-400 mb-5 max-w-xl">
+                    Set the gym's GPS coordinates and check-in radius. Members and trainers must be within this radius for their attendance to be marked as <span className="text-green-400 font-medium">Location Verified</span>. Outside this radius is allowed but flagged.
+                </p>
+
+                {loading ? (
+                    <div className="flex items-center gap-2 text-sm text-slate-500 py-2">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-medium text-slate-400 mb-1">Latitude</label>
+                                <input
+                                    type="number"
+                                    step="any"
+                                    value={lat}
+                                    onChange={e => setLat(e.target.value)}
+                                    placeholder="e.g. 22.6056"
+                                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:border-blue-500 focus:outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-slate-400 mb-1">Longitude</label>
+                                <input
+                                    type="number"
+                                    step="any"
+                                    value={lng}
+                                    onChange={e => setLng(e.target.value)}
+                                    placeholder="e.g. 88.3953"
+                                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:border-blue-500 focus:outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex items-end gap-4">
+                            <div className="w-40">
+                                <label className="block text-xs font-medium text-slate-400 mb-1">Radius (metres)</label>
+                                <input
+                                    type="number"
+                                    min="10"
+                                    max="1000"
+                                    value={radius}
+                                    onChange={e => setRadius(e.target.value)}
+                                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none"
+                                />
+                            </div>
+                            <button
+                                onClick={useMyLocation}
+                                disabled={detecting}
+                                className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition-colors disabled:opacity-50"
+                            >
+                                {detecting
+                                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Detecting…</>
+                                    : <><MapPin className="h-4 w-4 text-blue-400" /> Use My Location</>}
+                            </button>
+                        </div>
+
+                        <p className="text-xs text-slate-500">
+                            💡 Tip: Open Google Maps, right-click your gym → copy the coordinates and paste them above.
+                        </p>
+
+                        {msg && (
+                            <div className={`p-3 rounded-lg border flex items-center gap-2 text-sm ${
+                                msg.type === 'success'
+                                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                                    : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                            }`}>
+                                {msg.type === 'success'
+                                    ? <CheckCircle className="h-4 w-4 shrink-0" />
+                                    : <AlertCircle className="h-4 w-4 shrink-0" />}
+                                {msg.text}
+                            </div>
+                        )}
+
+                        <div className="pt-1">
+                            <button
+                                onClick={handleSave}
+                                disabled={saving}
+                                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-500 transition-colors disabled:opacity-50"
+                            >
+                                {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</> : 'Save Location'}
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 }
 
 // ─── Backup History Card ──────────────────────────────────────────────────────
@@ -300,6 +469,9 @@ export default function SettingsPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Gym Location Config */}
+            <GymLocationCard />
 
             {/* Automated Backup */}
             <BackupHistoryCard />

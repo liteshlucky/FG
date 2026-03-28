@@ -30,9 +30,9 @@ export async function POST(request) {
         }
 
         const memberUpdatePromises = activeAttendance.map(async (attendance) => {
-            // Set checkout exactly at today's midnight (23:59:59)
-            const checkoutTime = new Date(attendance.date);
-            checkoutTime.setHours(23, 59, 59, 999); 
+            // Set checkout exactly to 23:59:59 IST (which is 18:29:59 UTC of the same day)
+            const checkoutTime = new Date();
+            checkoutTime.setUTCHours(18, 29, 59, 999);
             
             attendance.checkOutTime = checkoutTime;
             attendance.status = 'checked-out';
@@ -42,8 +42,8 @@ export async function POST(request) {
         });
 
         const trainerUpdatePromises = activeTrainers.map(async (record) => {
-            const checkoutTime = new Date(record.date);
-            checkoutTime.setHours(23, 59, 59, 999);
+            const checkoutTime = new Date();
+            checkoutTime.setUTCHours(18, 29, 59, 999);
 
             record.checkOut = checkoutTime;
             record.autoCheckedOut = true;

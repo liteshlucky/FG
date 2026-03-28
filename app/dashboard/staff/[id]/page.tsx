@@ -294,13 +294,14 @@ export default function TrainerDetailPage() {
                                     </td>
                                     <td className="px-4 py-3 text-sm text-slate-300">
                                         <div className="flex items-center space-x-2">
-                                            <span>
-                                                {record.checkOutTime
-                                                    ? new Date(record.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                                    : '-'}
-                                            </span>
-                                            {record.autoCheckedOut && (
-                                                <span className="h-2 w-2 rounded-full bg-red-500" title="Auto-checked out at midnight"></span>
+                                            {record.autoCheckedOut ? (
+                                                <span className="text-amber-400 font-medium tracking-wide">Auto</span>
+                                            ) : (
+                                                <span>
+                                                    {record.checkOutTime
+                                                        ? new Date(record.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                                        : '-'}
+                                                </span>
                                             )}
                                         </div>
                                     </td>

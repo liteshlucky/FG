@@ -8,7 +8,8 @@ import {
     Wallet, 
     CreditCard, 
     Banknote, 
-    AlertTriangle 
+    AlertTriangle,
+    Trophy
 } from 'lucide-react';
 import {
     PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend,
@@ -91,8 +92,9 @@ export default function FinanceReportsPage() {
             const params = new URLSearchParams();
             if (filters.startDate) params.append('startDate', filters.startDate);
             if (filters.endDate) params.append('endDate', filters.endDate);
+            params.append('_t', Date.now().toString());
 
-            const res = await fetch(`/api/finance/analytics?${params.toString()}`);
+            const res = await fetch(`/api/finance/analytics?${params.toString()}`, { cache: 'no-store' });
             const result = await res.json();
             
             if (result.success) {
@@ -180,6 +182,12 @@ export default function FinanceReportsPage() {
                 </div>
             ) : (
                 <>
+                    {(() => {
+                        const ptRevenue = data.ptVsMembership?.find((item: any) => item.name === 'PT')?.value || 0;
+                        const membershipRevenue = data.ptVsMembership?.find((item: any) => item.name === 'Membership')?.value || 0;
+
+                        return (
+                            <>
                     {/* Header KPI Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="rounded-xl bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 p-6 flex flex-col justify-between hover:bg-slate-800 transition-colors">
@@ -197,11 +205,11 @@ export default function FinanceReportsPage() {
                         <div className="rounded-xl bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 p-6 flex flex-col justify-between hover:bg-slate-800 transition-colors">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <p className="text-sm font-medium text-slate-400">Total Expenses</p>
-                                    <h3 className="text-3xl font-bold text-red-400 mt-2">{formatCurrency(data.summary.totalExpense)}</h3>
+                                    <p className="text-sm font-medium text-slate-400">Total Membership Revenue</p>
+                                    <h3 className="text-3xl font-bold text-blue-400 mt-2">{formatCurrency(membershipRevenue)}</h3>
                                 </div>
-                                <div className="p-3 bg-red-500/10 rounded-lg">
-                                    <ArrowDownRight className="h-6 w-6 text-red-500" />
+                                <div className="p-3 bg-blue-500/10 rounded-lg">
+                                    <CreditCard className="h-6 w-6 text-blue-500" />
                                 </div>
                             </div>
                         </div>
@@ -209,16 +217,11 @@ export default function FinanceReportsPage() {
                         <div className="rounded-xl bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 p-6 flex flex-col justify-between hover:bg-slate-800 transition-colors">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <p className="text-sm font-medium text-slate-400">Net Profit</p>
-                                    <h3 className={clsx(
-                                        "text-3xl font-bold mt-2",
-                                        data.summary.netBalance >= 0 ? "text-slate-100" : "text-red-500"
-                                    )}>
-                                        {formatCurrency(data.summary.netBalance)}
-                                    </h3>
+                                    <p className="text-sm font-medium text-slate-400">Total PT Revenue</p>
+                                    <h3 className="text-3xl font-bold text-orange-400 mt-2">{formatCurrency(ptRevenue)}</h3>
                                 </div>
-                                <div className="p-3 bg-blue-500/10 rounded-lg">
-                                    <Wallet className="h-6 w-6 text-blue-500" />
+                                <div className="p-3 bg-orange-500/10 rounded-lg">
+                                    <Banknote className="h-6 w-6 text-orange-500" />
                                 </div>
                             </div>
                         </div>
@@ -256,15 +259,15 @@ export default function FinanceReportsPage() {
                             )}
                         </div>
 
-                        {/* Expense Breakdown */}
+                        {/* PT vs Membership Breakdown */}
                         <div className="rounded-xl bg-slate-800 border border-slate-700 p-6 shadow-sm">
-                            <h3 className="text-lg font-semibold text-slate-200 mb-6">Expense Breakdown</h3>
-                            {data.expenseBreakdown.length > 0 ? (
+                            <h3 className="text-lg font-semibold text-slate-200 mb-6">PT vs Membership</h3>
+                            {data.ptVsMembership?.length > 0 ? (
                                 <div className="h-72 w-full">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
                                             <Pie
-                                                data={data.expenseBreakdown}
+                                                data={data.ptVsMembership}
                                                 cx="50%"
                                                 cy="50%"
                                                 innerRadius={70}
@@ -272,8 +275,8 @@ export default function FinanceReportsPage() {
                                                 paddingAngle={5}
                                                 dataKey="value"
                                             >
-                                                {data.expenseBreakdown.map((entry: any, index: number) => (
-                                                    <Cell key={`cell-${index}`} fill={EXPENSE_COLORS[index % EXPENSE_COLORS.length]} />
+                                                {data.ptVsMembership.map((entry: any, index: number) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.name === 'PT' ? '#f97316' : entry.name === 'Membership' ? '#3b82f6' : '#8b5cf6'} />
                                                 ))}
                                             </Pie>
                                             <RechartsTooltip content={<CustomTooltip />} />
@@ -282,8 +285,77 @@ export default function FinanceReportsPage() {
                                     </ResponsiveContainer>
                                 </div>
                             ) : (
-                                <div className="h-72 flex items-center justify-center text-slate-500">No expense records found.</div>
+                                <div className="h-72 flex items-center justify-center text-slate-500">No segment records found.</div>
                             )}
+                        </div>
+                    </div>
+
+                    {/* Trainer Leaderboard Row */}
+                    <div className="rounded-xl bg-slate-800 border border-slate-700 shadow-sm overflow-hidden flex flex-col mb-6">
+                        <div className="p-5 border-b border-slate-700 flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-yellow-500/10 rounded-lg">
+                                    <Trophy className="h-5 w-5 text-yellow-500" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-slate-200">Trainer Leaderboard</h3>
+                            </div>
+                        </div>
+                        
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-slate-700">
+                                <thead className="bg-slate-900/50">
+                                    <tr>
+                                        <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400 w-24">Rank</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Trainer</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Active PT Clients</th>
+                                        <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Revenue Generated</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-700/50 bg-slate-800">
+                                    {!data.trainerLeaderboard || data.trainerLeaderboard.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} className="px-5 py-8 text-center text-sm text-slate-400">
+                                                No trainer data found or loading. Please <button onClick={() => window.location.reload()} className="text-blue-400 underline">refresh the page</button>.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        data.trainerLeaderboard?.map((trainer: any, index: number) => (
+                                            <tr key={trainer.id} className="hover:bg-slate-700/30 transition-colors group">
+                                                <td className="px-5 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex items-center justify-center h-8 w-8 rounded-full font-bold text-sm ${
+                                                        index === 0 ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' :
+                                                        index === 1 ? 'bg-slate-300/20 text-slate-300 border border-slate-300/30' :
+                                                        index === 2 ? 'bg-amber-700/20 text-amber-500 border border-amber-700/30' :
+                                                        'bg-slate-800 text-slate-500 border border-slate-700'
+                                                    }`}>
+                                                        #{index + 1}
+                                                    </span>
+                                                </td>
+                                                <td className="px-5 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300 overflow-hidden ring-2 ring-slate-800">
+                                                            {trainer.profilePicture ? (
+                                                                <img src={trainer.profilePicture} alt={trainer.name} className="h-full w-full object-cover" />
+                                                            ) : (
+                                                                trainer.name.charAt(0)
+                                                            )}
+                                                        </div>
+                                                        <span className="text-sm font-medium text-slate-200">{trainer.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-5 py-4 whitespace-nowrap text-sm text-slate-300">
+                                                    <span className="bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-md text-xs font-semibold text-slate-300 shadow-sm">
+                                                        {trainer.ptCount} {trainer.ptCount === 1 ? 'Client' : 'Clients'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-5 py-4 whitespace-nowrap text-sm font-bold text-emerald-400 text-right">
+                                                    {formatCurrency(trainer.revenue)}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -428,6 +500,10 @@ export default function FinanceReportsPage() {
                         </div>
 
                     </div>
+
+                                                </>
+                        );
+                    })()}
                 </>
             )}
         </div>

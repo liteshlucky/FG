@@ -6,8 +6,23 @@ const TrainerAttendanceSchema = new mongoose.Schema({
     checkIn: { type: Date },
     checkOut: { type: Date },
     status: { type: String, enum: ['present', 'absent', 'week_off'], default: 'present' },
+    // Selfie photos — mandatory for trainers
     checkInPhoto: { type: String },
     checkOutPhoto: { type: String },
+    // GPS location — soft check, captured alongside selfie
+    checkInLocation: {
+        lat: { type: Number, default: null },
+        lng: { type: Number, default: null }
+    },
+    checkOutLocation: {
+        lat: { type: Number, default: null },
+        lng: { type: Number, default: null }
+    },
+    locationStatus: {
+        type: String,
+        enum: ['verified', 'far', 'denied', 'unknown'],
+        default: 'unknown'
+    },
     autoCheckedOut: { type: Boolean, default: false },
 }, { timestamps: true });
 

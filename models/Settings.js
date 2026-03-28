@@ -18,6 +18,12 @@ const SettingsSchema = new mongoose.Schema({
         absenteeAlert: { type: Boolean, default: true },
         birthdays: { type: Boolean, default: true },
         newMember: { type: Boolean, default: true },
+    },
+    // Gym GPS location for attendance verification
+    gymLocation: {
+        lat:          { type: Number, default: null },
+        lng:          { type: Number, default: null },
+        radiusMeters: { type: Number, default: 100 }  // Default 100m radius
     }
 }, { timestamps: true });
 

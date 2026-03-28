@@ -38,6 +38,7 @@ const attendanceSchema = new mongoose.Schema({
         enum: ['checked-in', 'checked-out'],
         default: 'checked-in'
     },
+    // Photo fields — kept for backward compat, never required for members
     checkInPhoto: {
         type: String,
         default: null
@@ -45,6 +46,21 @@ const attendanceSchema = new mongoose.Schema({
     checkOutPhoto: {
         type: String,
         default: null
+    },
+    // GPS location captured at check-in / checkout
+    checkInLocation: {
+        lat: { type: Number, default: null },
+        lng: { type: Number, default: null }
+    },
+    checkOutLocation: {
+        lat: { type: Number, default: null },
+        lng: { type: Number, default: null }
+    },
+    // Result of location verification against gym coordinates
+    locationStatus: {
+        type: String,
+        enum: ['verified', 'far', 'denied', 'unknown'],
+        default: 'unknown'
     },
     notes: {
         type: String,

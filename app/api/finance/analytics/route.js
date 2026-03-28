@@ -3,6 +3,7 @@ import Payment from '@/models/Payment';
 import TrainerPayment from '@/models/TrainerPayment';
 import Transaction from '@/models/Transaction';
 import Member from '@/models/Member';
+import Trainer from '@/models/Trainer';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -42,18 +43,44 @@ export async function GET(request) {
             memberPayments,
             trainerPayments,
             transactions,
-            allMembers
+            allMembers,
+            trainers
         ] = await Promise.all([
             Payment.find({ paymentDate: queryDateFilter }).lean(),
             TrainerPayment.find({ paymentDate: queryDateFilter }).lean(),
             Transaction.find({ date: queryDateFilter }).lean(),
-            Member.find({ status: 'Active' }).lean() // Fetching all active members to calculate dues
+            Member.find().lean(), // Fetch all to accurately map past payments and dues
+            Trainer.find({ role: 'Trainer' }).lean()
         ]);
+
+        const trainerStats = {};
+        trainers.forEach(t => {
+            trainerStats[t._id.toString()] = {
+                id: t._id,
+                name: t.name,
+                profilePicture: t.profilePicture || t.imageUrl || '',
+                ptCount: 0,
+                revenue: 0
+            };
+        });
+
+        const memberTrainerMap = {};
+        allMembers.forEach(m => {
+            const tId = m.trainerId ? m.trainerId.toString() : null;
+            memberTrainerMap[m._id.toString()] = tId;
+            
+            // Count active PT clients (member must have a PT plan and assigned trainer)
+            if (tId && trainerStats[tId] && m.ptPlanId && m.status === 'Active') {
+                trainerStats[tId].ptCount += 1;
+            }
+        });
 
         // 2. Aggregate Revenue (Income)
         const revenueBreakdown = {};
         const paymentModes = { cash: 0, upi: 0, card: 0, bank_transfer: 0, cheque: 0 };
         let totalIncome = 0;
+
+        const ptVsMembership = { 'PT': 0, 'Membership': 0, 'Other': 0 };
 
         // Process Member Payments (Income)
         memberPayments.forEach(p => {
@@ -64,6 +91,23 @@ export async function GET(request) {
             revenueBreakdown[category] = (revenueBreakdown[category] || 0) + amount;
             paymentModes[mode] = (paymentModes[mode] || 0) + amount;
             totalIncome += amount;
+
+            const type = (p.planType || '').toLowerCase();
+            if (type === 'pt_plan' || type === 'ptplan' || category === 'PT Plan') {
+                ptVsMembership['PT'] += amount;
+                
+                // Attribute revenue to the trainer
+                const mId = p.memberId ? p.memberId.toString() : null;
+                const tId = mId ? memberTrainerMap[mId] : null;
+                if (tId && trainerStats[tId]) {
+                    trainerStats[tId].revenue += amount;
+                }
+                
+            } else if (type === 'membership' || type === 'plan' || category === 'Plan') {
+                ptVsMembership['Membership'] += amount;
+            } else {
+                ptVsMembership['Other'] += amount;
+            }
         });
 
         // Process Custom Transactions (Income only)
@@ -79,6 +123,11 @@ export async function GET(request) {
 
         // Convert revenue breakdown to array for Recharts
         const revenueChartData = Object.entries(revenueBreakdown).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+
+        const ptVsMembershipData = Object.entries(ptVsMembership)
+            .filter(([_, value]) => value > 0)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value);
 
         // 3. Aggregate Expenses
         const expenseBreakdown = {};
@@ -206,10 +255,12 @@ export async function GET(request) {
                     netBalance: totalIncome - totalExpense
                 },
                 revenueBreakdown: revenueChartData,
+                ptVsMembership: ptVsMembershipData,
                 expenseBreakdown: expenseChartData,
                 paymentModes,
                 trend: trendChartData,
-                pendingDues: pendingDuesList
+                pendingDues: pendingDuesList,
+                trainerLeaderboard: Object.values(trainerStats).sort((a, b) => (b.revenue - a.revenue) || (b.ptCount - a.ptCount))
             }
         });
 

@@ -70,7 +70,7 @@ export default function AttendanceModal({ isOpen, onClose, trainerId, onAttendan
                             <p className="font-medium text-slate-100">
                                 Date: {new Date(lastRecord.date).toLocaleDateString()} –
                                 Check‑In: {lastRecord.checkIn ? new Date(lastRecord.checkIn).toLocaleTimeString() : '-'} –
-                                Check‑Out: {lastRecord.checkOut ? new Date(lastRecord.checkOut).toLocaleTimeString() : '-'}
+                                Check‑Out: {lastRecord.autoCheckedOut ? <span className="text-amber-400 font-medium">Auto</span> : (lastRecord.checkOut ? new Date(lastRecord.checkOut).toLocaleTimeString() : '-')}
                             </p>
                         </div>
                     )}
