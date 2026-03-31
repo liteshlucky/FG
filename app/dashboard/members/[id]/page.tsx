@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, DollarSign, Edit, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, DollarSign, Edit, AlertTriangle, Calendar } from 'lucide-react';
 import PaymentForm from '@/components/PaymentForm';
 import DueClearForm from '@/components/DueClearForm';
 import Avatar from '@/components/Avatar';
 import AIAnalysis from '@/components/AIAnalysis';
 
 import QuickEditModal from '@/components/QuickEditModal';
+import MemberHistoryModal from '@/components/MemberHistoryModal';
 
 export default function MemberDetailPage() {
     const params = useParams();
@@ -22,6 +23,7 @@ export default function MemberDetailPage() {
     const [editingPayment, setEditingPayment] = useState<any>(null);
     const [activeTab, setActiveTab] = useState<'all' | 'membership' | 'pt'>('all');
     const [editingSection, setEditingSection] = useState<'personal' | 'physical' | 'health' | 'membership' | 'pt' | null>(null);
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
 
     useEffect(() => {
         if (params.id) {
@@ -160,6 +162,13 @@ export default function MemberDetailPage() {
                             PT Due: ₹{ptBalance.toLocaleString()}
                         </button>
                     )}
+                    <button
+                        onClick={() => setShowHistoryModal(true)}
+                        className="flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 transition-colors"
+                    >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        <span className="hidden sm:inline">Attendance</span>
+                    </button>
                     <button
                         onClick={() => {
                             setPaymentFormType(undefined);
@@ -754,6 +763,13 @@ export default function MemberDetailPage() {
                     onSuccess={() => {
                         fetchMemberDetails();
                     }}
+                />
+            )}
+
+            {showHistoryModal && member && (
+                <MemberHistoryModal
+                    member={member}
+                    onClose={() => setShowHistoryModal(false)}
                 />
             )}
         </div>
