@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, UserCheck, Clock, Calendar } from 'lucide-react';
+import { Users, UserCheck, Clock, Calendar, MapPin } from 'lucide-react';
 import CheckInModal from '@/components/CheckInModal';
 import CheckOutModal from '@/components/CheckOutModal';
 
@@ -212,6 +212,9 @@ export default function AttendancePage() {
                                         Duration
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
+                                        Location
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
                                         Locker Key
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
@@ -232,6 +235,24 @@ export default function AttendancePage() {
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-100 font-medium">
                                             {formatDuration(attendance.currentDuration)}
+                                        </td>
+                                        <td className="whitespace-nowrap px-6 py-4 text-sm">
+                                            {attendance.locationStatus === 'verified' && (
+                                                <span className="inline-flex items-center rounded-full bg-green-900/30 px-2 py-1 text-xs font-semibold text-green-400 border border-green-800/50">
+                                                    <MapPin className="mr-1 h-3 w-3" /> Verified
+                                                </span>
+                                            )}
+                                            {attendance.locationStatus === 'far' && (
+                                                <span className="inline-flex items-center rounded-full bg-amber-900/30 px-2 py-1 text-xs font-semibold text-amber-400 border border-amber-800/50">
+                                                    <MapPin className="mr-1 h-3 w-3" /> Far
+                                                </span>
+                                            )}
+                                            {(attendance.locationStatus === 'denied' || attendance.locationStatus === 'unknown') && (
+                                                <span className="inline-flex items-center rounded-full bg-slate-700/50 px-2 py-1 text-xs font-semibold text-slate-400 border border-slate-600">
+                                                    <MapPin className="mr-1 h-3 w-3" /> None
+                                                </span>
+                                            )}
+                                            {!attendance.locationStatus && <span className="text-slate-500">—</span>}
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4 text-sm">
                                             {attendance.lockerKey ? (

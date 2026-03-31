@@ -89,8 +89,9 @@ export default function FinancePage() {
             if (filters.startDate) params.append('startDate', filters.startDate);
             if (filters.endDate) params.append('endDate', filters.endDate);
             if (filters.type) params.append('type', filters.type);
+            params.append('_t', Date.now().toString());
 
-            const res = await fetch(`/api/finance?${params.toString()}`);
+            const res = await fetch(`/api/finance?${params.toString()}`, { cache: 'no-store' });
             const data = await res.json();
             if (data.success) {
                 setTransactions(data.data.records);
