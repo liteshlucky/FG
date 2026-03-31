@@ -2,16 +2,19 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, DollarSign, Download, Upload, Search, Filter, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Edit, Trash2, DollarSign, Download, Upload, Search, Filter, ArrowUpDown, ArrowUp, ArrowDown, Calendar } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import PaymentForm from '@/components/PaymentForm';
 import Avatar from '@/components/Avatar';
+import MemberHistoryModal from '@/components/MemberHistoryModal';
 
 export default function MembersPage() {
     const [members, setMembers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedMember, setSelectedMember] = useState<any>(null);
     const [showPaymentForm, setShowPaymentForm] = useState(false);
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [historyMember, setHistoryMember] = useState<any>(null);
     const router = useRouter();
 
     const [importing, setImporting] = useState(false);
@@ -24,6 +27,8 @@ export default function MembersPage() {
     const [typeFilter, setTypeFilter] = useState('all');
     const [expiryStart, setExpiryStart] = useState('');
     const [expiryEnd, setExpiryEnd] = useState('');
+    const [debouncedExpiryStart, setDebouncedExpiryStart] = useState('');
+    const [debouncedExpiryEnd, setDebouncedExpiryEnd] = useState('');
     const [expiryMonths, setExpiryMonths] = useState<{label: string, value: string}[]>([]);
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'memberId', direction: 'desc' });
 
@@ -32,22 +37,27 @@ export default function MembersPage() {
     const [totalPages, setTotalPages] = useState(1);
     const [totalMembers, setTotalMembers] = useState(0);
 
-    // Debounce search query
+    // Debounce search query and expiry dates
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearchQuery(searchQuery);
-            if (searchQuery !== debouncedSearchQuery) {
-                setCurrentPage(1); // Reset page on new search
+            setDebouncedExpiryStart(expiryStart);
+            setDebouncedExpiryEnd(expiryEnd);
+            if (searchQuery !== debouncedSearchQuery || 
+                expiryStart !== debouncedExpiryStart || 
+                expiryEnd !== debouncedExpiryEnd) {
+                setCurrentPage(1); // Reset page on new search or filter
             }
         }, 500);
         return () => clearTimeout(timer);
-    }, [searchQuery]);
+    }, [searchQuery, expiryStart, expiryEnd]);
 
     // Generate upcoming expiry months
     useEffect(() => {
         const months = [];
         for (let i = 0; i < 6; i++) {
             const d = new Date();
+            d.setDate(1); // Set to 1st of the month to avoid overflow
             d.setMonth(d.getMonth() + i);
             const monthName = d.toLocaleString('en-US', { month: 'short' });
             const year = d.getFullYear();
@@ -60,7 +70,7 @@ export default function MembersPage() {
     // Fetch members when filters/sort/page changes
     useEffect(() => {
         fetchMembers();
-    }, [debouncedSearchQuery, statusFilter, paymentStatusFilter, typeFilter, sortConfig, currentPage, expiryStart, expiryEnd]);
+    }, [debouncedSearchQuery, statusFilter, paymentStatusFilter, typeFilter, sortConfig, currentPage, debouncedExpiryStart, debouncedExpiryEnd]);
 
     const fetchMembers = async () => {
         setLoading(true);
@@ -77,8 +87,8 @@ export default function MembersPage() {
                 type: typeFilter
             });
 
-            if (expiryStart) params.append('expiryStart', expiryStart);
-            if (expiryEnd) params.append('expiryEnd', expiryEnd);
+            if (debouncedExpiryStart) params.append('expiryStart', debouncedExpiryStart);
+            if (debouncedExpiryEnd) params.append('expiryEnd', debouncedExpiryEnd);
 
             const res = await fetch(`/api/members?${params}`);
             const data = await res.json();
@@ -391,6 +401,7 @@ export default function MembersPage() {
                         type="date"
                         value={expiryStart}
                         onChange={(e) => setExpiryStart(e.target.value)}
+                        style={{ colorScheme: 'dark' }}
                         className="flex-1 min-w-[130px] rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-xs"
                     />
                     <span className="text-slate-500">–</span>
@@ -398,6 +409,7 @@ export default function MembersPage() {
                         type="date"
                         value={expiryEnd}
                         onChange={(e) => setExpiryEnd(e.target.value)}
+                        style={{ colorScheme: 'dark' }}
                         className="flex-1 min-w-[130px] rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-xs"
                     />
                     {(searchQuery || statusFilter !== 'all' || paymentStatusFilter !== 'all' || typeFilter !== 'all') && (
@@ -528,6 +540,16 @@ export default function MembersPage() {
                                 </td>
                                 <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                                     <button
+                                        onClick={() => {
+                                            setHistoryMember(member);
+                                            setShowHistoryModal(true);
+                                        }}
+                                        className="mr-4 text-purple-500 hover:text-purple-400 transition-colors"
+                                        title="View Attendance History"
+                                    >
+                                        <Calendar className="h-4 w-4" />
+                                    </button>
+                                    <button
                                         onClick={() => handleRecordPayment(member)}
                                         className="mr-4 text-emerald-500 hover:text-emerald-400 transition-colors"
                                         title="Record Payment"
@@ -619,6 +641,14 @@ export default function MembersPage() {
                         member={selectedMember}
                         onClose={() => setShowPaymentForm(false)}
                         onSuccess={handlePaymentSuccess}
+                    />
+                )
+            }
+            {
+                showHistoryModal && historyMember && (
+                    <MemberHistoryModal
+                        member={historyMember}
+                        onClose={() => setShowHistoryModal(false)}
                     />
                 )
             }

@@ -185,12 +185,18 @@ export async function POST(request) {
 
                 // 2. Send Email Alert in real-time if recipients are configured
                 if (settings.notificationEmails && settings.notificationEmails.length > 0) {
+                    const planName = (payment.planType === 'pt_plan' || payment.planType === 'PTplan') ? 'Personal Training' : 'Membership';
+                    const categoryText = payment.paymentCategory ? `${payment.paymentCategory} — ${planName}` : planName;
+                    const formattedDate = new Date(payment.paymentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                    
                     const htmlContent = `
                         <h2>Payment Received</h2>
                         <p><strong>Amount:</strong> ₹${payment.amount}</p>
-                        <p><strong>Method:</strong> ${payment.paymentMethod}</p>
-                        <p><strong>Member:</strong> ${member.name} (${member.memberId})</p>
-                        <p><strong>Receipt:</strong> ${payment.receiptNumber}</p>
+                        <p><strong>Category:</strong> ${categoryText}</p>
+                        <p><strong>Date:</strong> ${formattedDate}</p>
+                        <p><strong>Method:</strong> <span style="text-transform: capitalize;">${payment.paymentMode?.replace('_', ' ') || 'Cash'}</span></p>
+                        <p><strong>Member:</strong> ${member.name} (${member.memberId || 'N/A'})</p>
+                        <p><strong>Receipt:</strong> ${payment.receiptNumber || 'N/A'}</p>
                         <br/>
                         <p><a href="${process.env.NEXTAUTH_URL}/dashboard/members/${member.memberId || member._id}">View Member Profile</a></p>
                     `;

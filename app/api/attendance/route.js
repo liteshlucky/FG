@@ -79,7 +79,8 @@ export async function GET(request) {
                     checkOutTime: record.checkOut,
                     status: status,
                     currentDuration: currentDuration,
-                    date: record.date
+                    date: record.date,
+                    locationStatus: record.locationStatus
                 };
             });
 
