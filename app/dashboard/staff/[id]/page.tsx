@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { MapPin } from 'lucide-react';
 import Avatar from '../../../../components/Avatar';
 import SalaryModal from '@/components/SalaryModal';
 import AttendanceModal from '@/components/AttendanceModal';
@@ -280,6 +281,7 @@ export default function TrainerDetailPage() {
                                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Check-In</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Check-Out</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Duration</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Location</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Status</th>
                             </tr>
                         </thead>
@@ -307,6 +309,24 @@ export default function TrainerDetailPage() {
                                     </td>
                                     <td className="px-4 py-3 text-sm text-slate-300 font-medium">
                                         {record.duration ? `${Math.floor(record.duration / 60)}h ${record.duration % 60}m` : '-'}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm">
+                                        {record.locationStatus === 'verified' && (
+                                            <span className="inline-flex items-center rounded-full bg-green-900/30 px-2 py-1 text-xs font-semibold text-green-400 border border-green-800/50">
+                                                <MapPin className="mr-1 h-3 w-3" /> Verified
+                                            </span>
+                                        )}
+                                        {record.locationStatus === 'far' && (
+                                            <span className="inline-flex items-center rounded-full bg-amber-900/30 px-2 py-1 text-xs font-semibold text-amber-400 border border-amber-800/50">
+                                                <MapPin className="mr-1 h-3 w-3" /> Far
+                                            </span>
+                                        )}
+                                        {(record.locationStatus === 'denied' || record.locationStatus === 'unknown') && (
+                                            <span className="inline-flex items-center rounded-full bg-slate-700/50 px-2 py-1 text-xs font-semibold text-slate-400 border border-slate-600">
+                                                <MapPin className="mr-1 h-3 w-3" /> None
+                                            </span>
+                                        )}
+                                        {!record.locationStatus && <span className="text-slate-500">—</span>}
                                     </td>
                                     <td className="px-4 py-3 text-sm">
                                         <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${record.status === 'checked-in'
