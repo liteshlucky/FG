@@ -60,19 +60,14 @@ export async function GET(request) {
                 name: t.name,
                 profilePicture: t.profilePicture || t.imageUrl || '',
                 ptCount: 0,
-                revenue: 0
+                revenue: 0,
+                clients: []
             };
         });
 
-        const memberTrainerMap = {};
+        const memberMap = {};
         allMembers.forEach(m => {
-            const tId = m.trainerId ? m.trainerId.toString() : null;
-            memberTrainerMap[m._id.toString()] = tId;
-            
-            // Count active PT clients (member must have a PT plan and assigned trainer)
-            if (tId && trainerStats[tId] && m.ptPlanId && m.status === 'Active') {
-                trainerStats[tId].ptCount += 1;
-            }
+            memberMap[m._id.toString()] = m;
         });
 
         // 2. Aggregate Revenue (Income)
@@ -96,11 +91,25 @@ export async function GET(request) {
             if (type === 'pt_plan' || type === 'ptplan' || category === 'PT Plan') {
                 ptVsMembership['PT'] += amount;
                 
-                // Attribute revenue to the trainer
+                // Attribute revenue to the trainer and track clients who PAID in this period
                 const mId = p.memberId ? p.memberId.toString() : null;
-                const tId = mId ? memberTrainerMap[mId] : null;
+                const memberObj = mId ? memberMap[mId] : null;
+                const tId = memberObj && memberObj.trainerId ? memberObj.trainerId.toString() : null;
+                
                 if (tId && trainerStats[tId]) {
                     trainerStats[tId].revenue += amount;
+                    
+                    // Track unique clients for this period
+                    if (memberObj && !trainerStats[tId].clients.some(c => c.id.toString() === mId)) {
+                        trainerStats[tId].ptCount += 1;
+                        trainerStats[tId].clients.push({
+                            id: memberObj._id,
+                            name: memberObj.name,
+                            memberId: memberObj.memberId || '-',
+                            ptStartDate: memberObj.ptStartDate,
+                            ptEndDate: memberObj.ptEndDate
+                        });
+                    }
                 }
                 
             } else if (type === 'membership' || type === 'plan' || category === 'Plan') {
