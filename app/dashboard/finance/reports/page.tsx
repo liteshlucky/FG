@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Download, 
     ArrowUpRight, 
@@ -9,7 +9,8 @@ import {
     CreditCard, 
     Banknote, 
     AlertTriangle,
-    Trophy
+    Trophy,
+    ChevronDown
 } from 'lucide-react';
 import {
     PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend,
@@ -24,6 +25,7 @@ const EXPENSE_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '
 export default function FinanceReportsPage() {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null);
+    const [expandedTrainers, setExpandedTrainers] = useState<Record<string, boolean>>({});
     const [filters, setFilters] = useState({
         dateRange: 'this_month',
         startDate: '',
@@ -320,38 +322,77 @@ export default function FinanceReportsPage() {
                                         </tr>
                                     ) : (
                                         data.trainerLeaderboard?.map((trainer: any, index: number) => (
-                                            <tr key={trainer.id} className="hover:bg-slate-700/30 transition-colors group">
-                                                <td className="px-5 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center justify-center h-8 w-8 rounded-full font-bold text-sm ${
-                                                        index === 0 ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' :
-                                                        index === 1 ? 'bg-slate-300/20 text-slate-300 border border-slate-300/30' :
-                                                        index === 2 ? 'bg-amber-700/20 text-amber-500 border border-amber-700/30' :
-                                                        'bg-slate-800 text-slate-500 border border-slate-700'
-                                                    }`}>
-                                                        #{index + 1}
-                                                    </span>
-                                                </td>
-                                                <td className="px-5 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300 overflow-hidden ring-2 ring-slate-800">
-                                                            {trainer.profilePicture ? (
-                                                                <img src={trainer.profilePicture} alt={trainer.name} className="h-full w-full object-cover" />
-                                                            ) : (
-                                                                trainer.name.charAt(0)
-                                                            )}
+                                            <React.Fragment key={trainer.id}>
+                                                <tr 
+                                                    className="hover:bg-slate-700/30 transition-colors group cursor-pointer"
+                                                    onClick={() => setExpandedTrainers(prev => ({ ...prev, [trainer.id]: !prev[trainer.id] }))}
+                                                >
+                                                    <td className="px-5 py-4 whitespace-nowrap">
+                                                        <span className={`inline-flex items-center justify-center h-8 w-8 rounded-full font-bold text-sm ${
+                                                            index === 0 ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' :
+                                                            index === 1 ? 'bg-slate-300/20 text-slate-300 border border-slate-300/30' :
+                                                            index === 2 ? 'bg-amber-700/20 text-amber-500 border border-amber-700/30' :
+                                                            'bg-slate-800 text-slate-500 border border-slate-700'
+                                                        }`}>
+                                                            #{index + 1}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-5 py-4 whitespace-nowrap">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300 overflow-hidden ring-2 ring-slate-800">
+                                                                {trainer.profilePicture ? (
+                                                                    <img src={trainer.profilePicture} alt={trainer.name} className="h-full w-full object-cover" />
+                                                                ) : (
+                                                                    trainer.name.charAt(0)
+                                                                )}
+                                                            </div>
+                                                            <span className="text-sm font-medium text-slate-200 flex items-center gap-2">
+                                                                {trainer.name}
+                                                                <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${expandedTrainers[trainer.id] ? 'rotate-180' : ''}`} />
+                                                            </span>
                                                         </div>
-                                                        <span className="text-sm font-medium text-slate-200">{trainer.name}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-5 py-4 whitespace-nowrap text-sm text-slate-300">
-                                                    <span className="bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-md text-xs font-semibold text-slate-300 shadow-sm">
-                                                        {trainer.ptCount} {trainer.ptCount === 1 ? 'Client' : 'Clients'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-5 py-4 whitespace-nowrap text-sm font-bold text-emerald-400 text-right">
-                                                    {formatCurrency(trainer.revenue)}
-                                                </td>
-                                            </tr>
+                                                    </td>
+                                                    <td className="px-5 py-4 whitespace-nowrap text-sm text-slate-300">
+                                                        <span className="bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-md text-xs font-semibold text-slate-300 shadow-sm">
+                                                            {trainer.ptCount} {trainer.ptCount === 1 ? 'Client' : 'Clients'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-5 py-4 whitespace-nowrap text-sm font-bold text-emerald-400 text-right">
+                                                        {formatCurrency(trainer.revenue)}
+                                                    </td>
+                                                </tr>
+                                                {/* Expanded Section */}
+                                                {expandedTrainers[trainer.id] && (
+                                                    <tr>
+                                                        <td colSpan={4} className="bg-slate-900/50 p-0 border-t border-slate-700/50">
+                                                            <div className="px-12 py-5">
+                                                                <h4 className="text-sm font-semibold text-slate-400 mb-3">Active PT Clients ({trainer.ptCount})</h4>
+                                                                {trainer.clients && trainer.clients.length > 0 ? (
+                                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                                        {trainer.clients.map((client: any) => (
+                                                                            <div key={client.id} className="bg-slate-800 border border-slate-700 rounded-lg p-3 flex flex-col gap-1 hover:border-blue-500/50 transition-colors">
+                                                                                <div className="flex justify-between items-center">
+                                                                                    <span className="text-sm font-medium text-slate-200">{client.name}</span>
+                                                                                    <span className="text-xs font-mono text-slate-500 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">{client.memberId}</span>
+                                                                                </div>
+                                                                                <div className="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                                                                                    <span>{new Date(client.ptStartDate).toLocaleDateString('en-GB')}</span>
+                                                                                    <span className="text-slate-600 px-1">→</span>
+                                                                                    <span className={new Date(client.ptEndDate) < new Date() ? 'text-red-400' : 'text-emerald-400'}>
+                                                                                        {new Date(client.ptEndDate).toLocaleDateString('en-GB')}
+                                                                                    </span>
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                ) : (
+                                                                    <p className="text-sm text-slate-500 italic">No active PT clients managed in this time period.</p>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
                                         ))
                                     )}
                                 </tbody>

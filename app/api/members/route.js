@@ -78,6 +78,18 @@ export async function GET(request) {
         // Type filter (PT/Non-PT)
         if (typeFilter === 'pt') {
             query.ptPlanId = { $exists: true, $ne: null };
+        } else if (typeFilter === 'active-pt') {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            query.ptPlanId = { $exists: true, $ne: null };
+            
+            if (!query.$and) query.$and = [];
+            query.$and.push({
+                $or: [
+                    { ptEndDate: { $gte: today } },
+                    { ptEndDate: { $exists: false } }
+                ]
+            });
         } else if (typeFilter === 'non-pt') {
             query.ptPlanId = { $exists: false };
         }

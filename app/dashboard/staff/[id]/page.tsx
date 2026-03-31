@@ -1,10 +1,9 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { MapPin } from 'lucide-react';
 import Avatar from '../../../../components/Avatar';
 import SalaryModal from '@/components/SalaryModal';
-import AttendanceModal from '@/components/AttendanceModal';
+import AttendanceCalendar from '@/components/AttendanceCalendar';
 
 export default function TrainerDetailPage() {
     const router = useRouter();
@@ -15,14 +14,6 @@ export default function TrainerDetailPage() {
     const [ptHistory, setPtHistory] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState('overview');
     const [salaryModalOpen, setSalaryModalOpen] = useState(false);
-
-    // Attendance State
-    const [attendanceHistory, setAttendanceHistory] = useState<any[]>([]);
-    const [attendanceLoading, setAttendanceLoading] = useState(false);
-    const [attendanceFilter, setAttendanceFilter] = useState({
-        startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0], // First day of current month
-        endDate: new Date().toISOString().split('T')[0] // Today
-    });
 
     useEffect(() => {
         // Fetch trainer basic info
@@ -46,33 +37,6 @@ export default function TrainerDetailPage() {
                 if (data.success) setPtHistory(data.data);
             });
     }, [id]);
-
-    useEffect(() => {
-        if (activeTab === 'attendance') {
-            fetchAttendance();
-        }
-    }, [activeTab, attendanceFilter]);
-
-    const fetchAttendance = async () => {
-        setAttendanceLoading(true);
-        try {
-            const query = new URLSearchParams({
-                userId: id as string,
-                userType: 'Trainer',
-                startDate: attendanceFilter.startDate,
-                endDate: attendanceFilter.endDate
-            });
-            const res = await fetch(`/api/attendance/history?${query.toString()}`);
-            const data = await res.json();
-            if (data.success) {
-                setAttendanceHistory(data.data);
-            }
-        } catch (error) {
-            console.error("Failed to fetch attendance:", error);
-        } finally {
-            setAttendanceLoading(false);
-        }
-    };
 
     const fetchPayments = () => {
         fetch(`/api/trainers/${id}/payments`)
@@ -149,14 +113,56 @@ export default function TrainerDetailPage() {
     );
 
     const renderClients = () => (
-        <ul className="space-y-2">
-            {clients.map((c) => (
-                <li key={c._id} className="flex items-center space-x-3">
-                    <Avatar name={c.name} src={c.profilePicture} size="sm" />
-                    <span>{c.name}</span>
-                </li>
-            ))}
-        </ul>
+        <div className="space-y-4">
+            <h2 className="text-lg font-medium text-slate-100 mb-4">PT Members ({clients.length})</h2>
+            {clients.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {clients.map((client: any) => (
+                        <div key={client._id} className="bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col gap-3 hover:border-blue-500/50 transition-colors">
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-3">
+                                    <Avatar name={client.name} src={client.profilePicture} size="md" />
+                                    <div>
+                                        <h3 className="text-sm font-semibold text-slate-200">{client.name}</h3>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-xs font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">{client.memberId}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-slate-800 rounded-lg p-3 border border-slate-700/50 mt-1">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-xs text-slate-400">Plan</span>
+                                    <span className="text-xs font-medium text-slate-300">{client.ptPlanId?.name || 'Manual Assignment'}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-xs text-slate-400">Validity</span>
+                                    <div className="text-xs font-medium flex items-center gap-1">
+                                        <span className="text-slate-300">{client.ptStartDate ? new Date(client.ptStartDate).toLocaleDateString('en-GB') : '-'}</span>
+                                        <span className="text-slate-500">→</span>
+                                        <span className={client.ptEndDate && new Date(client.ptEndDate) < new Date() ? 'text-red-400' : 'text-emerald-400'}>
+                                            {client.ptEndDate ? new Date(client.ptEndDate).toLocaleDateString('en-GB') : '-'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                                                    
+                            <button 
+                                onClick={() => router.push(`/dashboard/members/${client.memberId || client._id}`)}
+                                className="w-full mt-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-xs font-semibold py-2 rounded-lg transition-colors"
+                            >
+                                View Profile
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="p-8 text-center text-slate-400 border border-slate-700 rounded-lg bg-slate-900/50">
+                    No active PT members assigned.
+                </div>
+            )}
+        </div>
     );
 
     const renderSalaryAndPayments = () => (
@@ -234,114 +240,8 @@ export default function TrainerDetailPage() {
     );
 
     const renderAttendanceHistory = () => (
-        <div className="space-y-4">
-            {/* Filters */}
-            <div className="flex space-x-4 items-end mb-4 bg-slate-700/50 p-3 rounded-lg border border-slate-700">
-                <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1">Start Date</label>
-                    <input
-                        type="date"
-                        value={attendanceFilter.startDate}
-                        onChange={(e) => setAttendanceFilter({ ...attendanceFilter, startDate: e.target.value })}
-                        className="rounded bg-slate-800 border border-slate-600 text-slate-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
-                    />
-                </div>
-                <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1">End Date</label>
-                    <input
-                        type="date"
-                        value={attendanceFilter.endDate}
-                        onChange={(e) => setAttendanceFilter({ ...attendanceFilter, endDate: e.target.value })}
-                        className="rounded bg-slate-800 border border-slate-600 text-slate-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
-                    />
-                </div>
-                <div className="pb-0.5">
-                    <button
-                        onClick={fetchAttendance}
-                        className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-sm transition-colors"
-                    >
-                        Apply Filter
-                    </button>
-                </div>
-            </div>
-
-            {/* Table */}
-            <div className="overflow-x-auto rounded border border-slate-700">
-                {attendanceLoading ? (
-                    <div className="p-8 text-center text-slate-400">Loading attendance history...</div>
-                ) : attendanceHistory.length === 0 ? (
-                    <div className="p-8 text-center text-slate-400">
-                        No attendance records found for this period.
-                    </div>
-                ) : (
-                    <table className="min-w-full divide-y divide-slate-700">
-                        <thead className="bg-slate-900/50">
-                            <tr>
-                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Date</th>
-                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Check-In</th>
-                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Check-Out</th>
-                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Duration</th>
-                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Location</th>
-                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-slate-800 divide-y divide-slate-700">
-                            {attendanceHistory.map((record) => (
-                                <tr key={record._id} className="hover:bg-slate-700/50 transition-colors">
-                                    <td className="px-4 py-3 text-sm text-slate-300">
-                                        {new Date(record.checkInTime).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-slate-300">
-                                        {new Date(record.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-slate-300">
-                                        <div className="flex items-center space-x-2">
-                                            {record.autoCheckedOut ? (
-                                                <span className="text-amber-400 font-medium tracking-wide">Auto</span>
-                                            ) : (
-                                                <span>
-                                                    {record.checkOutTime
-                                                        ? new Date(record.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                                        : '-'}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-slate-300 font-medium">
-                                        {record.duration ? `${Math.floor(record.duration / 60)}h ${record.duration % 60}m` : '-'}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm">
-                                        {record.locationStatus === 'verified' && (
-                                            <span className="inline-flex items-center rounded-full bg-green-900/30 px-2 py-1 text-xs font-semibold text-green-400 border border-green-800/50">
-                                                <MapPin className="mr-1 h-3 w-3" /> Verified
-                                            </span>
-                                        )}
-                                        {record.locationStatus === 'far' && (
-                                            <span className="inline-flex items-center rounded-full bg-amber-900/30 px-2 py-1 text-xs font-semibold text-amber-400 border border-amber-800/50">
-                                                <MapPin className="mr-1 h-3 w-3" /> Far
-                                            </span>
-                                        )}
-                                        {(record.locationStatus === 'denied' || record.locationStatus === 'unknown') && (
-                                            <span className="inline-flex items-center rounded-full bg-slate-700/50 px-2 py-1 text-xs font-semibold text-slate-400 border border-slate-600">
-                                                <MapPin className="mr-1 h-3 w-3" /> None
-                                            </span>
-                                        )}
-                                        {!record.locationStatus && <span className="text-slate-500">—</span>}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm">
-                                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${record.status === 'checked-in'
-                                            ? 'bg-green-900/30 text-green-400 border border-green-800/50'
-                                            : 'bg-slate-700 text-slate-300 border border-slate-600'
-                                            }`}>
-                                            {record.status === 'checked-in' ? 'Active' : 'Completed'}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
-            </div>
+        <div className="h-[650px]">
+            <AttendanceCalendar userId={id as string} userType="Trainer" />
         </div>
     );
 
