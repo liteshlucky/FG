@@ -307,10 +307,18 @@ export default function AttendanceHistoryPage() {
                                             {formatDate(attendance.checkInTime)}
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4">
-                                            <div className="text-sm font-medium text-slate-100">
+                                            <a 
+                                                href={attendance.userType === 'Member' 
+                                                    ? `/dashboard/members/${attendance.userId?.memberId || attendance.userId?._id}` 
+                                                    : `/dashboard/trainers/${attendance.userId?.trainerId || attendance.userId?._id}`}
+                                                className="text-sm font-medium text-blue-400 hover:text-blue-300 hover:underline inline-flex items-center gap-1"
+                                            >
                                                 {attendance.userId?.name || 'Unknown'}
-                                            </div>
-                                            <div className="text-sm text-slate-400">
+                                                {attendance.userType === 'Member' 
+                                                    ? (attendance.userId?.memberId && <span className="text-slate-500 font-normal">({attendance.userId.memberId})</span>)
+                                                    : (attendance.userId?.trainerId && <span className="text-slate-500 font-normal">({attendance.userId.trainerId})</span>)}
+                                            </a>
+                                            <div className="text-sm text-slate-400 mt-0.5">
                                                 {attendance.userId?.phone || ''}
                                             </div>
                                         </td>

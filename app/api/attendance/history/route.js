@@ -66,7 +66,7 @@ export async function GET(request) {
             shouldFetchMembers ? (async () => {
                 [members, totalMembers] = await Promise.all([
                     Attendance.find(query)
-                        .populate('userId', 'name email phone')
+                        .populate('userId', 'name email phone memberId')
                         .select('userId userType checkInTime checkOutTime duration status date checkInPhoto checkOutPhoto lockerKey autoCheckedOut locationStatus')
                         .sort({ checkInTime: -1 })
                         .skip(fetchSkip)
@@ -81,7 +81,7 @@ export async function GET(request) {
                 let trainerRecords = [];
                 [trainerRecords, totalTrainers] = await Promise.all([
                     TrainerAttendance.find(trainerQuery)
-                        .populate('trainerId', 'name email phone')
+                        .populate('trainerId', 'name email phone trainerId')
                         .sort({ checkIn: -1 })
                         .skip(fetchSkip)
                         .limit(fetchLimit)
