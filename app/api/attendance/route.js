@@ -51,7 +51,7 @@ export async function GET(request) {
             }
 
             const attendanceRecords = await TrainerAttendance.find(trainerQuery)
-                .populate('trainerId', 'name phone email')
+                .populate('trainerId', 'name phone email trainerId')
                 .sort({ checkIn: -1 })
                 .lean();
 
@@ -128,7 +128,7 @@ export async function GET(request) {
             }
 
             const attendanceRecords = await Attendance.find(query)
-                .populate('userId', 'name email phone')
+                .populate('userId', 'name email phone memberId')
                 .sort({ checkInTime: -1 })
                 .lean();
 

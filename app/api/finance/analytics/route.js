@@ -112,10 +112,41 @@ export async function GET(request) {
                     }
                 }
                 
+                
             } else if (type === 'membership' || type === 'plan' || category === 'Plan') {
                 ptVsMembership['Membership'] += amount;
             } else {
                 ptVsMembership['Other'] += amount;
+            }
+        });
+
+        // Track Active PT Clients who are genuinely active as of the end of the period (or today, if current period)
+        // This drops "expired" clients who merely bled a few days into the month but didn't renew.
+        const now = new Date();
+        const checkDate = endDate >= now ? now : endDate;
+
+        allMembers.forEach(memberObj => {
+            const tId = memberObj.trainerId ? memberObj.trainerId.toString() : null;
+            if (tId && trainerStats[tId] && memberObj.ptStartDate && memberObj.ptEndDate) {
+                const ptStart = new Date(memberObj.ptStartDate);
+                const ptEnd = new Date(memberObj.ptEndDate);
+                
+                // Active carryover means they are valid as of the checkDate
+                const isCarryover = (ptStart <= checkDate) && (ptEnd >= checkDate);
+                
+                if (isCarryover) {
+                    const mId = memberObj._id.toString();
+                    if (!trainerStats[tId].clients.some(c => c.id.toString() === mId)) {
+                        trainerStats[tId].ptCount += 1;
+                        trainerStats[tId].clients.push({
+                            id: memberObj._id,
+                            name: memberObj.name,
+                            memberId: memberObj.memberId || '-',
+                            ptStartDate: memberObj.ptStartDate,
+                            ptEndDate: memberObj.ptEndDate
+                        });
+                    }
+                }
             }
         });
 

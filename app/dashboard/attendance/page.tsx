@@ -226,9 +226,17 @@ export default function AttendancePage() {
                                 {checkedInUsers.map((attendance: any) => (
                                     <tr key={attendance._id} className="hover:bg-slate-800/50 transition-colors">
                                         <td className="whitespace-nowrap px-6 py-4">
-                                            <div className="text-sm font-medium text-slate-100">
+                                            <a 
+                                                href={activeTab === 'members' 
+                                                    ? `/dashboard/members/${attendance.userId?.memberId || attendance.userId?._id}` 
+                                                    : `/dashboard/trainers/${attendance.userId?.trainerId || attendance.userId?._id}`}
+                                                className="text-sm font-medium text-blue-400 hover:text-blue-300 hover:underline inline-flex items-center gap-1"
+                                            >
                                                 {attendance.userId?.name || 'Unknown'}
-                                            </div>
+                                                {activeTab === 'members' 
+                                                    ? (attendance.userId?.memberId && <span className="text-slate-500 font-normal">({attendance.userId.memberId})</span>)
+                                                    : (attendance.userId?.trainerId && <span className="text-slate-500 font-normal">({attendance.userId.trainerId})</span>)}
+                                            </a>
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-400">
                                             {formatTime(attendance.checkInTime)}
