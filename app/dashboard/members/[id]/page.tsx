@@ -22,7 +22,7 @@ export default function MemberDetailPage() {
     const [paymentFormType, setPaymentFormType] = useState<'membership' | 'pt_plan' | undefined>();
     const [editingPayment, setEditingPayment] = useState<any>(null);
     const [activeTab, setActiveTab] = useState<'all' | 'membership' | 'pt'>('all');
-    const [editingSection, setEditingSection] = useState<'personal' | 'physical' | 'health' | 'membership' | 'pt' | null>(null);
+    const [editingSection, setEditingSection] = useState<'personal' | 'physical' | 'health' | 'membership' | 'pt' | 'financials' | null>(null);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
 
     useEffect(() => {
@@ -507,8 +507,16 @@ export default function MemberDetailPage() {
                 </div>
 
                 {/* Payment Summary */}
-                <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
-                    <h2 className="text-lg font-medium text-slate-100">Payment Summary</h2>
+                <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700 relative group">
+                    <div className="flex justify-between items-start">
+                        <h2 className="text-lg font-medium text-slate-100">Payment Summary</h2>
+                        <button
+                            onClick={() => setEditingSection('financials')}
+                            className="text-slate-400 hover:text-green-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <Edit className="h-4 w-4" />
+                        </button>
+                    </div>
                     <div className="mt-4 space-y-3">
                         <div>
                             <p className="text-sm text-slate-400">Total Price</p>
