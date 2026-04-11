@@ -61,6 +61,28 @@ export async function PUT(request, { params }) {
         const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
         const query = isObjectId ? { _id: id } : { memberId: id };
         
+        // Auto-recalculate payment statuses if financials are manually overridden
+        if (body.totalPlanPrice !== undefined || body.totalPaid !== undefined || body.admissionFeeAmount !== undefined) {
+            const currentMember = await Member.findOne(query);
+            if (currentMember) {
+                const planTotal = (body.totalPlanPrice !== undefined ? Number(body.totalPlanPrice) : currentMember.totalPlanPrice || 0) + 
+                                  (body.admissionFeeAmount !== undefined ? Number(body.admissionFeeAmount) : currentMember.admissionFeeAmount || 0);
+                const paid = body.totalPaid !== undefined ? Number(body.totalPaid) : currentMember.totalPaid || 0;
+                
+                body.paymentStatus = paid >= planTotal && planTotal > 0 ? 'paid' : paid > 0 ? 'partial' : 'unpaid';
+            }
+        }
+
+        if (body.ptTotalPlanPrice !== undefined || body.ptTotalPaid !== undefined) {
+            const currentMember = await Member.findOne(query);
+            if (currentMember) {
+                const ptPlanTotal = body.ptTotalPlanPrice !== undefined ? Number(body.ptTotalPlanPrice) : currentMember.ptTotalPlanPrice || 0;
+                const ptPaid = body.ptTotalPaid !== undefined ? Number(body.ptTotalPaid) : currentMember.ptTotalPaid || 0;
+                
+                body.ptPaymentStatus = ptPaid >= ptPlanTotal && ptPlanTotal > 0 ? 'paid' : ptPaid > 0 ? 'partial' : 'unpaid';
+            }
+        }
+
         const member = await Member.findOneAndUpdate(query, body, {
             new: true,
             runValidators: true,

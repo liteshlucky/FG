@@ -8,7 +8,7 @@ interface QuickEditModalProps {
     onClose: () => void;
     onSave: (data: any) => Promise<void>;
     onClearPlan?: () => Promise<void>; // Optional: clear plan data from member
-    section: 'personal' | 'physical' | 'health' | 'membership' | 'pt';
+    section: 'personal' | 'physical' | 'health' | 'membership' | 'pt' | 'financials';
     initialData: any;
 }
 
@@ -65,6 +65,14 @@ export default function QuickEditModal({ isOpen, onClose, onSave, onClearPlan, s
                     trainerId: initialData.trainerId?._id || initialData.trainerId || '',
                     ptStartDate: initialData.ptStartDate ? new Date(initialData.ptStartDate).toISOString().split('T')[0] : '',
                     ptEndDate: initialData.ptEndDate ? new Date(initialData.ptEndDate).toISOString().split('T')[0] : '',
+                });
+            } else if (section === 'financials') {
+                setFormData({
+                    totalPlanPrice: initialData.totalPlanPrice || 0,
+                    ptTotalPlanPrice: initialData.ptTotalPlanPrice || 0,
+                    totalPaid: initialData.totalPaid || 0,
+                    ptTotalPaid: initialData.ptTotalPaid || 0,
+                    admissionFeeAmount: initialData.admissionFeeAmount || 0,
                 });
             }
         }
@@ -146,6 +154,7 @@ export default function QuickEditModal({ isOpen, onClose, onSave, onClearPlan, s
             case 'health': return 'Edit Health & Goals';
             case 'membership': return 'Edit Membership Dates';
             case 'pt': return 'Edit PT Dates';
+            case 'financials': return 'Edit Payment Summary Details';
             default: return 'Edit';
         }
     };
@@ -393,6 +402,65 @@ export default function QuickEditModal({ isOpen, onClose, onSave, onClearPlan, s
                                         value={formData.ptEndDate || ''}
                                         onChange={handleChange}
                                         className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {section === 'financials' && (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300">Total Plan Price</label>
+                                    <input
+                                        type="number"
+                                        name="totalPlanPrice"
+                                        value={formData.totalPlanPrice || ''}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
+                                    />
+                                    <p className="mt-1 text-xs text-slate-400">Total agreed amount for the membership plan.</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300">Total Admission Fee Amount</label>
+                                    <input
+                                        type="number"
+                                        name="admissionFeeAmount"
+                                        value={formData.admissionFeeAmount || ''}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
+                                    />
+                                </div>
+                                <div className="border-t border-slate-700 pt-4 mt-4">
+                                    <label className="block text-sm font-medium text-slate-300">PT Total Plan Price</label>
+                                    <input
+                                        type="number"
+                                        name="ptTotalPlanPrice"
+                                        value={formData.ptTotalPlanPrice || ''}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
+                                    />
+                                    <p className="mt-1 text-xs text-slate-400">Total agreed amount for the PT plan.</p>
+                                </div>
+                                {/* Exclude totalPaid manually editing here, as it should be handled via the Record Payment button. But give them the ability just in case since import screwed up. */}
+                                <div className="border-t border-slate-700 pt-4 mt-4 opacity-75">
+                                    <label className="block text-sm font-medium text-orange-300">Total Membership Amount Paid (Override)</label>
+                                    <input
+                                        type="number"
+                                        name="totalPaid"
+                                        value={formData.totalPaid || ''}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border border-red-900/50 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
+                                    />
+                                    <p className="mt-1 text-xs text-orange-400 font-medium">Warning: Overriding this will disconnect it from actual payment records. It is highly recommended to record individual payments instead.</p>
+                                </div>
+                                <div className="opacity-75">
+                                    <label className="block text-sm font-medium text-orange-300">Total PT Amount Paid (Override)</label>
+                                    <input
+                                        type="number"
+                                        name="ptTotalPaid"
+                                        value={formData.ptTotalPaid || ''}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border border-red-900/50 bg-slate-900 text-slate-100 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm"
                                     />
                                 </div>
                             </div>
