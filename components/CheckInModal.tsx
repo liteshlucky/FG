@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Search } from 'lucide-react';
+import { X, Search, Users } from 'lucide-react';
 
 interface CheckInModalProps {
     userType: string;
@@ -16,6 +16,11 @@ export default function CheckInModal({ userType, onClose, onSuccess }: CheckInMo
     const [checkingIn, setCheckingIn] = useState(false);
     // Stores locker key per user id — optional, non-mandatory
     const [lockerKeys, setLockerKeys] = useState<Record<string, string>>({});
+
+    // Bulk check-in states
+    const [bulkIds, setBulkIds] = useState('');
+    const [bulkProcessing, setBulkProcessing] = useState(false);
+    const [bulkResults, setBulkResults] = useState<any[]>([]);
 
     useEffect(() => {
         fetchUsers();
@@ -64,6 +69,35 @@ export default function CheckInModal({ userType, onClose, onSuccess }: CheckInMo
         }
     };
 
+    const handleBulkCheckIn = async () => {
+        const ids = bulkIds.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        if (ids.length === 0) return;
+        setBulkProcessing(true);
+        setBulkResults([]);
+        try {
+            const res = await fetch('/api/attendance/bulk-checkin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ memberIds: ids })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setBulkResults(data.results);
+                // Auto-close after 2s if all succeeded
+                if (data.summary.failed === 0) {
+                    setTimeout(() => onSuccess(), 2000);
+                }
+            } else {
+                setBulkResults([{ memberId: '—', success: false, error: data.error }]);
+            }
+        } catch {
+            setBulkResults([{ memberId: '—', success: false, error: 'Network error' }]);
+        } finally {
+            setBulkProcessing(false);
+            setBulkIds('');
+        }
+    };
+
     const filteredUsers = users.filter((user: any) =>
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -92,6 +126,44 @@ export default function CheckInModal({ userType, onClose, onSuccess }: CheckInMo
                             <X className="h-6 w-6" />
                         </button>
                     </div>
+
+                    {/* Quick Bulk Check-In */}
+                    {userType === 'Member' && (
+                        <div className="px-6 py-3 border-b border-slate-800 bg-slate-800/30">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Users className="h-4 w-4 text-blue-400" />
+                                <span className="text-xs font-medium text-slate-400">Quick Bulk Check-In</span>
+                            </div>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={bulkIds}
+                                    onChange={(e) => setBulkIds(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleBulkCheckIn()}
+                                    placeholder="M311, M220, 115... (comma-separated)"
+                                    className="flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                />
+                                <button
+                                    onClick={handleBulkCheckIn}
+                                    disabled={bulkProcessing || !bulkIds.trim()}
+                                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
+                                >
+                                    {bulkProcessing ? '...' : 'Go'}
+                                </button>
+                            </div>
+                            {bulkResults.length > 0 && (
+                                <div className="mt-2 space-y-1">
+                                    {bulkResults.map((r: any, idx: number) => (
+                                        <div key={idx} className={`flex items-center gap-1 text-xs px-2 py-1 rounded ${r.success ? 'text-green-400' : 'text-red-400'}`}>
+                                            <span>{r.success ? '✅' : '❌'}</span>
+                                            <span>{r.name || r.memberId}</span>
+                                            {!r.success && <span className="ml-auto text-slate-500">{r.error}</span>}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Search */}
                     <div className="px-6 py-4 border-b border-slate-800">
