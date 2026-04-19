@@ -70,6 +70,15 @@ export default function QRCheckInPage() {
     const [pendingAction, setPendingAction] = useState<'checkin' | 'checkout' | null>(null);
     const [uploading, setUploading] = useState(false);
 
+    // Bulk check-in states
+    const [showBulkSection, setShowBulkSection] = useState(false);
+    const [bulkIds, setBulkIds] = useState('');
+    const [linkedProfiles, setLinkedProfiles] = useState<any[]>([]);
+    const [selectedLinked, setSelectedLinked] = useState<Set<string>>(new Set());
+    const [bulkProcessing, setBulkProcessing] = useState(false);
+    const [bulkResults, setBulkResults] = useState<any[]>([]);
+    const [extraUsers, setExtraUsers] = useState<any[]>([]);
+
     const lookupUser = async () => {
         if (!identifier.trim()) {
             setMessage({ type: 'error', text: 'Please enter your membership ID or phone number', locationStatus: '' });
@@ -79,18 +88,43 @@ export default function QRCheckInPage() {
         setLoading(true);
         setMessage({ type: '', text: '', locationStatus: '' });
         setUser(null);
+        setLinkedProfiles([]);
+        setSelectedLinked(new Set());
+        setBulkResults([]);
+        setExtraUsers([]);
+
+        const ids = identifier.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        const lookupId = ids[0] || identifier.trim();
 
         try {
-            const res = await fetch('/api/attendance/lookup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ identifier: identifier.trim() })
-            });
-            const data = await res.json();
-            if (data.success) {
-                setUser(data.data);
+            const [mainRes, ...extraRes] = await Promise.all([
+                fetch('/api/attendance/lookup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier: lookupId })
+                }),
+                ...ids.slice(1).map(id => fetch('/api/attendance/lookup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier: id })
+                }))
+            ]);
+            
+            const mainData = await mainRes.json();
+            if (mainData.success) {
+                setUser(mainData.data);
+                if (mainData.data.userType === 'Member' && mainData.data.identifier) {
+                    fetchLinkedProfiles(mainData.data.identifier);
+                }
+
+                const extras = [];
+                for (const res of extraRes) {
+                    const d = await res.json();
+                    if (d.success) extras.push(d.data);
+                }
+                setExtraUsers(extras);
             } else {
-                setMessage({ type: 'error', text: data.error || 'User not found', locationStatus: '' });
+                setMessage({ type: 'error', text: mainData.error || 'User not found', locationStatus: '' });
             }
         } catch {
             setMessage({ type: 'error', text: 'Failed to lookup user. Please try again.', locationStatus: '' });
@@ -109,6 +143,39 @@ export default function QRCheckInPage() {
 
         // Fetch location silently — never blocks the user
         const coords = await getCurrentLocation();
+
+        // If there are multiple IDs from the main input, or linked profiles selected, use bulk checkin
+        const mainIds = identifier.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        const linkedIds = Array.from(selectedLinked);
+        const allTargetIds = Array.from(new Set([...mainIds, ...linkedIds]));
+
+        if (action === 'checkin' && allTargetIds.length > 1) {
+            try {
+                const res = await fetch('/api/attendance/bulk-checkin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        initiatorId: user.identifier,
+                        memberIds: allTargetIds,
+                        lat: coords?.lat ?? null,
+                        lng: coords?.lng ?? null
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    setMessage({ type: 'success', text: `Successfully checked in ${data.summary.succeeded} member(s)`, locationStatus: '' });
+                    setBulkResults(data.results);
+                    setTimeout(() => lookupUser(), 2500);
+                } else {
+                    setMessage({ type: 'error', text: data.error || 'Bulk check-in failed', locationStatus: '' });
+                }
+            } catch (err) {
+                setMessage({ type: 'error', text: 'Failed to process bulk check-in.', locationStatus: '' });
+            } finally {
+                setProcessing(false);
+            }
+            return;
+        }
 
         try {
             const res = await fetch('/api/attendance/self-service', {
@@ -212,6 +279,84 @@ export default function QRCheckInPage() {
         return `${hours}h ${mins}m`;
     };
 
+    // -------------------------------------------------------------------------
+    // BULK CHECK-IN FUNCTIONS
+    // -------------------------------------------------------------------------
+    const fetchLinkedProfiles = async (memberId: string) => {
+        try {
+            const res = await fetch(`/api/linked-profiles?memberId=${memberId}`);
+            const data = await res.json();
+            if (data.success) {
+                setLinkedProfiles(data.data);
+                // Auto-expand the suggestion UI if the user actually has buddies
+                if (data.data.length > 0) {
+                    setShowBulkSection(true);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch linked profiles', error);
+        }
+    };
+
+    const toggleLinkedProfile = (memberId: string) => {
+        setSelectedLinked(prev => {
+            const next = new Set(prev);
+            if (next.has(memberId)) {
+                next.delete(memberId);
+            } else {
+                next.add(memberId);
+            }
+            return next;
+        });
+    };
+
+    const handleBulkCheckIn = async (memberIds: string[]) => {
+        if (memberIds.length === 0) return;
+        setBulkProcessing(true);
+        setBulkResults([]);
+
+        // Get GPS from initiator's device
+        const coords = await getCurrentLocation();
+
+        try {
+            const res = await fetch('/api/attendance/bulk-checkin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    initiatorId: user?.identifier,
+                    memberIds,
+                    lat: coords?.lat ?? null,
+                    lng: coords?.lng ?? null
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setBulkResults(data.results);
+                // Refresh linked profiles after check-in (auto-link may have changed)
+                if (user?.identifier) {
+                    fetchLinkedProfiles(user.identifier);
+                }
+            } else {
+                setBulkResults([{ memberId: '—', name: null, success: false, error: data.error }]);
+            }
+        } catch {
+            setBulkResults([{ memberId: '—', name: null, success: false, error: 'Network error' }]);
+        } finally {
+            setBulkProcessing(false);
+            setBulkIds('');
+            setSelectedLinked(new Set());
+        }
+    };
+
+    const handleBulkFromInput = () => {
+        const ids = bulkIds.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        handleBulkCheckIn(ids);
+    };
+
+    const handleBulkFromLinked = () => {
+        handleBulkCheckIn(Array.from(selectedLinked));
+    };
+
     // Whether check-in / checkout buttons are busy
     const isBusy = processing || uploading;
 
@@ -284,6 +429,32 @@ export default function QRCheckInPage() {
                         </div>
                     )}
 
+                    {/* Standalone Bulk Results (when multiple IDs entered in main box) */}
+                    {!user && bulkResults.length > 0 && (
+                        <div className="mt-6 space-y-2 border-t-2 border-gray-100 pt-4">
+                            <h3 className="text-sm font-bold text-gray-800">Bulk Check-In Results</h3>
+                            <div className="space-y-1.5">
+                                {bulkResults.map((r: any, idx: number) => (
+                                    <div
+                                        key={idx}
+                                        className={`flex items-center gap-2 rounded-lg p-3 text-sm ${r.success
+                                            ? 'bg-green-50 border border-green-200 text-green-800'
+                                            : 'bg-red-50 border border-red-200 text-red-800'
+                                            }`}
+                                    >
+                                        <span className="text-lg">{r.success ? '✅' : '❌'}</span>
+                                        <span className="font-medium flex items-center gap-2">
+                                            <span className='text-xs font-bold'>({r.memberId})</span> {r.name}
+                                        </span>
+                                        {!r.success && (
+                                            <span className="ml-auto text-xs text-red-600">{r.error}</span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* User Details */}
                     {user && (
                         <div className="mt-6 space-y-4">
@@ -304,6 +475,26 @@ export default function QRCheckInPage() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Extra Users (from comma-separated lookup) */}
+                            {extraUsers.length > 0 && (
+                                <div className="rounded-lg border-2 border-indigo-200 bg-indigo-50 p-4">
+                                    <h3 className="text-sm font-bold text-indigo-900 mb-2">Also Checking In</h3>
+                                    <div className="space-y-2">
+                                        {extraUsers.map((eu, idx) => (
+                                            <div key={idx} className="flex items-center gap-3 bg-white p-2 border border-indigo-100 rounded-md shadow-sm">
+                                                <div className="flex-shrink-0">
+                                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-sm">👤</div>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-bold text-gray-900">{eu.name}</p>
+                                                    <p className="text-xs text-gray-500">ID: {eu.identifier}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Trainer pill */}
                             {user.userType === 'Trainer' && (
@@ -386,6 +577,77 @@ export default function QRCheckInPage() {
                                             placeholder="e.g. A-12"
                                             className="w-full rounded-lg border-2 border-gray-300 text-black px-4 py-3 text-lg focus:border-blue-500 focus:outline-none"
                                         />
+                                    </div>
+                                )}
+
+                                {/* Buddies Suggestion Section */}
+                                {user.userType === 'Member' && !user.isCheckedIn && !user.hasCheckedInToday && linkedProfiles.length > 0 && (
+                                    <div className="rounded-lg border-2 border-blue-200 bg-blue-50 p-4 space-y-4">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-xl">👥</span>
+                                            <h3 className="text-sm font-bold text-blue-900">Buddies & Family Check-In</h3>
+                                        </div>
+
+                                        {/* Linked Profiles — checkbox list */}
+                                        {linkedProfiles.length > 0 && (
+                                            <div>
+                                                <p className="text-xs font-medium text-blue-800 mb-1.5">Buddies & Family</p>
+                                                <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                                                    {linkedProfiles.map((lp: any) => {
+                                                        const isExpired = lp.status === 'Expired';
+                                                        const isDisabled = isExpired;
+                                                        const relationEmoji = lp.relationship === 'spouse' ? '💑' :
+                                                            lp.relationship === 'family' ? '👨‍👩‍👧' :
+                                                                lp.relationship === 'friend' ? '🤝' :
+                                                                    lp.relationship === 'buddy' ? '🏋️' : '👤';
+
+                                                        return (
+                                                            <label
+                                                                key={lp.memberId}
+                                                                className={`flex items-center gap-2 rounded-md border p-2 cursor-pointer transition-all ${isDisabled
+                                                                    ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
+                                                                    : selectedLinked.has(lp.memberId)
+                                                                        ? 'border-blue-400 bg-blue-100'
+                                                                        : 'border-blue-200 bg-white hover:border-blue-300'
+                                                                    }`}
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={selectedLinked.has(lp.memberId)}
+                                                                    onChange={() => !isDisabled && toggleLinkedProfile(lp.memberId)}
+                                                                    disabled={isDisabled}
+                                                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                                />
+                                                                <span className="text-base">{relationEmoji}</span>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-sm font-medium text-gray-900 leading-tight">{lp.name}</p>
+                                                                    <p className="text-[10px] text-gray-500">
+                                                                        {lp.memberId} · <span className="capitalize">{lp.relationship}</span>
+                                                                    </p>
+                                                                </div>
+                                                                {isExpired && (
+                                                                    <span className="text-[10px] font-semibold text-red-500 bg-red-50 px-1.5 py-0.5 rounded">
+                                                                        Expired
+                                                                    </span>
+                                                                )}
+                                                            </label>
+                                                        );
+                                                    })}
+                                                </div>
+                                                {selectedLinked.size > 0 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleBulkFromLinked}
+                                                        disabled={bulkProcessing}
+                                                        className="w-full mt-2 flex items-center justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-50 shadow-sm"
+                                                    >
+                                                        {bulkProcessing
+                                                            ? '📍 Checking In...'
+                                                            : `Check In Extra ${selectedLinked.size} Person${selectedLinked.size > 1 ? 's' : ''}`}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 

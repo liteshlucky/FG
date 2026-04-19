@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, DollarSign, Edit, AlertTriangle, Calendar } from 'lucide-react';
+import { ArrowLeft, DollarSign, Edit, AlertTriangle, Calendar, Users, Link, X, Plus } from 'lucide-react';
 import PaymentForm from '@/components/PaymentForm';
 import DueClearForm from '@/components/DueClearForm';
 import Avatar from '@/components/Avatar';
@@ -25,6 +25,15 @@ export default function MemberDetailPage() {
     const [editingSection, setEditingSection] = useState<'personal' | 'physical' | 'health' | 'membership' | 'pt' | 'financials' | null>(null);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
 
+    // Linked Profiles state
+    const [linkedProfiles, setLinkedProfiles] = useState<any[]>([]);
+    const [linkMemberId, setLinkMemberId] = useState('');
+    const [linkRelationship, setLinkRelationship] = useState('buddy');
+    const [linkingInProgress, setLinkingInProgress] = useState(false);
+    const [searchedMember, setSearchedMember] = useState<any>(null);
+    const [searchingMember, setSearchingMember] = useState(false);
+    const [searchError, setSearchError] = useState('');
+
     useEffect(() => {
         if (params.id) {
             fetchMemberDetails();
@@ -38,6 +47,10 @@ export default function MemberDetailPage() {
             if (data.success) {
                 setMember(data.data);
                 fetchPayments(data.data._id);
+                // Fetch linked profiles using human-readable memberId
+                if (data.data.memberId) {
+                    fetchLinkedProfiles(data.data.memberId);
+                }
             }
         } catch (error) {
             console.error('Failed to fetch member', error);
@@ -55,6 +68,109 @@ export default function MemberDetailPage() {
             }
         } catch (error) {
             console.error('Failed to fetch payments', error);
+        }
+    };
+
+    const fetchLinkedProfiles = async (memberId: string) => {
+        try {
+            const res = await fetch(`/api/linked-profiles?memberId=${memberId}`);
+            const data = await res.json();
+            if (data.success) {
+                setLinkedProfiles(data.data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch linked profiles', error);
+        }
+    };
+
+    const handleSearchLinkMember = async () => {
+        if (!linkMemberId.trim()) return;
+        setSearchingMember(true);
+        setSearchError('');
+        setSearchedMember(null);
+
+        try {
+            const res = await fetch('/api/attendance/lookup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identifier: linkMemberId.trim() })
+            });
+            const data = await res.json();
+            if (data.success && data.data && data.data.userType === 'Member') {
+                setSearchedMember(data.data);
+            } else {
+                setSearchError('Member not found');
+            }
+        } catch (error) {
+            console.error('Failed to lookup member:', error);
+            setSearchError('Failed to lookup member');
+        } finally {
+            setSearchingMember(false);
+        }
+    };
+
+    const handleLinkMember = async () => {
+        if (!searchedMember || !member?.memberId) return;
+        setLinkingInProgress(true);
+        try {
+            const res = await fetch('/api/linked-profiles', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    memberAId: member.memberId,
+                    memberBId: searchedMember.identifier,
+                    relationship: linkRelationship
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setLinkMemberId('');
+                setLinkRelationship('buddy');
+                setSearchedMember(null);
+                fetchLinkedProfiles(member.memberId);
+            } else {
+                alert(data.error || 'Failed to link member');
+            }
+        } catch (error) {
+            console.error('Failed to link member', error);
+            alert('Failed to link member');
+        } finally {
+            setLinkingInProgress(false);
+        }
+    };
+
+    const handleUnlinkMember = async (linkId: string) => {
+        if (!confirm('Remove this linked profile?')) return;
+        try {
+            const res = await fetch('/api/linked-profiles', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ linkId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                fetchLinkedProfiles(member.memberId);
+            } else {
+                alert(data.error || 'Failed to unlink');
+            }
+        } catch (error) {
+            console.error('Failed to unlink member', error);
+        }
+    };
+
+    const handleUpdateRelationship = async (linkId: string, relationship: string) => {
+        try {
+            const res = await fetch('/api/linked-profiles', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ linkId, relationship })
+            });
+            const data = await res.json();
+            if (data.success) {
+                fetchLinkedProfiles(member.memberId);
+            }
+        } catch (error) {
+            console.error('Failed to update relationship', error);
         }
     };
 
@@ -592,6 +708,150 @@ export default function MemberDetailPage() {
                             })
                     )}
                 </div>
+            </div>
+
+            {/* Linked Profiles Section */}
+            <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        <Users className="h-5 w-5 text-blue-400" />
+                        <h2 className="text-lg font-medium text-slate-100">Linked Profiles</h2>
+                        {linkedProfiles.length > 0 && (
+                            <span className="inline-flex items-center rounded-full bg-blue-900/30 border border-blue-800/50 px-2 py-0.5 text-xs font-medium text-blue-400">
+                                {linkedProfiles.length}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Add Link Form (Two-Step: Search then Link) */}
+                <div className="mb-4 p-4 rounded-lg bg-slate-900/50 border border-slate-700">
+                    <div className="flex flex-wrap items-end gap-2">
+                        <div className="flex-1 min-w-[200px]">
+                            <label className="block text-xs text-slate-400 mb-1">Search Member ID or Phone</label>
+                            <input
+                                type="text"
+                                value={linkMemberId}
+                                onChange={(e) => {
+                                    setLinkMemberId(e.target.value);
+                                    setSearchedMember(null);
+                                    setSearchError('');
+                                }}
+                                onKeyPress={(e) => e.key === 'Enter' && handleSearchLinkMember()}
+                                placeholder="e.g. M220 or 220"
+                                className="w-full rounded-md border border-slate-600 bg-slate-800 px-3 py-1.5 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                        </div>
+                        <button
+                            onClick={handleSearchLinkMember}
+                            disabled={searchingMember || !linkMemberId.trim()}
+                            className="flex items-center justify-center gap-1 w-24 rounded-md bg-slate-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-600 disabled:opacity-50 transition-colors"
+                        >
+                            {searchingMember ? '...' : 'Search'}
+                        </button>
+                    </div>
+
+                    {searchError && (
+                        <p className="mt-2 text-xs text-red-400">{searchError}</p>
+                    )}
+
+                    {searchedMember && (
+                        <div className="mt-4 p-3 rounded-md bg-slate-800 border border-slate-600 flex flex-wrap items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <Avatar name={searchedMember.name} src={searchedMember.profilePicture} size="sm" />
+                                <div>
+                                    <p className="text-sm font-medium text-slate-100">{searchedMember.name}</p>
+                                    <p className="text-xs text-slate-400">{searchedMember.identifier}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                                <select
+                                    value={linkRelationship}
+                                    onChange={(e) => setLinkRelationship(e.target.value)}
+                                    className="w-32 rounded-md border border-slate-600 bg-slate-900 px-2 py-1.5 text-sm text-slate-100 focus:border-blue-500 focus:outline-none"
+                                >
+                                    <option value="buddy">Buddy</option>
+                                    <option value="spouse">Spouse</option>
+                                    <option value="family">Family</option>
+                                    <option value="friend">Friend</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <button
+                                    onClick={handleLinkMember}
+                                    disabled={linkingInProgress}
+                                    className="flex items-center gap-1 rounded-md bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50 transition-colors"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    {linkingInProgress ? 'Linking...' : 'Link'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Linked Profiles List */}
+                {linkedProfiles.length === 0 ? (
+                    <p className="text-sm text-slate-500 text-center py-4">No linked profiles yet. Link a member by entering their ID above.</p>
+                ) : (
+                    <div className="space-y-2">
+                        {linkedProfiles.map((lp: any) => (
+                            <div key={lp.linkId} className="flex items-center justify-between rounded-lg border border-slate-700 px-4 py-3 hover:bg-slate-700/30 transition-colors">
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                    <Link className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                                    <div className="min-w-0">
+                                        <a
+                                            href={`/dashboard/members/${lp.memberId}`}
+                                            className="text-sm font-medium text-blue-400 hover:text-blue-300 hover:underline"
+                                        >
+                                            {lp.name}
+                                        </a>
+                                        <span className="ml-2 text-xs text-slate-500">({lp.memberId})</span>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <span className={`inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                                                lp.status === 'Active' ? 'bg-green-900/30 text-green-400 border border-green-800/50' :
+                                                'bg-red-900/30 text-red-400 border border-red-800/50'
+                                            }`}>
+                                                {lp.status}
+                                            </span>
+                                            <span className={`inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                                                lp.source === 'auto' ? 'bg-purple-900/30 text-purple-400 border border-purple-800/50' :
+                                                'bg-blue-900/30 text-blue-400 border border-blue-800/50'
+                                            }`}>
+                                                {lp.source === 'auto' ? 'Auto' : 'Admin'}
+                                            </span>
+                                            {lp.source === 'auto' && lp.bulkCheckinCount && (
+                                                <span className="text-[10px] text-slate-500">
+                                                    {lp.bulkCheckinCount}× together
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                    <select
+                                        value={lp.relationship}
+                                        onChange={(e) => handleUpdateRelationship(lp.linkId, e.target.value)}
+                                        className="rounded-md border border-slate-600 bg-slate-800 px-2 py-1 text-xs text-slate-300 focus:border-blue-500 focus:outline-none"
+                                    >
+                                        <option value="buddy">Buddy</option>
+                                        <option value="spouse">Spouse</option>
+                                        <option value="family">Family</option>
+                                        <option value="friend">Friend</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                    <button
+                                        onClick={() => handleUnlinkMember(lp.linkId)}
+                                        className="rounded-md p-1 text-slate-500 hover:bg-red-900/30 hover:text-red-400 transition-colors"
+                                        title="Unlink"
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* AI Analysis Section */}
