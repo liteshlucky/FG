@@ -18,6 +18,14 @@ const TrainerPaymentSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+    leaveDays: {
+        type: Number,
+        default: 0,
+    },
+    leaveDeduction: {
+        type: Number,
+        default: 0,
+    },
     month: {
         type: String, // e.g., "November"
         required: true,

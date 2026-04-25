@@ -51,6 +51,8 @@ export default function SalaryModal({ isOpen, onClose, trainerId, onPaymentSucce
                     amount: salaryData.totalSalary,
                     baseSalary: salaryData.baseSalary,
                     commissionAmount: salaryData.commissionAmount,
+                    leaveDays: salaryData.leaveDays,
+                    leaveDeduction: salaryData.leaveDeduction,
                     month,
                     year,
                     paymentMode,
@@ -93,17 +95,34 @@ export default function SalaryModal({ isOpen, onClose, trainerId, onPaymentSucce
                         </div>
                     ) : salaryData ? (
                         <div className="space-y-6">
+                            {/* Cycle Period Info */}
+                            <div className="bg-blue-900/20 border border-blue-800/50 rounded-md p-3 mb-4">
+                                <p className="text-xs text-blue-300 font-medium uppercase tracking-wider">Calculation Cycle</p>
+                                <p className="text-sm text-slate-100 mt-1">
+                                    {new Date(salaryData.cycleStart).toLocaleDateString('en-GB')} to {new Date(salaryData.cycleEnd).toLocaleDateString('en-GB')}
+                                </p>
+                            </div>
+
                             {/* Salary Breakdown */}
-                            <div className="rounded-md bg-slate-700 p-4 border border-slate-600">
+                            <div className="rounded-md bg-slate-700/50 p-4 border border-slate-600">
                                 <div className="flex justify-between mb-2">
                                     <span className="text-sm text-slate-300">Base Salary</span>
                                     <span className="font-medium text-slate-100">₹ {salaryData.baseSalary}</span>
                                 </div>
                                 <div className="flex justify-between mb-2">
-                                    <span className="text-sm text-slate-300">Commission ({salaryData.activeMembersCount} active members)</span>
+                                    <div className="flex flex-col">
+                                        <span className="text-sm text-slate-300">PT Incentive</span>
+                                        <span className="text-[10px] text-slate-400 italic">({salaryData.activeMembersCount} active members this cycle)</span>
+                                    </div>
                                     <span className="font-medium text-green-400">+ ₹ {salaryData.commissionAmount}</span>
                                 </div>
-                                <div className="border-t border-slate-600 pt-2 flex justify-between">
+                                {salaryData.leaveDays > 0 && (
+                                    <div className="flex justify-between mb-2">
+                                        <span className="text-sm text-slate-300">Leave Deduction ({salaryData.leaveDays} days)</span>
+                                        <span className="font-medium text-red-400">- ₹ {salaryData.leaveDeduction}</span>
+                                    </div>
+                                )}
+                                <div className="border-t border-slate-600 pt-2 mt-2 flex justify-between">
                                     <span className="font-bold text-slate-100">Total Payable</span>
                                     <span className="font-bold text-indigo-400 text-lg">₹ {salaryData.totalSalary}</span>
                                 </div>

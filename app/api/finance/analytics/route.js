@@ -30,23 +30,35 @@ export async function GET(request) {
             queryDateFilter.$gte = startDate;
             queryDateFilter.$lte = endDate;
         } else {
-            // Default to 'this month' if missing
+            // Cycle: 21st of previous month to 20th of current month
             const now = new Date();
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+            startDate = new Date(now.getFullYear(), now.getMonth() - 1, 21);
+            endDate = new Date(now.getFullYear(), now.getMonth(), 20, 23, 59, 59, 999);
+            
             queryDateFilter.$gte = startDate;
             queryDateFilter.$lte = endDate;
         }
 
+        // 1b. Determine the exact Trainer Cycle (21st to 20th) based on the endDate context
+        const cycleRefDate = endDate || new Date();
+        const cycleStart = new Date(cycleRefDate.getFullYear(), cycleRefDate.getMonth() - 1, 21);
+        const cycleEnd = new Date(cycleRefDate.getFullYear(), cycleRefDate.getMonth(), 20, 23, 59, 59, 999);
+
         // 1. Fetch relevant data simultaneously
         const [
             memberPayments,
+            trainerCyclePayments,
             trainerPayments,
             transactions,
             allMembers,
             trainers
         ] = await Promise.all([
             Payment.find({ paymentDate: queryDateFilter }).lean(),
+            Payment.find({ 
+                paymentDate: { $gte: cycleStart, $lte: cycleEnd },
+                planType: { $in: ['PTplan', 'pt_plan'] },
+                paymentStatus: 'completed'
+            }).lean(),
             TrainerPayment.find({ paymentDate: queryDateFilter }).lean(),
             Transaction.find({ date: queryDateFilter }).lean(),
             Member.find().lean(), // Fetch all to accurately map past payments and dues
@@ -59,6 +71,7 @@ export async function GET(request) {
                 id: t._id,
                 name: t.name,
                 profilePicture: t.profilePicture || t.imageUrl || '',
+                ptTarget: t.ptTarget || 20,
                 ptCount: 0,
                 revenue: 0,
                 clients: []
@@ -82,37 +95,17 @@ export async function GET(request) {
             const amount = p.amount || 0;
             const category = p.paymentCategory || p.planType || 'Membership';
             const mode = p.paymentMode || 'cash';
+            const type = (p.planType || '').toLowerCase();
 
             revenueBreakdown[category] = (revenueBreakdown[category] || 0) + amount;
             paymentModes[mode] = (paymentModes[mode] || 0) + amount;
             totalIncome += amount;
 
-            const type = (p.planType || '').toLowerCase();
             if (type === 'pt_plan' || type === 'ptplan' || category === 'PT Plan') {
                 ptVsMembership['PT'] += amount;
                 
-                // Attribute revenue to the trainer and track clients who PAID in this period
-                const mId = p.memberId ? p.memberId.toString() : null;
-                const memberObj = mId ? memberMap[mId] : null;
-                const tId = memberObj && memberObj.trainerId ? memberObj.trainerId.toString() : null;
-                
-                if (tId && trainerStats[tId]) {
-                    trainerStats[tId].revenue += amount;
-                    
-                    // Track unique clients for this period
-                    if (memberObj && !trainerStats[tId].clients.some(c => c.id.toString() === mId)) {
-                        trainerStats[tId].ptCount += 1;
-                        trainerStats[tId].clients.push({
-                            id: memberObj._id,
-                            name: memberObj.name,
-                            memberId: memberObj.memberId || '-',
-                            ptStartDate: memberObj.ptStartDate,
-                            ptEndDate: memberObj.ptEndDate
-                        });
-                    }
-                }
-                
-                
+                // Note: We no longer attribute UPFRONT PT revenue to trainers here
+                // Revenue is now recognized monthly (accrual basis) in the next section.
             } else if (type === 'membership' || type === 'plan' || category === 'Plan') {
                 ptVsMembership['Membership'] += amount;
             } else {
@@ -120,32 +113,35 @@ export async function GET(request) {
             }
         });
 
-        // Track Active PT Clients who are genuinely active as of the end of the period (or today, if current period)
-        // This drops "expired" clients who merely bled a few days into the month but didn't renew.
-        const now = new Date();
-        const checkDate = endDate >= now ? now : endDate;
-
-        allMembers.forEach(memberObj => {
-            const tId = memberObj.trainerId ? memberObj.trainerId.toString() : null;
-            if (tId && trainerStats[tId] && memberObj.ptStartDate && memberObj.ptEndDate) {
-                const ptStart = new Date(memberObj.ptStartDate);
-                const ptEnd = new Date(memberObj.ptEndDate);
+        // 2b. Recognize PT Revenue (Cash Basis - strictly based on 21st to 20th trainer cycle)
+        trainerCyclePayments.forEach(p => {
+            const amount = p.amount || 0;
+            
+            const memberObj = memberMap[p.memberId?.toString()];
+            if (memberObj && memberObj.trainerId) {
+                const tId = memberObj.trainerId.toString();
                 
-                // Active carryover means they are valid as of the checkDate
-                const isCarryover = (ptStart <= checkDate) && (ptEnd >= checkDate);
-                
-                if (isCarryover) {
-                    const mId = memberObj._id.toString();
-                    if (!trainerStats[tId].clients.some(c => c.id.toString() === mId)) {
-                        trainerStats[tId].ptCount += 1;
-                        trainerStats[tId].clients.push({
-                            id: memberObj._id,
-                            name: memberObj.name,
-                            memberId: memberObj.memberId || '-',
-                            ptStartDate: memberObj.ptStartDate,
-                            ptEndDate: memberObj.ptEndDate
-                        });
-                    }
+                if (trainerStats[tId]) {
+                    // Calculate months duration for display
+                    const ptStart = new Date(memberObj.ptStartDate);
+                    const ptEnd = new Date(memberObj.ptEndDate);
+                    const diffTime = Math.abs(ptEnd - ptStart);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    const monthsDuration = Math.max(1, Math.round(diffDays / 30)) || 1;
+                    
+                    trainerStats[tId].ptCount += 1;
+                    trainerStats[tId].revenue += amount;
+                    trainerStats[tId].clients.push({
+                        id: memberObj._id,
+                        name: memberObj.name,
+                        memberId: memberObj.memberId || '-',
+                        ptStartDate: memberObj.ptStartDate,
+                        ptEndDate: memberObj.ptEndDate,
+                        ptTotalPlanPrice: memberObj.ptTotalPlanPrice || amount,
+                        monthsDuration: monthsDuration,
+                        monthlyRevenue: amount, // Use full payment amount
+                        paymentDate: p.paymentDate
+                    });
                 }
             }
         });
@@ -300,7 +296,38 @@ export async function GET(request) {
                 paymentModes,
                 trend: trendChartData,
                 pendingDues: pendingDuesList,
-                trainerLeaderboard: Object.values(trainerStats).sort((a, b) => (b.revenue - a.revenue) || (b.ptCount - a.ptCount))
+                trainerLeaderboard: Object.values(trainerStats).map(t => {
+                    // Calculate Incentive
+                    // First 7 members: 40% of their revenue
+                    // 8th member onward: 50% of their revenue
+                    // We use the average revenue per member for the tiers
+                    let incentive = 0;
+                    const enrichedClients = [];
+                    if (t.ptCount > 0) {
+                        // Sort clients chronologically by payment date
+                        const sortedClients = [...t.clients].sort((a, b) => new Date(a.paymentDate) - new Date(b.paymentDate));
+
+                        sortedClients.forEach((client, index) => {
+                            const rate = (index < 7) ? 0.40 : 0.50;
+                            const clientIncentive = (client.monthlyRevenue || 0) * rate;
+                            incentive += clientIncentive;
+                            
+                            enrichedClients.push({
+                                ...client,
+                                rate: rate * 100,
+                                incentive: Math.round(clientIncentive)
+                            });
+                        });
+                    }
+
+                    return {
+                        ...t,
+                        clients: enrichedClients,
+                        incentive: Math.round(incentive),
+                        targetMet: t.ptCount >= t.ptTarget,
+                        targetGoal: t.ptTarget
+                    };
+                }).sort((a, b) => (b.revenue - a.revenue) || (b.ptCount - a.ptCount))
             }
         });
 
