@@ -14,6 +14,7 @@ export default function TrainerDetailPage() {
     const [ptHistory, setPtHistory] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState('overview');
     const [salaryModalOpen, setSalaryModalOpen] = useState(false);
+    const [salaryEstimate, setSalaryEstimate] = useState<any>(null);
 
     useEffect(() => {
         // Fetch trainer basic info
@@ -36,6 +37,12 @@ export default function TrainerDetailPage() {
             .then((data) => {
                 if (data.success) setPtHistory(data.data);
             });
+        // Fetch current cycle salary estimate
+        fetch(`/api/trainers/${id}/salary`)
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.success) setSalaryEstimate(data.data);
+            });
     }, [id]);
 
     const fetchPayments = () => {
@@ -50,21 +57,7 @@ export default function TrainerDetailPage() {
 
     const renderOverview = () => (
         <div className="space-y-4">
-            <div className="flex items-center space-x-4">
-                <Avatar name={trainer.name} src={trainer.profilePicture} size="lg" />
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-100">{trainer.name}</h1>
-                    <p className="text-sm text-slate-400 mb-1">ID: {trainer.trainerId || 'N/A'}</p>
-                    <p className="text-slate-300">{trainer.specialization}</p>
-                </div>
-                <button
-                    onClick={() => router.push(`/dashboard/staff/${id}/edit`)}
-                    className="ml-auto rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                >
-                    Edit Staff
-                </button>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <div className="rounded bg-slate-700 p-4">
                     <p className="text-sm text-slate-400">Base Salary</p>
                     <p className="text-lg font-medium text-slate-100">₹ {trainer.baseSalary || 0}</p>
@@ -80,6 +73,10 @@ export default function TrainerDetailPage() {
                             ? `₹ ${trainer.commissionValue}`
                             : `${trainer.commissionValue}%`}
                     </p>
+                </div>
+                <div className="rounded bg-slate-700 p-4">
+                    <p className="text-sm text-slate-400">PT Target</p>
+                    <p className="text-lg font-medium text-slate-100">{trainer.ptTarget || 20}</p>
                 </div>
                 <div className="rounded bg-slate-700 p-4">
                     <p className="text-sm text-slate-400">Day Off</p>
@@ -177,6 +174,90 @@ export default function TrainerDetailPage() {
                 </button>
             </div>
 
+            {/* Estimated Incentive Summary */}
+            {salaryEstimate && (
+                <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-5 mb-6">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <div>
+                            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Current Cycle Estimate</h3>
+                            <p className="text-xs text-slate-500 mt-1">
+                                {new Date(salaryEstimate.cycleStart).toLocaleDateString('en-GB')} to {new Date(salaryEstimate.cycleEnd).toLocaleDateString('en-GB')}
+                            </p>
+                        </div>
+                        <div className="flex gap-6">
+                            <div className="text-right">
+                                <p className="text-xs text-slate-400">Total PT Clients</p>
+                                <p className="text-xl font-bold text-slate-200">{salaryEstimate.totalAssignedMembers}</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-xs text-slate-400">Cycle Payments</p>
+                                <p className="text-xl font-bold text-blue-400">{salaryEstimate.cyclePaymentCount}</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-xs text-slate-400">Est. PT Incentive</p>
+                                <p className="text-xl font-bold text-emerald-400">₹{salaryEstimate.commissionAmount.toLocaleString()}</p>
+                            </div>
+                            {salaryEstimate.leaveDays > 0 && (
+                                <div className="text-right">
+                                    <p className="text-xs text-slate-400">Leaves ({salaryEstimate.leaveDays})</p>
+                                    <p className="text-xl font-bold text-red-400">- ₹{salaryEstimate.leaveDeduction.toLocaleString()}</p>
+                                </div>
+                            )}
+                            <div className="text-right">
+                                <p className="text-xs text-slate-400">Est. Net Salary</p>
+                                <p className="text-xl font-bold text-blue-400">₹{salaryEstimate.totalSalary.toLocaleString()}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Detailed Breakdown Table */}
+                    <div className="mt-4 border-t border-slate-700/50 pt-4">
+                        <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Calculation Breakdown</h4>
+                        <div className="overflow-x-auto rounded-lg border border-slate-700 bg-slate-800/30">
+                            <table className="min-w-full divide-y divide-slate-700">
+                                <thead className="bg-slate-900/50">
+                                    <tr>
+                                        <th className="px-4 py-2 text-left text-[10px] font-medium text-slate-500 uppercase">Member</th>
+                                        <th className="px-4 py-2 text-left text-[10px] font-medium text-slate-500 uppercase">Paid On</th>
+                                        <th className="px-4 py-2 text-right text-[10px] font-medium text-slate-500 uppercase">Plan</th>
+                                        <th className="px-4 py-2 text-right text-[10px] font-medium text-slate-500 uppercase">Monthly Rev</th>
+                                        <th className="px-4 py-2 text-center text-[10px] font-medium text-slate-500 uppercase">Rate</th>
+                                        <th className="px-4 py-2 text-right text-[10px] font-medium text-slate-500 uppercase">Incentive</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-700/50">
+                                    {salaryEstimate.memberDetails?.map((item: any, idx: number) => (
+                                        <tr key={idx} className="hover:bg-slate-700/20 transition-colors">
+                                            <td className="px-4 py-2">
+                                                <div className="text-xs font-medium text-slate-200">{item.name}</div>
+                                                <div className="text-[10px] text-slate-500">{item.memberId}</div>
+                                            </td>
+                                            <td className="px-4 py-2 text-xs text-slate-400">
+                                                {new Date(item.paymentDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' })}
+                                            </td>
+                                            <td className="px-4 py-2 text-right text-xs text-slate-400">
+                                                ₹{item.planPrice?.toLocaleString()} / {item.months}m
+                                            </td>
+                                            <td className="px-4 py-2 text-right text-xs font-medium text-slate-300">
+                                                ₹{Math.round(item.monthlyRevenue).toLocaleString()}
+                                            </td>
+                                            <td className="px-4 py-2 text-center">
+                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${item.rate === 50 ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}`}>
+                                                    {item.rate}%
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-2 text-right text-xs font-bold text-emerald-400">
+                                                ₹{item.incentive.toLocaleString()}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <table className="min-w-full divide-y divide-slate-700">
                 <thead className="bg-slate-900/50">
                     <tr>
@@ -184,6 +265,7 @@ export default function TrainerDetailPage() {
                         <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Month/Year</th>
                         <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Base (₹)</th>
                         <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Comm. (₹)</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Leaves (₹)</th>
                         <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Total (₹)</th>
                         <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Mode</th>
                         <th className="px-4 py-2 text-left text-sm font-medium text-slate-400">Status</th>
@@ -197,6 +279,11 @@ export default function TrainerDetailPage() {
                                 <td className="px-4 py-2 text-sm">{p.month} {p.year}</td>
                                 <td className="px-4 py-2 text-sm">{p.baseSalary}</td>
                                 <td className="px-4 py-2 text-sm">{p.commissionAmount}</td>
+                                <td className="px-4 py-2 text-sm">
+                                    {p.leaveDays > 0 ? (
+                                        <span className="text-red-400">-{p.leaveDeduction} ({p.leaveDays}d)</span>
+                                    ) : '-'}
+                                </td>
                                 <td className="px-4 py-2 text-sm font-medium">{p.amount}</td>
                                 <td className="px-4 py-2 text-sm capitalize">{p.paymentMode.replace('_', ' ')}</td>
                                 <td className="px-4 py-2 text-sm">
@@ -248,6 +335,22 @@ export default function TrainerDetailPage() {
     return (
         <>
             <div className="p-6">
+                {/* Trainer Header - Always Visible */}
+                <div className="flex items-center space-x-4 mb-6 bg-slate-800/50 p-6 rounded-xl border border-slate-700">
+                    <Avatar name={trainer.name} src={trainer.profilePicture} size="lg" />
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-100">{trainer.name}</h1>
+                        <p className="text-sm text-slate-400 mb-1">ID: {trainer.trainerId || 'N/A'}</p>
+                        <p className="text-slate-300">{trainer.specialization}</p>
+                    </div>
+                    <button
+                        onClick={() => router.push(`/dashboard/staff/${id}/edit`)}
+                        className="ml-auto rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition-colors shadow-sm"
+                    >
+                        Edit Staff
+                    </button>
+                </div>
+
                 {/* Tab Navigation */}
                 <div className="mb-4 flex space-x-4">
                     <button

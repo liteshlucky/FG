@@ -50,6 +50,10 @@ const TrainerSchema = new mongoose.Schema({
         enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'None'],
         default: 'None',
     },
+    ptTarget: {
+        type: Number,
+        default: 20,
+    },
     leaves: [{
         type: Date,
     }],
