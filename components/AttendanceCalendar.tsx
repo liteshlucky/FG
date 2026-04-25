@@ -9,7 +9,9 @@ interface AttendanceCalendarProps {
 export default function AttendanceCalendar({ userId, userType }: AttendanceCalendarProps) {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [attendanceData, setAttendanceData] = useState<any[]>([]);
+    const [leaves, setLeaves] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
+    const [trainerData, setTrainerData] = useState<any>(null);
 
     useEffect(() => {
         fetchHistory();
@@ -22,11 +24,14 @@ export default function AttendanceCalendar({ userId, userType }: AttendanceCalen
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
 
-            // First and last day of the viewed month
+            // Incentive Cycle: 21st of previous month to 20th of current month
+            const cycleStart = new Date(year, month - 1, 21);
+            const cycleEnd = new Date(year, month, 20, 23, 59, 59, 999);
+
+            // Format as YYYY-MM-DD for the history API
+            // We still fetch history for the whole calendar month to populate the visual grid
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
-
-            // Format as YYYY-MM-DD for the API
             const startDate = firstDay.toLocaleDateString('en-CA');
             const endDate = lastDay.toLocaleDateString('en-CA');
 
@@ -38,9 +43,42 @@ export default function AttendanceCalendar({ userId, userType }: AttendanceCalen
             } else {
                 setAttendanceData([]);
             }
+
+            if (userType === 'Trainer') {
+                const trainerRes = await fetch(`/api/trainers/${userId}`);
+                const tData = await trainerRes.json();
+                if (tData.success) {
+                    setTrainerData(tData.data);
+                    setLeaves(tData.data.leaves?.map((l: any) => new Date(l).toLocaleDateString('en-CA')) || []);
+                }
+            }
         } catch (error) {
             console.error('Failed to fetch attendance history', error);
             setAttendanceData([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const toggleLeave = async (day: number) => {
+        if (userType !== 'Trainer' || !userId || !day) return;
+        
+        const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toLocaleDateString('en-CA');
+        const isLeave = leaves.includes(dateStr);
+        
+        try {
+            setLoading(true);
+            const res = await fetch(`/api/trainers/${userId}/leaves`, {
+                method: isLeave ? 'DELETE' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date: dateStr })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setLeaves(data.data.map((l: any) => new Date(l).toLocaleDateString('en-CA')));
+            }
+        } catch (error) {
+            console.error('Failed to toggle leave', error);
         } finally {
             setLoading(false);
         }
@@ -110,10 +148,36 @@ export default function AttendanceCalendar({ userId, userType }: AttendanceCalen
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     {/* Left side: Present Count & Stats */}
                     <div className="flex flex-wrap items-center gap-3">
-                        <div className="flex items-center gap-2 text-sm text-slate-300 bg-emerald-500/10 px-3 py-2 rounded-lg border border-emerald-500/20">
-                            <span className="font-medium">Days Present:</span>
-                            <span className="text-emerald-400 font-bold text-lg leading-none">{attendanceData.length}</span>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Incentive Cycle</span>
+                            <span className="text-xs text-slate-300">
+                                {new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 21).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' })} to {new Date(currentDate.getFullYear(), currentDate.getMonth(), 20).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' })}
+                            </span>
                         </div>
+                        <div className="flex items-center gap-2 text-sm text-slate-300 bg-emerald-500/10 px-3 py-2 rounded-lg border border-emerald-500/20">
+                            <span className="font-medium">Present:</span>
+                            <span className="text-emerald-400 font-bold text-lg leading-none">
+                                {attendanceData.filter(r => {
+                                    const d = new Date(r.checkInTime);
+                                    const cycleStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 21);
+                                    const cycleEnd = new Date(currentDate.getFullYear(), currentDate.getMonth(), 20, 23, 59, 59, 999);
+                                    return d >= cycleStart && d <= cycleEnd;
+                                }).length}
+                            </span>
+                        </div>
+                        {userType === 'Trainer' && (
+                            <div className="flex items-center gap-2 text-sm text-slate-300 bg-amber-500/10 px-3 py-2 rounded-lg border border-amber-500/20">
+                                <span className="font-medium">Leaves:</span>
+                                <span className="text-amber-400 font-bold text-lg leading-none">
+                                    {leaves.filter(l => {
+                                        const d = new Date(l);
+                                        const cycleStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 21);
+                                        const cycleEnd = new Date(currentDate.getFullYear(), currentDate.getMonth(), 20, 23, 59, 59, 999);
+                                        return d >= cycleStart && d <= cycleEnd;
+                                    }).length}
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Right side: Selectors & Navigation */}
@@ -186,21 +250,32 @@ export default function AttendanceCalendar({ userId, userType }: AttendanceCalen
                     {days.map((day, index) => {
                         const record = getAttendanceRecord(day || 0);
                         const todayMarker = day && isToday(day);
+                        const dateStr = day ? new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toLocaleDateString('en-CA') : '';
+                        const isLeave = day && leaves.includes(dateStr);
+                        const dayName = day ? new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toLocaleDateString('en-US', { weekday: 'long' }) : '';
+                        const isDayOff = day && trainerData?.dayOff === dayName;
 
                         return (
                             <div 
                                 key={index} 
+                                onClick={() => day && toggleLeave(day)}
                                 className={`
                                     aspect-[4/3] sm:aspect-square flex flex-col items-center justify-center rounded-xl border relative p-1
-                                    ${!day ? 'bg-transparent border-transparent' : 'bg-slate-800/30 border-slate-800'}
+                                    ${!day ? 'bg-transparent border-transparent' : 'bg-slate-800/30 border-slate-800 cursor-pointer hover:bg-slate-800/50'}
                                     ${todayMarker ? 'ring-2 ring-blue-500/50 bg-blue-900/10' : ''}
                                     ${record ? 'border-emerald-500/30 bg-emerald-900/10' : ''}
+                                    ${isLeave ? 'border-amber-500/30 bg-amber-900/20' : ''}
+                                    ${isDayOff ? 'border-slate-600 bg-slate-700/20' : ''}
                                     transition-all duration-200
                                 `}
                             >
                                 {day && (
                                     <>
-                                        <span className={`text-sm font-medium ${record ? 'text-emerald-400' : todayMarker ? 'text-blue-400' : 'text-slate-300'}`}>
+                                        <span className={`text-sm font-medium 
+                                            ${record ? 'text-emerald-400' : 
+                                              isLeave ? 'text-amber-400' :
+                                              isDayOff ? 'text-slate-500' :
+                                              todayMarker ? 'text-blue-400' : 'text-slate-300'}`}>
                                             {day}
                                         </span>
                                         
@@ -211,8 +286,20 @@ export default function AttendanceCalendar({ userId, userType }: AttendanceCalen
                                                     {formatTime(record.checkInTime)}
                                                 </div>
                                             </div>
+                                        ) : isLeave ? (
+                                            <div className="mt-1">
+                                                <div className="bg-amber-500/20 text-amber-400 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-md">
+                                                    LEAVE
+                                                </div>
+                                            </div>
+                                        ) : isDayOff ? (
+                                            <div className="mt-1">
+                                                <div className="text-[10px] text-slate-500 font-bold tracking-tight">
+                                                    OFF DAY
+                                                </div>
+                                            </div>
                                         ) : (
-                                            <div className="h-5 sm:h-6"></div> // Spacer to keep height consistent
+                                            <div className="h-5 sm:h-6"></div>
                                         )}
                                     </>
                                 )}

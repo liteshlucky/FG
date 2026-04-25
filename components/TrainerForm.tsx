@@ -16,6 +16,7 @@ export default function TrainerForm({ initialData = null, isEdit = false }: { in
         commissionType: 'percentage',
         commissionValue: '',
         dayOff: 'None',
+        ptTarget: 20,
         bankDetails: {
             accountName: '',
             accountNumber: '',
@@ -40,6 +41,7 @@ export default function TrainerForm({ initialData = null, isEdit = false }: { in
                 commissionType: initialData.commissionType || 'percentage',
                 commissionValue: initialData.commissionValue !== undefined ? initialData.commissionValue : '0',
                 dayOff: initialData.dayOff || 'None',
+                ptTarget: initialData.ptTarget !== undefined ? initialData.ptTarget : 20,
                 bankDetails: initialData.bankDetails || {
                     accountName: '',
                     accountNumber: '',
@@ -306,6 +308,18 @@ export default function TrainerForm({ initialData = null, isEdit = false }: { in
                             <option value="Saturday">Saturday</option>
                             <option value="Sunday">Sunday</option>
                         </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-400">PT Client Target (Per Cycle)</label>
+                        <input
+                            type="number"
+                            name="ptTarget"
+                            value={formData.ptTarget}
+                            onChange={handleChange}
+                            className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                            placeholder="e.g. 20"
+                        />
                     </div>
                 </div>
 
