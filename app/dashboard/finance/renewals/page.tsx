@@ -86,6 +86,7 @@ export default function RenewalsPage() {
                     {payload.map((entry: any, index: number) => (
                         <p key={index} className="text-sm font-semibold" style={{ color: entry.color }}>
                             {entry.name}: {entry.name.includes('Revenue') ? formatCurrency(entry.value) : entry.value}
+                            {entry.payload && entry.name.includes('Revenue') ? ` (${entry.name === 'Expected Revenue' ? entry.payload['Pending Count'] : entry.payload['Renewed Count']} members)` : ''}
                         </p>
                     ))}
                 </div>
@@ -94,20 +95,67 @@ export default function RenewalsPage() {
         return null;
     };
 
+    const PieTooltip = ({ active, payload }: any) => {
+        if (active && payload && payload.length) {
+            const data = payload[0].payload;
+            return (
+                <div className="bg-slate-900 border border-slate-700 p-3 rounded-lg shadow-xl">
+                    <p className="text-slate-300 font-medium mb-1">{data.name}</p>
+                    <p className="text-sm font-semibold" style={{ color: data.fill }}>
+                        Count: {data.value} members
+                    </p>
+                    <p className="text-sm font-semibold" style={{ color: data.fill }}>
+                        Amount: {formatCurrency(data.amount)}
+                    </p>
+                </div>
+            );
+        }
+        return null;
+    };
+
+    const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, payload }: any) => {
+        const radius = outerRadius * 1.1;
+        const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
+        const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
+      
+        return (
+          <text x={x} y={y} fill={payload.fill} textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs font-medium">
+            {payload.value} ({formatCurrency(payload.amount)})
+          </text>
+        );
+    };
+
     if (!selectedMonth) return null;
 
     const countData = data ? [
-        { name: 'Pending Renewals', value: data.metrics.pendingCount, fill: '#f59e0b' },
-        { name: 'Successful Renewals', value: data.metrics.renewedCount, fill: '#10b981' }
+        { name: 'Pending Renewals', value: data.metrics.pendingCount, amount: data.metrics.expectedRevenue, fill: '#f59e0b' },
+        { name: 'Successful Renewals', value: data.metrics.renewedCount, amount: data.metrics.realizedRevenue, fill: '#10b981' }
     ].filter(item => item.value > 0) : [];
 
-    const revenueData = data ? [
-        { 
-            name: 'Revenue', 
-            'Expected Revenue': data.metrics.expectedRevenue, 
-            'Realized Revenue': data.metrics.realizedRevenue 
-        }
-    ] : [];
+    const planStats: Record<string, { expected: number, realized: number, pendingCount: number, renewedCount: number }> = {};
+
+    if (data) {
+        data.pendingList.forEach((p: any) => {
+            const name = p.planName || 'Unknown';
+            if (!planStats[name]) planStats[name] = { expected: 0, realized: 0, pendingCount: 0, renewedCount: 0 };
+            planStats[name].expected += p.expectedRevenue;
+            planStats[name].pendingCount += 1;
+        });
+        data.renewedList.forEach((r: any) => {
+            const name = r.planType || 'Unknown';
+            if (!planStats[name]) planStats[name] = { expected: 0, realized: 0, pendingCount: 0, renewedCount: 0 };
+            planStats[name].realized += r.amount;
+            planStats[name].renewedCount += 1;
+        });
+    }
+
+    const planRevenueData = Object.keys(planStats).map(plan => ({
+        name: plan,
+        'Expected Revenue': planStats[plan].expected,
+        'Realized Revenue': planStats[plan].realized,
+        'Pending Count': planStats[plan].pendingCount,
+        'Renewed Count': planStats[plan].renewedCount
+    })).sort((a, b) => (b['Expected Revenue'] + b['Realized Revenue']) - (a['Expected Revenue'] + a['Realized Revenue']));
 
     const combinedList: any[] = [];
     if (data) {
@@ -213,16 +261,18 @@ export default function RenewalsPage() {
                                                 data={countData}
                                                 cx="50%"
                                                 cy="50%"
-                                                innerRadius={70}
-                                                outerRadius={100}
+                                                innerRadius={60}
+                                                outerRadius={90}
                                                 paddingAngle={5}
                                                 dataKey="value"
+                                                label={renderCustomizedLabel}
+                                                labelLine={true}
                                             >
                                                 {countData.map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={entry.fill} />
                                                 ))}
                                             </Pie>
-                                            <RechartsTooltip content={<CustomTooltip />} />
+                                            <RechartsTooltip content={<PieTooltip />} />
                                             <Legend verticalAlign="bottom" height={36} iconType="circle" />
                                         </PieChart>
                                     </ResponsiveContainer>
@@ -234,17 +284,17 @@ export default function RenewalsPage() {
 
                         {/* Revenue Comparison (Bar) */}
                         <div className="rounded-xl bg-slate-800 border border-slate-700 p-6 shadow-sm">
-                            <h3 className="text-lg font-semibold text-slate-200 mb-6">Expected vs Realized Revenue</h3>
+                            <h3 className="text-lg font-semibold text-slate-200 mb-6">Revenue & Renewals by Package</h3>
                             <div className="h-72 w-full">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={revenueData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                    <BarChart data={planRevenueData} margin={{ top: 20, right: 30, left: 20, bottom: 25 }}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                                        <XAxis dataKey="name" stroke="#94a3b8" tickLine={false} axisLine={false} />
+                                        <XAxis dataKey="name" stroke="#94a3b8" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} angle={-45} textAnchor="end" />
                                         <YAxis stroke="#94a3b8" tickFormatter={(val) => `₹${val/1000}k`} tickLine={false} axisLine={false} />
                                         <RechartsTooltip content={<CustomTooltip />} cursor={{fill: '#1e293b'}} />
-                                        <Legend verticalAlign="bottom" height={36} iconType="circle" />
-                                        <Bar dataKey="Expected Revenue" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={60} />
-                                        <Bar dataKey="Realized Revenue" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={60} />
+                                        <Legend verticalAlign="top" height={36} iconType="circle" />
+                                        <Bar dataKey="Expected Revenue" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                                        <Bar dataKey="Realized Revenue" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
