@@ -192,7 +192,7 @@ export default function AnalyticsPage() {
             <div className="rounded-lg bg-slate-800 p-6 shadow border border-slate-700">
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-slate-100">Revenue Projection</h2>
-                    <span className="text-xs text-slate-400">Historical + AI Forecast</span>
+                    <span className="text-xs text-slate-400">History + Expected Renewals Pipeline</span>
                 </div>
                 <ResponsiveContainer width="100%" height={350}>
                     <LineChart data={[
@@ -249,6 +249,25 @@ export default function AnalyticsPage() {
                             Avg/Month: <span className="font-semibold">₹{Math.round(insights.forecast.next3Months.income / 3).toLocaleString()}</span>
                         </p>
                     </div>
+                </div>
+
+                {/* Explanation Block */}
+                <div className="mt-6 rounded-lg bg-slate-900/50 p-5 border border-slate-700/50">
+                    <div className="flex items-center gap-2 mb-3">
+                        <Lightbulb className="h-4 w-4 text-yellow-500/80" />
+                        <h4 className="text-sm font-semibold text-slate-200">How is this calculated?</h4>
+                    </div>
+                    <ul className="text-xs text-slate-400 space-y-3 ml-5 list-disc marker:text-slate-600">
+                        <li>
+                            <strong className="text-slate-300 font-medium">Historical Baseline (₹{metrics.avgMonthlyIncome.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo):</strong> The AI starts with your average monthly revenue from the selected period.
+                        </li>
+                        <li>
+                            <strong className="text-slate-300 font-medium">Expected Renewals Pipeline (+₹{analytics.expectedRenewals?.next30Days.toLocaleString()}):</strong> It adds the exact monetary value of active memberships currently scheduled to expire in the next 30 days.
+                        </li>
+                        <li>
+                            <strong className="text-slate-300 font-medium">AI Adjustments (Seasonality & Weather):</strong> The Gemini 1.5 model adjusts the final sum by analyzing historical attendance dips/spikes related to current weather and Sodepur festivals (e.g. Durga Puja, Diwali).
+                        </li>
+                    </ul>
                 </div>
             </div>
 

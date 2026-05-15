@@ -89,6 +89,34 @@ export async function GET(request) {
         let totalIncome = 0;
 
         const ptVsMembership = { 'PT': 0, 'Membership': 0, 'Other': 0 };
+        const ptVsMembershipCount = { 'PT': 0, 'Membership': 0, 'Other': 0 };
+
+        const newVsRenewal = {
+            'New Member': { count: 0, revenue: 0, list: [] },
+            'Renewal': { count: 0, revenue: 0, list: [] },
+            'Dues': { count: 0, revenue: 0, list: [] },
+            'Other': { count: 0, revenue: 0, list: [] }
+        };
+
+        // Build a map of primary member actions per day to properly categorize same-day dues
+        const memberDailyActions = {};
+        memberPayments.forEach(p => {
+            const type = (p.planType || '').toLowerCase();
+            const category = p.paymentCategory || p.planType || '';
+            if (type !== 'pt_plan' && type !== 'ptplan' && category !== 'PT Plan') {
+                const action = (p.membershipAction || 'none').toLowerCase();
+                if (action === 'new' || action === 'renewal') {
+                    const dateStr = new Date(p.paymentDate).toISOString().split('T')[0];
+                    const memberId = p.memberId?.toString();
+                    if (memberId) {
+                        if (!memberDailyActions[memberId]) {
+                            memberDailyActions[memberId] = {};
+                        }
+                        memberDailyActions[memberId][dateStr] = action === 'new' ? 'New Member' : 'Renewal';
+                    }
+                }
+            }
+        });
 
         // Process Member Payments (Income)
         memberPayments.forEach(p => {
@@ -103,13 +131,52 @@ export async function GET(request) {
 
             if (type === 'pt_plan' || type === 'ptplan' || category === 'PT Plan') {
                 ptVsMembership['PT'] += amount;
-                
+                ptVsMembershipCount['PT'] += 1;
                 // Note: We no longer attribute UPFRONT PT revenue to trainers here
                 // Revenue is now recognized monthly (accrual basis) in the next section.
             } else if (type === 'membership' || type === 'plan' || category === 'Plan') {
                 ptVsMembership['Membership'] += amount;
+                ptVsMembershipCount['Membership'] += 1;
             } else {
                 ptVsMembership['Other'] += amount;
+                ptVsMembershipCount['Other'] += 1;
+            }
+
+            // New vs Renewal Tracking (Exclude PT Plans)
+            if (type !== 'pt_plan' && type !== 'ptplan' && category !== 'PT Plan') {
+                const action = (p.membershipAction || 'none').toLowerCase();
+                const payCategory = p.paymentCategory || '';
+                
+                let categoryKey = 'Other';
+                const dateStr = new Date(p.paymentDate).toISOString().split('T')[0];
+                const memberId = p.memberId?.toString();
+
+                if (action === 'new') {
+                    categoryKey = 'New Member';
+                } else if (action === 'renewal') {
+                    categoryKey = 'Renewal';
+                } else if (payCategory === 'Due Amount' || action === 'none') {
+                    if (memberId && memberDailyActions[memberId] && memberDailyActions[memberId][dateStr]) {
+                        categoryKey = memberDailyActions[memberId][dateStr];
+                    } else {
+                        categoryKey = 'Dues';
+                    }
+                }
+                
+                newVsRenewal[categoryKey].count += 1;
+                newVsRenewal[categoryKey].revenue += amount;
+                
+                const memberObj = memberMap[p.memberId?.toString()];
+                newVsRenewal[categoryKey].list.push({
+                    paymentId: p._id,
+                    memberName: memberObj ? memberObj.name : 'Unknown',
+                    memberIdStr: memberObj ? memberObj.memberId : '-',
+                    memberObjId: memberObj ? memberObj._id : p.memberId,
+                    amount: amount,
+                    paymentDate: p.paymentDate,
+                    paymentMode: mode,
+                    planType: p.planType || 'Membership'
+                });
             }
         });
 
@@ -162,8 +229,19 @@ export async function GET(request) {
 
         const ptVsMembershipData = Object.entries(ptVsMembership)
             .filter(([_, value]) => value > 0)
-            .map(([name, value]) => ({ name, value }))
+            .map(([name, value]) => ({ name, value, count: ptVsMembershipCount[name] || 0 }))
             .sort((a, b) => b.value - a.value);
+
+        const newVsRenewalData = Object.entries(newVsRenewal)
+            .filter(([_, data]) => data.count > 0 || data.revenue > 0)
+            .map(([name, data]) => ({ name, value: data.revenue, count: data.count, list: data.list }))
+            .sort((a, b) => b.value - a.value);
+        
+        // Also return the date range so the UI can display it
+        const reportDateRange = {
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString()
+        };
 
         // 3. Aggregate Expenses
         const expenseBreakdown = {};
@@ -290,8 +368,10 @@ export async function GET(request) {
                     totalExpense,
                     netBalance: totalIncome - totalExpense
                 },
+                reportDateRange,
                 revenueBreakdown: revenueChartData,
                 ptVsMembership: ptVsMembershipData,
+                newVsRenewal: newVsRenewalData,
                 expenseBreakdown: expenseChartData,
                 paymentModes,
                 trend: trendChartData,
