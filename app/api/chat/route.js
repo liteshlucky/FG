@@ -407,9 +407,11 @@ export async function POST(req) {
         const { message, history } = await req.json();
 
         // Use gemini-2.5-flash for reliability and speed
+        const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         const model = genAI.getGenerativeModel({
             model: "gemini-2.5-flash",
             tools: [{ functionDeclarations: tools }],
+            systemInstruction: `You are a gym assistant. Today's date is ${currentDate}. Use this context to answer questions about relative dates (e.g., 'this month', 'June', 'next week') and calculate exact date ranges or number of days from today when calling your tools. For example, if a user asks for members expiring in June, calculate how many days from today the end of June is and use that for the 'days' parameter in getExpiringMembers.`
         });
 
         // Backend Sanitization for Google Gemini (History must start with User)

@@ -2,6 +2,7 @@ import dbConnect from '@/lib/db';
 import Transaction from '@/models/Transaction';
 import Payment from '@/models/Payment';
 import TrainerPayment from '@/models/TrainerPayment';
+import Member from '@/models/Member';
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getWeatherForMonth, analyzeWeatherImpact } from '@/lib/weather';
@@ -94,6 +95,25 @@ export async function GET(request) {
         // Analyze weather impact
         const weatherImpact = analyzeWeatherImpact(monthlyArray);
 
+        // Calculate Expected Renewals based on current active members expiring soon
+        const in30Days = new Date();
+        in30Days.setDate(in30Days.getDate() + 30);
+        
+        const in90Days = new Date();
+        in90Days.setDate(in90Days.getDate() + 90);
+
+        const expiringNext30 = await Member.find({
+            status: 'Active',
+            membershipEndDate: { $gte: new Date(), $lte: in30Days }
+        }).lean();
+        const expectedRenewalValueNext30 = expiringNext30.reduce((sum, m) => sum + (m.totalPlanPrice || 0), 0);
+
+        const expiringNext90 = await Member.find({
+            status: 'Active',
+            membershipEndDate: { $gte: new Date(), $lte: in90Days }
+        }).lean();
+        const expectedRenewalValueNext90 = expiringNext90.reduce((sum, m) => sum + (m.totalPlanPrice || 0), 0);
+
         // Generate AI insights
         const aiInsights = await generateAIInsights({
             monthlyData: monthlyArray,
@@ -104,7 +124,11 @@ export async function GET(request) {
             currentMonth,
             currentSeason,
             upcomingFestivals,
-            weatherImpact
+            weatherImpact,
+            expectedRenewals: {
+                next30Days: expectedRenewalValueNext30,
+                next90Days: expectedRenewalValueNext90
+            }
         });
 
         return NextResponse.json({
@@ -120,6 +144,10 @@ export async function GET(request) {
                     profitMargin: ((totalIncome - totalExpense) / totalIncome * 100).toFixed(2)
                 },
                 weatherImpact,
+                expectedRenewals: {
+                    next30Days: expectedRenewalValueNext30,
+                    next90Days: expectedRenewalValueNext90
+                },
                 insights: aiInsights
             }
         });
@@ -175,6 +203,10 @@ CURRENT CONTEXT:
 - Current Month: ${data.currentMonth}
 - Season: ${data.currentSeason}
 - Upcoming Festivals/Events: ${data.upcomingFestivals.join(', ')}
+
+EXPECTED RENEWALS PIPELINE:
+- Expiring in next 30 days: ₹${data.expectedRenewals.next30Days.toLocaleString()} (Estimated Renewal Revenue)
+- Expiring in next 90 days: ₹${data.expectedRenewals.next90Days.toLocaleString()} (Estimated Renewal Revenue)
 
 LOCATION CONTEXT (Sodepur, West Bengal):
 - Student population from nearby colleges

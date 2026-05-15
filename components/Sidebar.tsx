@@ -20,6 +20,7 @@ const navigation = [
         subItems: [
             { name: 'Transactions', href: '/dashboard/finance' },
             { name: 'Reports', href: '/dashboard/finance/reports' },
+            { name: 'Renewals', href: '/dashboard/finance/renewals' },
         ]
     },
     { 

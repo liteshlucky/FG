@@ -28,6 +28,7 @@ export default function FinanceReportsPage() {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null);
     const [expandedTrainers, setExpandedTrainers] = useState<Record<string, boolean>>({});
+    const [activeListTab, setActiveListTab] = useState('New Member');
     const [filters, setFilters] = useState({
         dateRange: 'this_month',
         startDate: '',
@@ -233,64 +234,261 @@ export default function FinanceReportsPage() {
 
                                 {/* Charts Row */}
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    {/* Revenue Breakdown */}
-                                    <div className="rounded-xl bg-slate-800 border border-slate-700 p-6 shadow-sm">
-                                        <h3 className="text-lg font-semibold text-slate-200 mb-6">Revenue Breakdown</h3>
-                                        {data.revenueBreakdown.length > 0 ? (
-                                            <div className="h-72 w-full">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <PieChart>
-                                                        <Pie
-                                                            data={data.revenueBreakdown}
-                                                            cx="50%"
-                                                            cy="50%"
-                                                            innerRadius={70}
-                                                            outerRadius={100}
-                                                            paddingAngle={5}
-                                                            dataKey="value"
-                                                        >
-                                                            {data.revenueBreakdown.map((entry: any, index: number) => (
-                                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                            ))}
-                                                        </Pie>
-                                                        <RechartsTooltip content={<CustomTooltip />} />
-                                                        <Legend verticalAlign="bottom" height={36} iconType="circle" />
-                                                    </PieChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                        ) : (
-                                            <div className="h-72 flex items-center justify-center text-slate-500">No income records found.</div>
-                                        )}
-                                    </div>
 
                                     {/* PT vs Membership Breakdown */}
-                                    <div className="rounded-xl bg-slate-800 border border-slate-700 p-6 shadow-sm">
-                                        <h3 className="text-lg font-semibold text-slate-200 mb-6">PT vs Membership</h3>
+                                    <div className="rounded-xl bg-slate-800 border border-slate-700 p-6 shadow-sm flex flex-col gap-4">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-lg font-semibold text-slate-200">PT vs Membership</h3>
+                                            {data.reportDateRange && (
+                                                <span className="text-xs text-slate-400 bg-slate-900 border border-slate-700 px-3 py-1 rounded-full">
+                                                    {new Date(data.reportDateRange.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                    {' → '}
+                                                    {new Date(data.reportDateRange.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                </span>
+                                            )}
+                                        </div>
                                         {data.ptVsMembership?.length > 0 ? (
-                                            <div className="h-72 w-full">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <PieChart>
-                                                        <Pie
-                                                            data={data.ptVsMembership}
-                                                            cx="50%"
-                                                            cy="50%"
-                                                            innerRadius={70}
-                                                            outerRadius={100}
-                                                            paddingAngle={5}
-                                                            dataKey="value"
-                                                        >
-                                                            {data.ptVsMembership.map((entry: any, index: number) => (
-                                                                <Cell key={`cell-${index}`} fill={entry.name === 'PT' ? '#f97316' : entry.name === 'Membership' ? '#3b82f6' : '#8b5cf6'} />
-                                                            ))}
-                                                        </Pie>
-                                                        <RechartsTooltip content={<CustomTooltip />} />
-                                                        <Legend verticalAlign="bottom" height={36} iconType="circle" />
-                                                    </PieChart>
-                                                </ResponsiveContainer>
-                                            </div>
+                                            <>
+                                                <div className="h-56 w-full">
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <PieChart>
+                                                            <Pie
+                                                                data={data.ptVsMembership}
+                                                                cx="50%"
+                                                                cy="50%"
+                                                                innerRadius={60}
+                                                                outerRadius={88}
+                                                                paddingAngle={5}
+                                                                dataKey="value"
+                                                            >
+                                                                {data.ptVsMembership.map((entry: any, index: number) => (
+                                                                    <Cell key={`cell-${index}`} fill={entry.name === 'PT' ? '#f97316' : entry.name === 'Membership' ? '#3b82f6' : '#8b5cf6'} />
+                                                                ))}
+                                                            </Pie>
+                                                            <RechartsTooltip content={<CustomTooltip />} />
+                                                            <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                                                        </PieChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+
+                                                {/* Detailed stats below chart */}
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-700">
+                                                    {data.ptVsMembership.map((entry: any) => {
+                                                        const color = entry.name === 'PT' ? 'orange' : entry.name === 'Membership' ? 'blue' : 'purple';
+                                                        const colorMap: Record<string, { bg: string; text: string; border: string; dot: string }> = {
+                                                            orange: { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20', dot: 'bg-orange-400' },
+                                                            blue:   { bg: 'bg-blue-500/10',   text: 'text-blue-400',   border: 'border-blue-500/20',   dot: 'bg-blue-400'   },
+                                                            purple: { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20', dot: 'bg-purple-400' },
+                                                        };
+                                                        const c = colorMap[color];
+                                                        const totalRevenue = data.ptVsMembership.reduce((s: number, i: any) => s + i.value, 0);
+                                                        const pct = totalRevenue > 0 ? ((entry.value / totalRevenue) * 100).toFixed(1) : '0';
+                                                        return (
+                                                            <div key={entry.name} className={`rounded-lg border ${c.border} ${c.bg} p-3 flex flex-col gap-1`}>
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <span className={`inline-block h-2.5 w-2.5 rounded-full ${c.dot}`}></span>
+                                                                    <span className={`text-sm font-semibold ${c.text}`}>{entry.name}</span>
+                                                                    <span className="ml-auto text-xs text-slate-500 font-medium">{pct}%</span>
+                                                                </div>
+                                                                <div className="flex items-end justify-between">
+                                                                    <div>
+                                                                        <p className="text-xs text-slate-500">Revenue</p>
+                                                                        <p className={`text-lg font-bold ${c.text}`}>{formatCurrency(entry.value)}</p>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <p className="text-xs text-slate-500">Payments</p>
+                                                                        <p className="text-lg font-bold text-slate-200">{entry.count ?? '—'}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </>
                                         ) : (
                                             <div className="h-72 flex items-center justify-center text-slate-500">No segment records found.</div>
                                         )}
+                                    </div>
+
+                                    {/* New vs Renewal Breakdown */}
+                                    <div className="rounded-xl bg-slate-800 border border-slate-700 p-6 shadow-sm flex flex-col gap-4">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-lg font-semibold text-slate-200">Membership: New vs Renewal</h3>
+                                            {data.reportDateRange && (
+                                                <span className="text-xs text-slate-400 bg-slate-900 border border-slate-700 px-3 py-1 rounded-full">
+                                                    {new Date(data.reportDateRange.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                    {' → '}
+                                                    {new Date(data.reportDateRange.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {data.newVsRenewal?.length > 0 ? (
+                                            <>
+                                                <div className="h-56 w-full">
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <PieChart>
+                                                            <Pie
+                                                                data={data.newVsRenewal}
+                                                                cx="50%"
+                                                                cy="50%"
+                                                                innerRadius={60}
+                                                                outerRadius={88}
+                                                                paddingAngle={5}
+                                                                dataKey="value"
+                                                            >
+                                                                {data.newVsRenewal.map((entry: any, index: number) => {
+                                                                    let fill = '#94a3b8';
+                                                                    if (entry.name === 'New Member') fill = '#10b981';
+                                                                    else if (entry.name === 'Renewal') fill = '#3b82f6';
+                                                                    else if (entry.name === 'Dues') fill = '#f59e0b';
+                                                                    return <Cell key={`cell-${index}`} fill={fill} />;
+                                                                })}
+                                                            </Pie>
+                                                            <RechartsTooltip content={<CustomTooltip />} />
+                                                            <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                                                        </PieChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+
+                                                {/* Detailed stats below chart */}
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-700">
+                                                    {data.newVsRenewal.map((entry: any) => {
+                                                        const color = entry.name === 'New Member' ? 'green' : entry.name === 'Renewal' ? 'blue' : entry.name === 'Dues' ? 'orange' : 'slate';
+                                                        const colorMap: Record<string, { bg: string; text: string; border: string; dot: string }> = {
+                                                            green: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20', dot: 'bg-emerald-400' },
+                                                            blue:  { bg: 'bg-blue-500/10',    text: 'text-blue-400',    border: 'border-blue-500/20',   dot: 'bg-blue-400'   },
+                                                            orange:{ bg: 'bg-orange-500/10',  text: 'text-orange-400',  border: 'border-orange-500/20', dot: 'bg-orange-400' },
+                                                            slate: { bg: 'bg-slate-500/10',   text: 'text-slate-400',   border: 'border-slate-500/20',  dot: 'bg-slate-400'  },
+                                                        };
+                                                        const c = colorMap[color];
+                                                        const totalRevenue = data.newVsRenewal.reduce((s: number, i: any) => s + i.value, 0);
+                                                        const pct = totalRevenue > 0 ? ((entry.value / totalRevenue) * 100).toFixed(1) : '0';
+                                                        return (
+                                                            <div key={entry.name} className={`rounded-lg border ${c.border} ${c.bg} p-3 flex flex-col gap-1`}>
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <span className={`inline-block h-2.5 w-2.5 rounded-full ${c.dot}`}></span>
+                                                                    <span className={`text-sm font-semibold ${c.text}`}>{entry.name}</span>
+                                                                    <span className="ml-auto text-xs text-slate-500 font-medium">{pct}%</span>
+                                                                </div>
+                                                                <div className="flex items-end justify-between">
+                                                                    <div>
+                                                                        <p className="text-xs text-slate-500">Revenue</p>
+                                                                        <p className={`text-lg font-bold ${c.text}`}>{formatCurrency(entry.value)}</p>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <p className="text-xs text-slate-500">Count</p>
+                                                                        <p className="text-lg font-bold text-slate-200">{entry.count ?? '—'}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="h-72 flex items-center justify-center text-slate-500">No segment records found.</div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Member Category Lists Row */}
+                                <div className="rounded-xl bg-slate-800 border border-slate-700 shadow-sm overflow-hidden flex flex-col mb-6">
+                                    <div className="p-5 border-b border-slate-700 flex flex-col gap-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-blue-500/10 rounded-lg">
+                                                <Wallet className="h-5 w-5 text-blue-500" />
+                                            </div>
+                                            <h3 className="text-lg font-semibold text-slate-200">Membership Payment List</h3>
+                                        </div>
+                                        {/* Tabs */}
+                                        <div className="flex gap-2 border-b border-slate-700">
+                                            {['New Member', 'Renewal', 'Dues'].map(tab => (
+                                                <button
+                                                    key={tab}
+                                                    onClick={() => setActiveListTab(tab)}
+                                                    className={clsx(
+                                                        "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
+                                                        activeListTab === tab 
+                                                            ? "border-blue-500 text-blue-400" 
+                                                            : "border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-600"
+                                                    )}
+                                                >
+                                                    {tab}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="overflow-x-auto h-96">
+                                        <table className="min-w-full divide-y divide-slate-700">
+                                            <thead className="bg-slate-900/50 sticky top-0">
+                                                <tr>
+                                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Date</th>
+                                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Member</th>
+                                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Plan Type</th>
+                                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Payment Mode</th>
+                                                    <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-700/50 bg-slate-800">
+                                                {(() => {
+                                                    const currentListObj = data.newVsRenewal?.find((c: any) => c.name === activeListTab);
+                                                    const list = currentListObj?.list || [];
+                                                    if (list.length === 0) {
+                                                        return (
+                                                            <tr>
+                                                                <td colSpan={5} className="px-5 py-8 text-center text-sm text-slate-500">
+                                                                    No payments found for {activeListTab} in this period.
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    }
+                                                    return list.map((item: any, idx: number) => (
+                                                        <tr key={item.paymentId || idx} className="hover:bg-slate-700/30 transition-colors">
+                                                            <td className="px-5 py-4 whitespace-nowrap text-sm text-slate-400">
+                                                                {new Date(item.paymentDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                            </td>
+                                                            <td className="px-5 py-4 whitespace-nowrap">
+                                                                <Link href={`/dashboard/members/${item.memberIdStr !== '-' ? item.memberIdStr : item.memberObjId}`} className="group inline-flex flex-col">
+                                                                    <div className="text-sm font-medium text-blue-400 group-hover:text-blue-300 transition-colors flex items-center gap-1">
+                                                                        {item.memberName}
+                                                                        <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                                    </div>
+                                                                    <div className="text-xs text-slate-500">{item.memberIdStr}</div>
+                                                                </Link>
+                                                            </td>
+                                                            <td className="px-5 py-4 whitespace-nowrap text-sm text-slate-300">
+                                                                {item.planType === 'pt_plan' || item.planType === 'PTplan' ? 'PT Plan' : 'Membership'}
+                                                            </td>
+                                                            <td className="px-5 py-4 whitespace-nowrap text-sm text-slate-300 capitalize">
+                                                                {item.paymentMode?.replace('_', ' ')}
+                                                            </td>
+                                                            <td className="px-5 py-4 whitespace-nowrap text-sm font-bold text-slate-200 text-right">
+                                                                {formatCurrency(item.amount)}
+                                                            </td>
+                                                        </tr>
+                                                    ));
+                                                })()}
+                                            </tbody>
+                                            {(() => {
+                                                const currentListObj = data.newVsRenewal?.find((c: any) => c.name === activeListTab);
+                                                if (currentListObj && currentListObj.list && currentListObj.list.length > 0) {
+                                                    return (
+                                                        <tfoot className="bg-slate-900/80 sticky bottom-0">
+                                                            <tr>
+                                                                <td colSpan={4} className="px-5 py-3 text-right text-sm font-bold text-slate-400 uppercase tracking-wider">
+                                                                    Total
+                                                                </td>
+                                                                <td className="px-5 py-3 text-right text-sm font-bold text-emerald-400">
+                                                                    {formatCurrency(currentListObj.value)}
+                                                                </td>
+                                                            </tr>
+                                                        </tfoot>
+                                                    );
+                                                }
+                                                return null;
+                                            })()}
+                                        </table>
                                     </div>
                                 </div>
 
