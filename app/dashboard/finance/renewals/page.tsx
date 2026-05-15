@@ -26,6 +26,7 @@ export default function RenewalsPage() {
     const [data, setData] = useState<any>(null);
     const [selectedMonth, setSelectedMonth] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'renewed'>('all');
+    const [planFilter, setPlanFilter] = useState<string>('all');
 
     useEffect(() => {
         // Initialize with current month in YYYY-MM format
@@ -119,9 +120,14 @@ export default function RenewalsPage() {
         });
     }
 
+    // Collect unique plans for filter dropdown
+    const uniquePlans = Array.from(new Set(combinedList.map(item => item.type === 'pending' ? item.planName : item.planType))).filter(Boolean).sort();
+
     const filteredList = combinedList.filter(item => {
-        if (statusFilter === 'all') return true;
-        return item.type === statusFilter;
+        const statusMatch = statusFilter === 'all' || item.type === statusFilter;
+        const itemPlan = item.type === 'pending' ? item.planName : item.planType;
+        const planMatch = planFilter === 'all' || itemPlan === planFilter;
+        return statusMatch && planMatch;
     });
 
     return (
@@ -249,11 +255,21 @@ export default function RenewalsPage() {
                     <div className="rounded-xl bg-slate-800 border border-slate-700 shadow-sm overflow-hidden flex flex-col">
                         <div className="px-6 py-4 border-b border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <h3 className="text-lg font-semibold text-slate-200">All Renewals ({filteredList.length})</h3>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <select 
+                                    value={planFilter}
+                                    onChange={(e) => setPlanFilter(e.target.value)}
+                                    className="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full sm:w-auto p-2 outline-none"
+                                >
+                                    <option value="all">All Packages</option>
+                                    {uniquePlans.map((plan: any) => (
+                                        <option key={plan} value={plan}>{plan}</option>
+                                    ))}
+                                </select>
                                 <select 
                                     value={statusFilter}
                                     onChange={(e) => setStatusFilter(e.target.value as any)}
-                                    className="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 outline-none"
+                                    className="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full sm:w-auto p-2 outline-none"
                                 >
                                     <option value="all">All Statuses</option>
                                     <option value="pending">Pending Only</option>

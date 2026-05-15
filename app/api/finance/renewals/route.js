@@ -1,6 +1,7 @@
 import dbConnect from '@/lib/db';
 import Member from '@/models/Member';
 import Payment from '@/models/Payment';
+import Plan from '@/models/Plan';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
